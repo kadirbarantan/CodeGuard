@@ -1,0 +1,84 @@
+@import 'tailwindcss';
+
+/* Açık tema (varsayılan) */
+:root {
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --soft: #f1f5f9;
+  --panel: #0f172a;
+  --on-panel: #f8fafc;
+  --text: #0f172a;
+  --text-2: #334155;
+  --muted: #475569;
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --accent: #7c3aed;
+  --ok: #10b981;
+  --bad: #ef4444;
+  --ok-text: #047857;
+  --bad-text: #b91c1c;
+  --ai-text: #6d28d9;
+  --ok-bg: #ecfdf5;
+  --bad-bg: #fef2f2;
+  --ai-bg: #f5f3ff;
+  --ai-border: #ddd6fe;
+}
+
+/* Koyu tema: <html data-theme="dark"> */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0b1120;
+  --surface: #131c2e;
+  --soft: #1e293b;
+  --panel: #1a2340;
+  --on-panel: #f8fafc;
+  --text: #e2e8f0;
+  --text-2: #cbd5e1;
+  --muted: #94a3b8;
+  --border: #243049;
+  --border-strong: #334155;
+  --accent: #7c3aed;
+  --ok: #10b981;
+  --bad: #ef4444;
+  --ok-text: #34d399;
+  --bad-text: #f87171;
+  --ai-text: #a78bfa;
+  --ok-bg: rgba(16, 185, 129, 0.14);
+  --bad-bg: rgba(239, 68, 68, 0.14);
+  --ai-bg: rgba(124, 58, 237, 0.16);
+  --ai-border: rgba(167, 139, 250, 0.35);
+}
+
+/* Değişkenleri Tailwind sınıflarına bağla: --color-surface -> bg-surface */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-soft: var(--soft);
+  --color-panel: var(--panel);
+  --color-on-panel: var(--on-panel);
+  --color-text: var(--text);
+  --color-text-2: var(--text-2);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-accent: var(--accent);
+  --color-ok: var(--ok);
+  --color-bad: var(--bad);
+  --color-ok-text: var(--ok-text);
+  --color-bad-text: var(--bad-text);
+  --color-ai-text: var(--ai-text);
+  --color-ok-bg: var(--ok-bg);
+  --color-bad-bg: var(--bad-bg);
+  --color-ai-bg: var(--ai-bg);
+  --color-ai-border: var(--ai-border);
+
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+}
