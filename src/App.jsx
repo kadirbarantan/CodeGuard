@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Header from './components/Header'
 import Hero from './components/home/Hero'
 import ConfigCard from './components/home/ConfigCard'
@@ -6,7 +6,10 @@ import HowItWorks from './components/home/HowItWorks'
 import AgentLoop from './components/home/AgentLoop'
 import ReportPreview from './components/home/ReportPreview'
 import AuthModal from './components/AuthModal'
-import { startRun } from './services/api'
+import { startRun, subscribeRun, stopRun, getReport } from './services/api'
+import RunSummaryBar from './components/run/RunSummaryBar'
+import LiveStats from './components/run/LiveStats'
+import AgentTimeline from './components/run/AgentTimeline'
 
 // Mock oturum: localStorage'da 'kullanici' anahtarıyla saklanır
 function kayitliKullanici() {
@@ -42,20 +45,72 @@ export default function App() {
   const [events, setEvents] = useState([])
   const [report, setReport] = useState(null)
 
+  // Aktif aboneliğin durdurma fonksiyonu ve geçerli çalıştırma kimliği (eski olayları yok saymak için)
+  const durdurRef = useRef(null)
+  const aktifRunRef = useRef(null)
+
+  // Aboneliği kapat (varsa)
+  function abonelikKapat() {
+    if (durdurRef.current) {
+      durdurRef.current()
+      durdurRef.current = null
+    }
+  }
+
+  // Bileşen kaldırılırken abonelik kapansın
+  useEffect(() => abonelikKapat, [])
+
   function cikis() {
+    abonelikKapat()
+    aktifRunRef.current = null
     localStorage.removeItem('kullanici')
     setUser(null)
     setPendingStart(false)
+    setEvents([])
     setScreen('yukle')
   }
 
-  // Testi başlat: runId'yi sakla, çalışıyor ekranına geç
+  // Testi başlat: runId'yi sakla, olayları dinle, çalışıyor ekranına geç
   async function testiBaslat(cfg) {
+    abonelikKapat()
     const { runId: id } = await startRun(cfg)
+    aktifRunRef.current = id
     setRunId(id)
     setEvents([])
     setReport(null)
     setScreen('calisiyor')
+    durdurRef.current = subscribeRun(id, (olay) => {
+      if (aktifRunRef.current !== id) return
+      if (olay.type === 'done') {
+        abonelikKapat()
+        raporaGec(id)
+      } else {
+        setEvents((onceki) => [...onceki, olay])
+      }
+    })
+  }
+
+  async function raporaGec(id) {
+    const sonuc = await getReport(id)
+    if (aktifRunRef.current !== id) return // bu arada durduruldu / çıkış yapıldı
+    setReport(sonuc)
+    setScreen('rapor')
+  }
+
+  // Durdur: aboneliği kapat, çalıştırmayı durdur, ana ekrana dön (config korunur)
+  function durdur() {
+    const id = aktifRunRef.current
+    abonelikKapat()
+    aktifRunRef.current = null
+    setEvents([])
+    setScreen('yukle')
+    if (id) stopRun(id)
+  }
+
+  // Logo ile ana ekrana dönüş: çalışan test varsa önce durdur
+  function anaSayfa() {
+    if (screen === 'calisiyor') durdur()
+    else setScreen('yukle')
   }
 
   // ConfigCard'dan Başlat: giriş yoksa önce modal
@@ -87,7 +142,7 @@ export default function App() {
     <div className="min-h-screen bg-bg text-text">
       <Header
         user={user}
-        onHome={() => setScreen('yukle')}
+        onHome={anaSayfa}
         onLogin={() => setModal('giris')}
         onRegister={() => setModal('kayit')}
         onHistory={() => setDrawerOpen(true)}
@@ -103,15 +158,38 @@ export default function App() {
         </main>
       )}
       {screen === 'calisiyor' && (
+        <main className="mx-auto max-w-6xl space-y-4 px-4 py-8">
+          <RunSummaryBar config={config} onStop={durdur} />
+          <section className="rounded-2xl border border-border bg-surface p-5 sm:p-8">
+            <div className="mb-5 flex items-center justify-between gap-3">
+              <h2 className="text-xl font-semibold">Ajanlar ve Süreç (canlı akış)</h2>
+              <span className="flex items-center gap-2 text-sm font-medium text-ai-text">
+                <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-accent" />
+                Tur {events.length ? events[events.length - 1].round : 1} /{' '}
+                {events.length ? events[events.length - 1].maxRounds : 4}
+              </span>
+            </div>
+            <LiveStats metrics={events.length ? events[events.length - 1].metrics : null} />
+            <div className="mt-6">
+              <AgentTimeline events={events} />
+            </div>
+          </section>
+        </main>
+      )}
+      {screen === 'rapor' && (
         <main className="mx-auto flex max-w-6xl justify-center px-4 py-16">
           <div className="rounded-2xl border border-border bg-surface p-8 text-center">
-            <p className="mb-4 text-text">Test başlatıldı (runId: {runId})</p>
+            <p className="mb-4 text-text">Rapor hazır</p>
             <button
               type="button"
-              onClick={() => setScreen('yukle')}
+              onClick={() => {
+                aktifRunRef.current = null
+                setEvents([])
+                setScreen('yukle')
+              }}
               className="min-h-10 rounded-lg bg-accent px-4 text-sm font-medium text-white hover:opacity-90"
             >
-              Geri dön
+              + Yeni Test
             </button>
           </div>
         </main>
