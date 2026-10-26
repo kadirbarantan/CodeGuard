@@ -82,3 +82,15 @@ body {
   color: var(--text);
   font-family: var(--font-sans);
 }
+
+/* Kod sekmesi: Monaco satır boyama (gece modunda da okunur) */
+.cov-ok { background: rgba(16, 185, 129, 0.16); }
+.cov-bad { background: rgba(239, 68, 68, 0.18); cursor: pointer; }
+.cov-gri { background: rgba(148, 163, 184, 0.2); }
+.cov-serit-ok, .cov-serit-bad, .cov-serit-gri { margin-left: 3px; width: 4px !important; }
+.cov-serit-ok { background: var(--ok); }
+.cov-serit-bad { background: var(--bad); cursor: pointer; }
+.cov-serit-gri { background: var(--border-strong); }
+:root[data-theme='dark'] .cov-ok { background: rgba(16, 185, 129, 0.22); }
+:root[data-theme='dark'] .cov-bad { background: rgba(239, 68, 68, 0.28); }
+:root[data-theme='dark'] .cov-gri { background: rgba(148, 163, 184, 0.24); }

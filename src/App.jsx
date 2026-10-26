@@ -10,6 +10,7 @@ import { startRun, subscribeRun, stopRun, getReport } from './services/api'
 import RunSummaryBar from './components/run/RunSummaryBar'
 import LiveStats from './components/run/LiveStats'
 import AgentTimeline from './components/run/AgentTimeline'
+import ReportView from './components/report/ReportView'
 
 // Mock oturum: localStorage'da 'kullanici' anahtarıyla saklanır
 function kayitliKullanici() {
@@ -176,23 +177,16 @@ export default function App() {
           </section>
         </main>
       )}
-      {screen === 'rapor' && (
-        <main className="mx-auto flex max-w-6xl justify-center px-4 py-16">
-          <div className="rounded-2xl border border-border bg-surface p-8 text-center">
-            <p className="mb-4 text-text">Rapor hazır</p>
-            <button
-              type="button"
-              onClick={() => {
-                aktifRunRef.current = null
-                setEvents([])
-                setScreen('yukle')
-              }}
-              className="min-h-10 rounded-lg bg-accent px-4 text-sm font-medium text-white hover:opacity-90"
-            >
-              + Yeni Test
-            </button>
-          </div>
-        </main>
+      {screen === 'rapor' && report && (
+        <ReportView
+          report={report}
+          onNew={() => {
+            aktifRunRef.current = null
+            setEvents([])
+            setReport(null)
+            setScreen('yukle')
+          }}
+        />
       )}
       {modal && (
         <AuthModal
