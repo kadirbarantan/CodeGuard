@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { X, MailCheck } from 'lucide-react'
 import { login, register, forgotPassword } from '../services/api'
+import ProfileForm from './ProfileForm'
 
 const EPOSTA_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const ODAK_SECICI =
@@ -11,6 +12,7 @@ const BASLIK = {
   kayit: 'Kayıt Ol',
   sifre: 'Şifremi Unuttum',
   sifreGonderildi: 'E-posta gönderildi',
+  profil: 'Profilini tamamla',
 }
 
 // Alanın altında kırmızı hata metni gösteren girdi
@@ -43,8 +45,9 @@ function Alan({ id, label, type = 'text', value, onChange, hata, autoComplete })
 }
 
 // Giriş / kayıt / şifre sıfırlama modalı.
-// view: 'giris' | 'kayit' | 'sifre' | 'sifreGonderildi'
-export default function AuthModal({ view, pendingStart, onViewChange, onClose, onSuccess }) {
+// view: 'giris' | 'kayit' | 'sifre' | 'sifreGonderildi' | 'profil'
+// 'profil': ilk girişte profil tamamlama ya da "Profilim" (kullanici prop'u ile)
+export default function AuthModal({ view, pendingStart, kullanici, onViewChange, onClose, onSuccess, onProfilKaydet }) {
   const [ad, setAd] = useState('')
   const [eposta, setEposta] = useState('')
   const [sifre, setSifre] = useState('')
@@ -136,7 +139,7 @@ export default function AuthModal({ view, pendingStart, onViewChange, onClose, o
         role="dialog"
         aria-modal="true"
         aria-labelledby="auth-baslik"
-        className="relative w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-xl"
+        className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-border bg-surface p-6 shadow-xl"
       >
         <button
           type="button"
@@ -148,16 +151,20 @@ export default function AuthModal({ view, pendingStart, onViewChange, onClose, o
         </button>
 
         <h2 id="auth-baslik" className="mb-4 pr-10 text-xl font-semibold text-text">
-          {BASLIK[view]}
+          {view === 'profil' && kullanici?.profilTamam ? 'Profilim' : BASLIK[view]}
         </h2>
 
-        {view === 'giris' && pendingStart && (
+        {(view === 'giris' || view === 'profil') && pendingStart && (
           <p className="mb-4 rounded-lg border border-ai-border bg-ai-bg px-3 py-2 text-sm text-ai-text">
-            Testi başlatmak için giriş yapmalısın. Seçimlerin kaybolmaz.
+            {view === 'giris'
+              ? 'Testi başlatmak için giriş yapmalısın. Seçimlerin kaybolmaz.'
+              : 'Profilini tamamlayınca test otomatik başlayacak.'}
           </p>
         )}
 
-        {view === 'sifreGonderildi' ? (
+        {view === 'profil' ? (
+          <ProfileForm kullanici={kullanici} onKaydet={onProfilKaydet} />
+        ) : view === 'sifreGonderildi' ? (
           <div className="space-y-4">
             <p className="flex items-start gap-2 text-sm text-text-2">
               <MailCheck size={18} className="mt-0.5 shrink-0 text-ok-text" />

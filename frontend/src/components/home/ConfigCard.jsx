@@ -1,20 +1,30 @@
 // Test konfigürasyonu kartı: yükleme, alan/dil/tür seçimi ve başlat butonu.
 import UploadBox from './UploadBox'
 import TurSecici from './TurSecici'
+import StratejiOnizleme from './StratejiOnizleme'
+import { pythonDesteklenir, arayuzDesteklenir } from '../../config/testStratejileri'
+
+// Profil varsayılanından gelen değerin yanında görünen küçük etiket
+function ProfilEtiketi() {
+  return (
+    <span className="ml-2 rounded-full bg-ai-bg px-2 py-0.5 text-xs font-medium text-ai-text">Profilinden</span>
+  )
+}
 
 const girdiSinifi =
   'min-h-11 w-full rounded-lg border border-border-strong bg-surface px-3 text-sm text-text disabled:opacity-50'
 
 export default function ConfigCard({ config, onChange, user, onStart }) {
   const alan = config.alan
-  const sadeceBirim = alan === 'oyun' || alan === 'mobil'
+  const sadeceBirim = !arayuzDesteklenir(alan)
+  const profil = user?.profilTamam ? user : null
   const arayuzGerek = config.tur === 'arayuz' || config.tur === 'ikisi'
 
   // Değişikliği uygula, sonra alan kurallarına göre düzelt
   function guncelle(degisim) {
     const c = { ...config, ...degisim }
-    if (c.alan === 'mobil' && c.dil === 'python') c.dil = 'js'
-    if ((c.alan === 'oyun' || c.alan === 'mobil') && c.tur !== 'birim') c.tur = 'birim'
+    if (!pythonDesteklenir(c.alan) && c.dil === 'python') c.dil = 'js'
+    if (!arayuzDesteklenir(c.alan) && c.tur !== 'birim') c.tur = 'birim'
     onChange(c)
   }
 
@@ -27,7 +37,9 @@ export default function ConfigCard({ config, onChange, user, onStart }) {
 
         <div className="mt-6 grid gap-4 sm:grid-cols-3">
           <div>
-            <label htmlFor="alan" className="mb-1 block text-sm font-medium text-text-2">Test alanı</label>
+            <label htmlFor="alan" className="mb-1 block text-sm font-medium text-text-2">
+              Test alanı{profil && profil.meslek === alan && <ProfilEtiketi />}
+            </label>
             <select id="alan" value={alan} onChange={(e) => guncelle({ alan: e.target.value })} className={girdiSinifi}>
               <option value="web">Web</option>
               <option value="oyun">Oyun</option>
@@ -37,9 +49,11 @@ export default function ConfigCard({ config, onChange, user, onStart }) {
             </select>
           </div>
           <div>
-            <label htmlFor="dil" className="mb-1 block text-sm font-medium text-text-2">Dil</label>
+            <label htmlFor="dil" className="mb-1 block text-sm font-medium text-text-2">
+              Dil{profil && profil.diller.includes(config.dil) && <ProfilEtiketi />}
+            </label>
             <select id="dil" value={config.dil} onChange={(e) => guncelle({ dil: e.target.value })} className={girdiSinifi}>
-              <option value="python" disabled={alan === 'mobil'}>Python</option>
+              <option value="python" disabled={!pythonDesteklenir(alan)}>Python</option>
               <option value="csharp">C#</option>
               <option value="js">JavaScript / TypeScript</option>
             </select>
@@ -82,6 +96,8 @@ export default function ConfigCard({ config, onChange, user, onStart }) {
             />
           </div>
         )}
+
+        <StratejiOnizleme config={config} />
 
         <button
           type="button"

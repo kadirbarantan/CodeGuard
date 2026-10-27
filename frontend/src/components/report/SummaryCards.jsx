@@ -23,12 +23,14 @@ export default function SummaryCards({ report }) {
 
   return (
     <div className="grid flex-1 gap-3 sm:grid-cols-2">
-      <div className={kutu}>
-        <p className={etiket}>Etkileşim kapsamı</p>
-        <p className="mt-1 text-2xl font-semibold text-text">
-          {report.etkilesim.kapsanan} / {report.etkilesim.toplam}
-        </p>
-      </div>
+      {report.tur !== 'birim' && (
+        <div className={kutu}>
+          <p className={etiket}>Etkileşim kapsamı</p>
+          <p className="mt-1 text-2xl font-semibold text-text">
+            {report.etkilesim.kapsanan} / {report.etkilesim.toplam}
+          </p>
+        </div>
+      )}
       <div className={kutu}>
         <p className={etiket}>Üretilen test</p>
         <p className="mt-1 text-2xl font-semibold text-text">{toplamTest}</p>

@@ -12,6 +12,7 @@ import LiveStats from './components/run/LiveStats'
 import AgentTimeline from './components/run/AgentTimeline'
 import ReportView from './components/report/ReportView'
 import HistoryDrawer from './components/HistoryDrawer'
+import { pythonDesteklenir, arayuzDesteklenir } from './config/testStratejileri'
 
 // Mock oturum: localStorage'da 'kullanici' anahtarıyla saklanır
 function kayitliKullanici() {
@@ -20,6 +21,16 @@ function kayitliKullanici() {
   } catch {
     return null
   }
+}
+
+// Profildeki meslek ve dillerden konfigürasyon varsayılanları (kullanıcı test başına değiştirebilir)
+function profilVarsayilan(cfg, u) {
+  if (!u?.profilTamam) return cfg
+  const alan = u.meslek
+  const uygunDiller = u.diller.filter((d) => d !== 'python' || pythonDesteklenir(alan))
+  const dil = uygunDiller[0] || (pythonDesteklenir(alan) ? 'python' : 'js')
+  const tur = arayuzDesteklenir(alan) ? cfg.tur : 'birim'
+  return { ...cfg, alan, dil, tur, digerMetin: alan === 'diger' ? u.digerMeslek : cfg.digerMetin }
 }
 
 export default function App() {
@@ -34,14 +45,12 @@ export default function App() {
   // Geçmiş Testlerim paneli açık mı
   const [drawerOpen, setDrawerOpen] = useState(false)
   // Konfigürasyon seçimleri
-  const [config, setConfig] = useState({
-    dosya: null,
-    alan: 'web',
-    dil: 'python',
-    tur: 'ikisi',
-    digerMetin: '',
-    baslatmaKomutu: '',
-  })
+  const [config, setConfig] = useState(() =>
+    profilVarsayilan(
+      { dosya: null, alan: 'web', dil: 'python', tur: 'ikisi', digerMetin: '', baslatmaKomutu: '' },
+      kayitliKullanici(),
+    ),
+  )
   // Çalıştırma: canlı olaylar, sonuç raporu (aktif runId aktifRunRef'te tutulur)
   const [events, setEvents] = useState([])
   const [report, setReport] = useState(null)
@@ -127,11 +136,11 @@ export default function App() {
     setScreen('rapor')
   }
 
-  // ConfigCard'dan Başlat: giriş yoksa önce modal
+  // ConfigCard'dan Başlat: giriş yoksa önce giriş, profil eksikse önce profil
   function baslat(cfg) {
-    if (!user) {
+    if (!user || !user.profilTamam) {
       setPendingStart(true)
-      setModal('giris')
+      setModal(user ? 'profil' : 'giris')
       return
     }
     testiBaslat(cfg)
@@ -142,14 +151,32 @@ export default function App() {
     setPendingStart(false)
   }
 
-  // Giriş/kayıt başarılı: kullanıcıyı kaydet, modalı kapat, bekleyen başlatmayı sürdür
+  // Giriş/kayıt başarılı: profil eksikse (ilk giriş) profil adımına geç; değilse devam et
   function girisBasarili(kullanici) {
     localStorage.setItem('kullanici', JSON.stringify(kullanici))
     setUser(kullanici)
+    if (!kullanici.profilTamam) {
+      setModal('profil') // bekleyen başlatma (pendingStart) korunur
+      return
+    }
+    devamEt(kullanici)
+  }
+
+  // Profil kaydedildi (ilk kez ya da "Profilim"den)
+  function profilKaydedildi(guncel) {
+    const kullanici = { ...user, ...guncel }
+    localStorage.setItem('kullanici', JSON.stringify(kullanici))
+    setUser(kullanici)
+    devamEt(kullanici)
+  }
+
+  // Modalı kapat; test bekliyorsa seçimler korunarak başlat, beklemiyorsa profil varsayılanlarını uygula
+  function devamEt(kullanici) {
     const bekleyen = pendingStart
     setModal(null)
     setPendingStart(false)
     if (bekleyen) testiBaslat(config)
+    else if (screen === 'yukle') setConfig((c) => profilVarsayilan(c, kullanici))
   }
 
   return (
@@ -160,6 +187,7 @@ export default function App() {
         onLogin={() => setModal('giris')}
         onRegister={() => setModal('kayit')}
         onHistory={() => setDrawerOpen(true)}
+        onProfile={() => setModal('profil')}
         onLogout={cikis}
       />
       {screen === 'yukle' && (
@@ -204,12 +232,13 @@ export default function App() {
         <AuthModal
           view={modal}
           pendingStart={pendingStart}
+          kullanici={user}
           onViewChange={setModal}
           onClose={modalKapat}
           onSuccess={girisBasarili}
+          onProfilKaydet={profilKaydedildi}
         />
       )}
-      {/* Sonraki adımlarda: rapor ekranı, HistoryDrawer */}
     </div>
   )
 }

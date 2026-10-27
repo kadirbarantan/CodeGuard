@@ -45,6 +45,8 @@ npm run dev
 - Açılış ekranı: yükleme alanı, alan/dil/test türü seçimi, "Nasıl çalışır" ve rapor önizlemesi
 - Gece/gündüz teması (tercih saklanır)
 - Giriş, kayıt ve şifremi unuttum akışı (mock oturum)
+- İlk girişte profil (meslek ve diller) ve "Profilim"
+- Seçime göre değişen test stratejisi: "Bu testte neler yapılacak?" önizlemesi ve stratejiye göre üretilen ajan adımları ([docs/test-stratejileri.md](docs/test-stratejileri.md))
 - Canlı ajan akışı ve Durdur
 - Rapor ekranı: Kod (klasör ağacı, AI Insight), Arayüz Testleri, Olası Hatalar, Üretilen Testler
 - Geçmiş Testlerim paneli

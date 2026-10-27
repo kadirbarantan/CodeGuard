@@ -12,7 +12,7 @@ function Logo() {
 }
 
 // Üst menü: her ekranda görünür.
-export default function Header({ user, onHome, onLogin, onRegister, onHistory, onLogout }) {
+export default function Header({ user, onHome, onLogin, onRegister, onHistory, onProfile, onLogout }) {
   // Ad Soyad'dan baş harfler
   const basHarfler = user
     ? user.ad
@@ -51,12 +51,15 @@ export default function Header({ user, onHome, onLogin, onRegister, onHistory, o
               >
                 Geçmiş Testlerim
               </button>
-              <span
-                title={user.ad}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-ai-bg text-sm font-semibold text-ai-text"
+              <button
+                type="button"
+                onClick={onProfile}
+                title="Profilim"
+                aria-label={`Profilim (${user.ad})`}
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-ai-bg text-sm font-semibold text-ai-text hover:ring-2 hover:ring-accent"
               >
                 {basHarfler}
-              </span>
+              </button>
               <button
                 type="button"
                 onClick={onLogout}
