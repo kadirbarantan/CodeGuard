@@ -1,5 +1,15 @@
-import { FlaskConical } from 'lucide-react'
 import ThemeToggle from './ThemeToggle'
+
+// Logo: kalkan içinde < > (lucide'de kalkan+kod ikonu olmadığı için inline SVG)
+function Logo() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      <path d="M10 9.5 7.5 12l2.5 2.5" />
+      <path d="M14 9.5 16.5 12 14 14.5" />
+    </svg>
+  )
+}
 
 // Üst menü: her ekranda görünür.
 export default function Header({ user, onHome, onLogin, onRegister, onHistory, onLogout }) {
@@ -21,10 +31,13 @@ export default function Header({ user, onHome, onLogin, onRegister, onHistory, o
           onClick={onHome}
           className="flex min-h-10 items-center gap-2 rounded-lg font-semibold text-text"
         >
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent text-white">
-            <FlaskConical size={18} />
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-panel text-on-panel">
+            <Logo />
           </span>
-          [Platform Adı]
+          <span className="text-lg">
+            <span className="text-text">Code</span>
+            <span className="text-accent">Guard</span>
+          </span>
         </button>
 
         <nav className="flex flex-wrap items-center gap-2" aria-label="Ana menü">

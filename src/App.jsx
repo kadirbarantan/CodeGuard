@@ -11,6 +11,7 @@ import RunSummaryBar from './components/run/RunSummaryBar'
 import LiveStats from './components/run/LiveStats'
 import AgentTimeline from './components/run/AgentTimeline'
 import ReportView from './components/report/ReportView'
+import HistoryDrawer from './components/HistoryDrawer'
 
 // Mock oturum: localStorage'da 'kullanici' anahtarıyla saklanır
 function kayitliKullanici() {
@@ -41,8 +42,7 @@ export default function App() {
     digerMetin: '',
     baslatmaKomutu: '',
   })
-  // Çalıştırma: kimlik, canlı olaylar, sonuç raporu
-  const [runId, setRunId] = useState(null)
+  // Çalıştırma: canlı olaylar, sonuç raporu (aktif runId aktifRunRef'te tutulur)
   const [events, setEvents] = useState([])
   const [report, setReport] = useState(null)
 
@@ -75,8 +75,8 @@ export default function App() {
   async function testiBaslat(cfg) {
     abonelikKapat()
     const { runId: id } = await startRun(cfg)
+    abonelikKapat() // startRun beklenirken başka bir abonelik açılmış olabilir (çift tıklama)
     aktifRunRef.current = id
-    setRunId(id)
     setEvents([])
     setReport(null)
     setScreen('calisiyor')
@@ -112,6 +112,19 @@ export default function App() {
   function anaSayfa() {
     if (screen === 'calisiyor') durdur()
     else setScreen('yukle')
+  }
+
+  // Geçmişten tamamlanmış bir kayıt aç: çalışan test varsa aboneliği kapat
+  async function gecmistenAc(kayit) {
+    const id = aktifRunRef.current
+    abonelikKapat()
+    aktifRunRef.current = null
+    setEvents([])
+    if (id && screen === 'calisiyor') stopRun(id)
+    setDrawerOpen(false)
+    const sonuc = await getReport(kayit.runId)
+    setReport(sonuc)
+    setScreen('rapor')
   }
 
   // ConfigCard'dan Başlat: giriş yoksa önce modal
@@ -159,17 +172,15 @@ export default function App() {
         </main>
       )}
       {screen === 'calisiyor' && (
-        <main className="mx-auto max-w-6xl space-y-4 px-4 py-8">
-          <RunSummaryBar config={config} onStop={durdur} />
+        <main className="mx-auto max-w-6xl space-y-4 px-4 pb-8 pt-4">
+          <RunSummaryBar
+            config={config}
+            round={events.length ? events[events.length - 1].round : 1}
+            maxRounds={events.length ? events[events.length - 1].maxRounds : 4}
+            onStop={durdur}
+          />
           <section className="rounded-2xl border border-border bg-surface p-5 sm:p-8">
-            <div className="mb-5 flex items-center justify-between gap-3">
-              <h2 className="text-xl font-semibold">Ajanlar ve Süreç (canlı akış)</h2>
-              <span className="flex items-center gap-2 text-sm font-medium text-ai-text">
-                <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-accent" />
-                Tur {events.length ? events[events.length - 1].round : 1} /{' '}
-                {events.length ? events[events.length - 1].maxRounds : 4}
-              </span>
-            </div>
+            <h2 className="mb-5 text-xl font-semibold">Ajanlar ve Süreç (canlı akış)</h2>
             <LiveStats metrics={events.length ? events[events.length - 1].metrics : null} />
             <div className="mt-6">
               <AgentTimeline events={events} />
@@ -188,6 +199,7 @@ export default function App() {
           }}
         />
       )}
+      <HistoryDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onSelect={gecmistenAc} />
       {modal && (
         <AuthModal
           view={modal}

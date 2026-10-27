@@ -130,7 +130,7 @@ Kurallar:
 ## 5. Ekranlar
 
 ### 5.1 Üst menü (`Header.jsx`) — her durumda görünür
-- Solda logo ve **[Platform Adı]** (yer tutucu; ad henüz belli değil). Tıklayınca `screen='yukle'`.
+- Solda logo ve **CodeGuard** ("Code" metin rengi, "Guard" mor). Tıklayınca `screen='yukle'`.
 - Sağda:
   - Giriş yapılmamışsa: **ThemeToggle** · "Giriş Yap" (metin buton) · "Kayıt Ol" (mor buton)
   - Giriş yapılmışsa: **ThemeToggle** · "Geçmiş Testlerim" · avatar (baş harfler) · "Çıkış"

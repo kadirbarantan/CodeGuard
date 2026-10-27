@@ -12,8 +12,8 @@ export const runEvents = [
   { type: 'agent_step', agent: 'UI Test Yazıcı Ajan', kind: 'LLM', message: '6 kullanıcı akışı için arayüz testi yazıldı.', round: 3, maxRounds: 4, metrics: m(71, 0, 24, 48, 1) },
   { type: 'agent_step', agent: 'UI Doğrulayıcı · Standardizasyon Katmanı', kind: 'Sandbox', message: '5/6 akış geçti, 22/24 öğe kapsandı.', round: 3, maxRounds: 4, metrics: m(71, 22, 24, 53, 2) },
   { type: 'agent_step', agent: 'Test Yazıcı Ajan', kind: 'LLM · Tur 3', message: 'Kalan dallar için yeni testler yazıldı.', round: 3, maxRounds: 4, metrics: m(71, 22, 24, 53, 2) },
-  { type: 'agent_step', agent: 'Doğrulayıcı · Standardizasyon Katmanı', kind: 'Sandbox · Tur 3', message: 'Kapsama %94, döngü durdu.', round: 3, maxRounds: 4, metrics: m(94, 22, 24, 58, 3) },
-  { type: 'agent_step', agent: 'İçgörü Ajanı', kind: 'LLM', message: 'Rapor hazırlanıyor.', round: 4, maxRounds: 4, metrics: m(94, 22, 24, 58, 3) },
+  { type: 'agent_step', agent: 'Doğrulayıcı · Standardizasyon Katmanı', kind: 'Sandbox · Tur 3', message: 'Kapsama %94, döngü durdu.', round: 3, maxRounds: 4, metrics: m(94, 22, 24, 58, 4) },
+  { type: 'agent_step', agent: 'İçgörü Ajanı', kind: 'LLM', message: 'Rapor hazırlanıyor.', round: 4, maxRounds: 4, metrics: m(94, 22, 24, 58, 4) },
 ]
 
 // Akışın sonunda gelen bitiş olayı (runId api.js'te eklenir)

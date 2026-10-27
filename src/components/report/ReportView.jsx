@@ -1,12 +1,40 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import ReportHeader from './ReportHeader'
 import CoverageDonut from './CoverageDonut'
 import SummaryCards from './SummaryCards'
 import CodeTab from './CodeTab'
+import UiTestsTab from './UiTestsTab'
+import BugsTab from './BugsTab'
+import TestsTab from './TestsTab'
+import Toast from '../Toast'
+
+const BACKEND_NOTU = 'Bu özellik backend bağlandığında aktif olacak.'
 
 // Rapor ekranı: başlık, özet kartı ve sekmeler.
+// Seçili sekme / dosya / odak satırı / odak akışı burada tutulur.
 export default function ReportView({ report, onNew }) {
   const [sekme, setSekme] = useState('kod')
+  const [aktifYol, setAktifYol] = useState(null) // null: CodeTab sıralamadaki ilk dosyayı açar
+  const [odak, setOdak] = useState(null) // { yol, satir } — "Kodda göster" ile gelir
+  const [odakAkis, setOdakAkis] = useState(null) // akış adı — "Akışı göster" ile gelir
+  const [toast, setToast] = useState('')
+  const toastKapat = useCallback(() => setToast(''), [])
+
+  function dosyaSec(yol) {
+    setAktifYol(yol)
+    setOdak(null)
+  }
+
+  function koddaGoster(h) {
+    setAktifYol(h.dosya)
+    setOdak({ yol: h.dosya, satir: h.satir })
+    setSekme('kod')
+  }
+
+  function akisiGoster(h) {
+    setOdakAkis(h.akis)
+    setSekme('arayuz')
+  }
 
   const sekmeler = [
     { id: 'kod', ad: 'Kod' },
@@ -25,14 +53,14 @@ export default function ReportView({ report, onNew }) {
         <div className="flex w-full flex-col gap-2 lg:w-auto">
           <button
             type="button"
-            onClick={() => console.log('Testleri İndir (.zip)', report.runId)}
+            onClick={() => setToast(BACKEND_NOTU)}
             className="min-h-10 rounded-lg border border-border-strong bg-surface px-4 text-sm font-medium text-text hover:bg-soft"
           >
             Testleri İndir (.zip)
           </button>
           <button
             type="button"
-            onClick={() => console.log('PDF Raporu Al', report.runId)}
+            onClick={() => setToast(BACKEND_NOTU)}
             className="min-h-10 rounded-lg bg-accent px-4 text-sm font-medium text-white hover:opacity-90"
           >
             PDF Raporu Al
@@ -65,15 +93,14 @@ export default function ReportView({ report, onNew }) {
         </div>
 
         <div id={'panel-' + sekme} role="tabpanel" aria-labelledby={'sekme-' + sekme}>
-          {sekme === 'kod' ? (
-            <CodeTab report={report} />
-          ) : (
-            <div className="rounded-xl border border-dashed border-border-strong p-10 text-center text-muted">
-              Yakında
-            </div>
-          )}
+          {sekme === 'kod' && <CodeTab report={report} aktifYol={aktifYol} odak={odak} onDosyaSec={dosyaSec} />}
+          {sekme === 'arayuz' && <UiTestsTab report={report} odakAkis={odakAkis} />}
+          {sekme === 'hatalar' && <BugsTab report={report} onKoddaGoster={koddaGoster} onAkisiGoster={akisiGoster} />}
+          {sekme === 'testler' && <TestsTab report={report} />}
         </div>
       </section>
+
+      <Toast message={toast} onClose={toastKapat} />
     </main>
   )
 }

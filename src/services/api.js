@@ -50,8 +50,16 @@ export async function stopRun(runId) {
 
 export async function getReport(runId) {
   await bekle()
-  // Kalite skoru sonradan gelir
-  return { ...report, runId, kaliteSkoru: null }
+  // Kalite skoru sonradan gelir. Dosya içerikleri raporla gelmez (getFileSource ile istenir).
+  const { dosyalar, ...digerleri } = report
+  return { ...digerleri, runId, kaliteSkoru: null, dosyalar: dosyalar.map(({ kod, ...d }) => d) }
+}
+
+// Kod sekmesinde seçilen dosyanın içeriği
+export async function getFileSource(runId, yol) {
+  await bekle(300)
+  const dosya = report.dosyalar.find((d) => d.yol === yol)
+  return { yol, kod: dosya ? dosya.kod : '' }
 }
 
 export async function getQualityScore(runId) {

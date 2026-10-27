@@ -1,6 +1,10 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Editor from '@monaco-editor/react'
-import { Sparkles } from 'lucide-react'
+import { ListTree, Search, Sparkles, TriangleAlert } from 'lucide-react'
+import FileTree, { dosyaCoverage } from './FileTree'
+import { getFileSource } from '../../services/api'
+
+// "Kod" sekmesi: solda dosya ağacı (tümü / yalnızca sorunlular), sağda renkli kod ve AI Insight.
 
 const SATIR_YUKSEKLIK = 20
 const MAX_YUKSEKLIK = 500
@@ -8,12 +12,7 @@ const MAX_YUKSEKLIK = 500
 const DIL = { py: 'python', cs: 'csharp', js: 'javascript', jsx: 'javascript', ts: 'typescript', tsx: 'typescript' }
 const dilBul = (yol) => DIL[yol.split('.').pop()] || 'plaintext'
 
-// Kapsanan satır oranı (%)
-function dosyaCoverage(d) {
-  const { kapsanan, kapsanmayan } = d.satirlar
-  const toplam = kapsanan.length + kapsanmayan.length
-  return toplam ? Math.round((kapsanan.length / toplam) * 100) : 100
-}
+const ilkKapsanmayan = (d) => [...d.satirlar.kapsanmayan].sort((a, b) => a - b)[0] ?? null
 
 // Gece modunu izle (ThemeToggle html'deki data-theme'i değiştirir)
 function useKoyuTema() {
@@ -36,11 +35,57 @@ function Lejant({ renk, children }) {
   )
 }
 
-export default function CodeTab({ report }) {
-  const dosyalar = report.dosyalar
-  const [aktifYol, setAktifYol] = useState(dosyalar[0].yol)
-  const dosya = dosyalar.find((d) => d.yol === aktifYol) || dosyalar[0]
+export default function CodeTab({ report, aktifYol, odak, onDosyaSec }) {
   const koyu = useKoyuTema()
+  const [arama, setArama] = useState('')
+  const [gorunum, setGorunum] = useState('agac') // 'agac' | 'sorunlu'
+
+  // Dosya başına birim olası hataları
+  const hatalar = useMemo(() => {
+    const m = {}
+    for (const h of report.olasiHatalar) {
+      if (h.tur !== 'birim' || !h.dosya) continue
+      ;(m[h.dosya] ||= []).push(h)
+    }
+    return m
+  }, [report])
+
+  // En kötüden iyiye: önce olası hatası olanlar, sonra coverage'ı düşük olanlar
+  const sirali = useMemo(
+    () =>
+      [...report.dosyalar].sort((a, b) => {
+        const ha = hatalar[a.yol]?.length || 0
+        const hb = hatalar[b.yol]?.length || 0
+        if (ha !== hb) return hb - ha
+        return dosyaCoverage(a) - dosyaCoverage(b)
+      }),
+    [report, hatalar],
+  )
+  const sorunlu = sirali.filter((d) => (hatalar[d.yol]?.length || 0) > 0 || dosyaCoverage(d) < 100)
+
+  // Açılışta en sorunlu dosya seçili gelir
+  const dosya = sirali.find((d) => d.yol === aktifYol) || sirali[0]
+
+  // Dosya içeriği raporla gelmez; seçilince istenir ve önbelleğe alınır
+  const onbellek = useRef({})
+  const [kaynak, setKaynak] = useState(null) // { yol, kod }
+  useEffect(() => {
+    const yol = dosya.yol
+    if (onbellek.current[yol] != null) {
+      setKaynak({ yol, kod: onbellek.current[yol] })
+      return
+    }
+    let iptal = false
+    setKaynak(null)
+    getFileSource(report.runId, yol).then((s) => {
+      onbellek.current[yol] = s.kod
+      if (!iptal) setKaynak({ yol, kod: s.kod })
+    })
+    return () => {
+      iptal = true
+    }
+  }, [report.runId, dosya.yol])
+  const kod = kaynak && kaynak.yol === dosya.yol ? kaynak.kod : null
 
   const [editor, setEditor] = useState(null)
   const [monaco, setMonaco] = useState(null)
@@ -48,14 +93,9 @@ export default function CodeTab({ report }) {
   const dosyaRef = useRef(dosya)
   dosyaRef.current = dosya
 
-  // Seçili kapsanmayan satır: açılışta ilk kapsanmayan satır
-  const ilkSatir = (d) => [...d.satirlar.kapsanmayan].sort((a, b) => a - b)[0] ?? null
-  const [secili, setSecili] = useState(() => ilkSatir(dosya))
-
-  function dosyaSec(yol) {
-    setAktifYol(yol)
-    setSecili(ilkSatir(dosyalar.find((d) => d.yol === yol)))
-  }
+  // Seçili kapsanmayan satır (AI Insight). Başka dosyadaysa o dosyanın ilk kapsanmayan satırı.
+  const [secim, setSecim] = useState(null) // { yol, satir }
+  const secili = secim && secim.yol === dosya.yol ? secim.satir : ilkKapsanmayan(dosya)
 
   function editorHazir(ed, mn) {
     setEditor(ed)
@@ -63,13 +103,14 @@ export default function CodeTab({ report }) {
     // Kapsanmayan satıra tıklanınca AI Insight aç
     ed.onMouseDown((e) => {
       const satir = e.target.position?.lineNumber
-      if (satir && dosyaRef.current.satirlar.kapsanmayan.includes(satir)) setSecili(satir)
+      const d = dosyaRef.current
+      if (satir && d.satirlar.kapsanmayan.includes(satir)) setSecim({ yol: d.yol, satir })
     })
   }
 
-  // Satırları boya: kapsanan yeşil, kapsanmayan kırmızı, motor bağımlı gri
+  // Kod yüklendikten sonra: satırları boya, olası hata satırlarına "!" koy, odak satırını vurgula
   useEffect(() => {
-    if (!editor || !monaco) return
+    if (!editor || !monaco || kod == null) return
     const boya = (satirlar, sinif) =>
       satirlar.map((n) => ({
         range: new monaco.Range(n, 1, n, 1),
@@ -77,71 +118,123 @@ export default function CodeTab({ report }) {
       }))
     const { kapsanan, kapsanmayan, motorBagimli } = dosya.satirlar
     const liste = [...boya(kapsanan, 'ok'), ...boya(kapsanmayan, 'bad'), ...boya(motorBagimli, 'gri')]
+    for (const h of hatalar[dosya.yol] || []) {
+      liste.push({
+        range: new monaco.Range(h.satir, 1, h.satir, 1),
+        options: {
+          glyphMarginClassName: 'hata-glyph',
+          glyphMarginHoverMessage: { value: '**Olası hata:** ' + h.baslik },
+        },
+      })
+    }
+    const odakSatir = odak && odak.yol === dosya.yol ? odak.satir : null
+    if (odakSatir) {
+      liste.push({
+        range: new monaco.Range(odakSatir, 1, odakSatir, 1),
+        options: { isWholeLine: true, className: 'satir-odak' },
+      })
+    }
     koleksiyonRef.current?.clear()
     koleksiyonRef.current = editor.createDecorationsCollection(liste)
-  }, [editor, monaco, dosya])
+    if (odakSatir) editor.revealLineInCenter(odakSatir)
+  }, [editor, monaco, dosya, hatalar, odak, kod])
 
   const icgoru = secili != null ? report.icgoruler[`${dosya.yol}:${secili}`] : null
-  const satirSayisi = dosya.kod.split('\n').length
+  const satirSayisi = kod ? kod.split('\n').length : 10
   const yukseklik = Math.min(MAX_YUKSEKLIK, satirSayisi * SATIR_YUKSEKLIK + 20)
+
+  const secenekSinif = (aktif) =>
+    'flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-md text-xs font-medium ' +
+    (aktif ? 'bg-surface text-ai-text shadow-sm' : 'text-text-2 hover:text-text')
 
   return (
     <div>
-      <div className="mb-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-text-2">
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-text-2">
         <Lejant renk="bg-ok">Kapsandı</Lejant>
         <Lejant renk="bg-bad">Kapsanmadı · tıkla, AI Insight</Lejant>
         <Lejant renk="bg-border-strong">Motor bağımlı</Lejant>
       </div>
+      <p className="mb-3 mt-1 text-xs text-muted">
+        Renkler, üretilen testlerin hangi satırları çalıştırdığını gösterir. Bulunan hatalar ! ile işaretlidir.
+      </p>
 
       <div className="flex flex-col gap-3 md:flex-row">
-        {dosyalar.length > 1 && (
-          <ul className="shrink-0 space-y-1 md:w-60" aria-label="Dosyalar">
-            {dosyalar.map((d) => (
-              <li key={d.yol}>
-                <button
-                  type="button"
-                  onClick={() => dosyaSec(d.yol)}
-                  aria-current={d.yol === dosya.yol ? 'true' : undefined}
-                  className={
-                    'flex min-h-10 w-full items-center justify-between gap-2 rounded-lg px-3 text-left text-sm ' +
-                    (d.yol === dosya.yol ? 'bg-ai-bg text-ai-text' : 'text-text-2 hover:bg-soft')
-                  }
-                >
-                  <span className="truncate font-mono">{d.yol}</span>
-                  <span className="shrink-0 text-xs">%{dosyaCoverage(d)}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
+        <div className="shrink-0 md:w-72">
+          <div className="mb-2 flex gap-1 rounded-lg bg-soft p-1" role="group" aria-label="Dosya görünümü">
+            <button
+              type="button"
+              aria-pressed={gorunum === 'agac'}
+              onClick={() => setGorunum('agac')}
+              className={secenekSinif(gorunum === 'agac')}
+            >
+              <ListTree size={14} aria-hidden="true" /> Tüm dosyalar
+            </button>
+            <button
+              type="button"
+              aria-pressed={gorunum === 'sorunlu'}
+              onClick={() => setGorunum('sorunlu')}
+              className={secenekSinif(gorunum === 'sorunlu')}
+            >
+              <TriangleAlert size={14} aria-hidden="true" /> Sorunlu dosyalar ({sorunlu.length})
+            </button>
+          </div>
+
+          <label className="relative mb-2 block">
+            <span className="sr-only">Dosya ara</span>
+            <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
+            <input
+              type="search"
+              value={arama}
+              onChange={(e) => setArama(e.target.value)}
+              placeholder="Dosya ara"
+              className="min-h-10 w-full rounded-lg border border-border-strong bg-surface pl-8 pr-3 text-sm text-text outline-none focus:border-accent"
+            />
+          </label>
+
+          <div className="max-h-[520px] overflow-y-auto pr-1">
+            <FileTree
+              dosyalar={report.dosyalar}
+              hatalar={hatalar}
+              aktifYol={dosya.yol}
+              arama={arama}
+              sadeceSorunlu={gorunum === 'sorunlu'}
+              onSec={onDosyaSec}
+            />
+          </div>
+        </div>
 
         <div className="min-w-0 flex-1">
-          <div className="overflow-hidden rounded-xl border border-border">
+          <p className="mb-2 font-mono text-sm text-text-2">{dosya.yol}</p>
+          <div className="relative overflow-hidden rounded-xl border border-border">
+            {/* Editör hep açık kalır; dosya yüklenirken üstüne yarı saydam katman gelir */}
             <Editor
               height={yukseklik}
               path={dosya.yol}
               language={dilBul(dosya.yol)}
-              value={dosya.kod}
+              value={kod ?? ''}
               theme={koyu ? 'vs-dark' : 'vs'}
               onMount={editorHazir}
               options={{
                 readOnly: true,
+                domReadOnly: true,
                 minimap: { enabled: false },
+                glyphMargin: true,
                 scrollBeyondLastLine: false,
                 lineHeight: SATIR_YUKSEKLIK,
                 fontSize: 13,
                 padding: { top: 10, bottom: 10 },
                 renderLineHighlight: 'none',
-                domReadOnly: true,
               }}
             />
+            {kod == null && (
+              <div className="absolute inset-0 flex items-center justify-center bg-surface/80 text-sm text-muted">
+                Yükleniyor…
+              </div>
+            )}
           </div>
 
           {icgoru && (
-            <div
-              role="status"
-              className="mt-3 rounded-xl border border-ai-border bg-ai-bg p-4"
-            >
+            <div role="status" className="mt-3 rounded-xl border border-ai-border bg-ai-bg p-4">
               <p className="flex items-center gap-2 font-semibold text-ai-text">
                 <Sparkles size={16} /> AI Insight · Satır {secili}
               </p>

@@ -22,6 +22,7 @@
   --bad-bg: #fef2f2;
   --ai-bg: #f5f3ff;
   --ai-border: #ddd6fe;
+  --overlay: rgba(15, 23, 42, 0.65);
 }
 
 /* Koyu tema: <html data-theme="dark"> */
@@ -71,6 +72,7 @@
   --color-bad-bg: var(--bad-bg);
   --color-ai-bg: var(--ai-bg);
   --color-ai-border: var(--ai-border);
+  --color-overlay: var(--overlay);
 
   --font-sans: 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
@@ -94,3 +96,21 @@ body {
 :root[data-theme='dark'] .cov-ok { background: rgba(16, 185, 129, 0.22); }
 :root[data-theme='dark'] .cov-bad { background: rgba(239, 68, 68, 0.28); }
 :root[data-theme='dark'] .cov-gri { background: rgba(148, 163, 184, 0.24); }
+
+/* Olası hata satırı: glyph margin'de kırmızı "!" (kapsama renginden ayrı) */
+.hata-glyph { display: flex; align-items: center; justify-content: center; cursor: help; }
+.hata-glyph::before {
+  content: '!';
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: var(--bad);
+  color: #fff;
+  font: 700 11px/1 var(--font-sans);
+}
+
+/* "Kodda göster" ile gelinen satır */
+.satir-odak { box-shadow: inset 0 0 0 2px var(--accent); }
