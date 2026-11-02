@@ -7,13 +7,16 @@ import UiTestsTab from './UiTestsTab'
 import BugsTab from './BugsTab'
 import TestsTab from './TestsTab'
 import Toast from '../Toast'
+import UxRaporu from './UxRaporu'
+import { uxVar } from '../../config/testStratejileri'
 
 const BACKEND_NOTU = 'Bu özellik backend bağlandığında aktif olacak.'
 
 // Rapor ekranı: başlık, özet kartı ve sekmeler.
 // Seçili sekme / dosya / odak satırı / odak akışı burada tutulur.
 export default function ReportView({ report, onNew }) {
-  const [sekme, setSekme] = useState('kod')
+  const urlModu = report.kaynak === 'url'
+  const [sekme, setSekme] = useState(urlModu ? 'arayuz' : 'kod')
   const [aktifYol, setAktifYol] = useState(null) // null: CodeTab sıralamadaki ilk dosyayı açar
   const [odak, setOdak] = useState(null) // { yol, satir } — "Kodda göster" ile gelir
   const [odakAkis, setOdakAkis] = useState(null) // akış adı — "Akışı göster" ile gelir
@@ -36,8 +39,22 @@ export default function ReportView({ report, onNew }) {
     setSekme('arayuz')
   }
 
+  // Kullanılabilirlik testi kendi rapor düzenini kullanır
+  if (uxVar(report.tur)) {
+    return (
+      <main className="mx-auto max-w-6xl space-y-4 px-4 py-8">
+        <ReportHeader report={report} onNew={onNew} />
+        <UxRaporu report={report} onPdf={() => setToast(BACKEND_NOTU)} />
+        <Toast message={toast} onClose={toastKapat} />
+      </main>
+    )
+  }
+
+  // URL ile testte kaynak kod yoktur: Kod sekmesi gösterilmez, halkada etkileşim kapsamı gösterilir
+  const etkilesimYuzde = Math.round((report.etkilesim.kapsanan / report.etkilesim.toplam) * 100)
+
   const sekmeler = [
-    { id: 'kod', ad: 'Kod' },
+    ...(urlModu ? [] : [{ id: 'kod', ad: 'Kod' }]),
     { id: 'arayuz', ad: 'Arayüz Testleri' },
     { id: 'hatalar', ad: `Olası Hatalar (${report.olasiHatalar.length})` },
     { id: 'testler', ad: 'Üretilen Testler' },
@@ -48,7 +65,11 @@ export default function ReportView({ report, onNew }) {
       <ReportHeader report={report} onNew={onNew} />
 
       <section className="flex flex-col items-center gap-5 rounded-2xl border border-border bg-surface p-5 sm:p-6 lg:flex-row">
-        <CoverageDonut yuzde={report.coverage.testEdilebilir} />
+        {urlModu ? (
+          <CoverageDonut yuzde={etkilesimYuzde} etiket="Etkileşim" />
+        ) : (
+          <CoverageDonut yuzde={report.coverage.testEdilebilir} />
+        )}
         <SummaryCards report={report} />
         <div className="flex w-full flex-col gap-2 lg:w-auto">
           <button

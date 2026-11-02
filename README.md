@@ -2,7 +2,7 @@
 
 **LLM Ajanları ile Kod Yorumlama ve Otomatik Test Üretimi Platformu**
 
-Bitirme tezi projesi. Kullanıcı kodunu yükler; LLM ajanları birim ve arayüz (E2E) testlerini yazar, çalıştırır, eksik kalanları tamamlar ve sonucu raporlar.
+Bitirme tezi projesi. Kullanıcı kodunu yükler ya da canlı sitenin adresini (URL) girer; LLM ajanları birim ve arayüz (E2E) testlerini yazar, çalıştırır, eksik kalanları tamamlar ve sonucu raporlar. Kullanılabilirlik testinde sitenin Z / F okuma desenine uygunluğu, renk uyumu ve kullanıcı deneyimi ölçülür. Şu an web odaklı ilerlenmektedir (C#, Python, JS/TS, PHP).
 
 Ekip: TAN, Hümeyra · Danışman: Murat Hoca
 

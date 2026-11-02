@@ -2,6 +2,8 @@
 import { olaylariOlustur, doneEvent } from '../mock/runEvents'
 import { report } from '../mock/report'
 import { history } from '../mock/history'
+import { uxReport } from '../mock/uxReport'
+import { uxVar, urlAdi } from '../config/testStratejileri'
 
 // Ağ gecikmesi taklidi
 const bekle = (ms = 400) => new Promise((r) => setTimeout(r, ms))
@@ -54,7 +56,16 @@ const calistirmalar = new Map()
 export async function startRun(config) {
   await bekle()
   const runId = 'run-' + Date.now()
-  calistirmalar.set(runId, { alan: config.alan, dil: config.dil, tur: config.tur, digerMetin: config.digerMetin })
+  const urlModu = config.kaynak === 'url'
+  calistirmalar.set(runId, {
+    alan: config.alan,
+    dil: config.dil,
+    tur: config.tur,
+    digerMetin: config.digerMetin,
+    kaynak: config.kaynak || 'kod',
+    url: urlModu ? config.url : '',
+    proje: urlModu ? urlAdi(config.url) : config.dosya?.ad,
+  })
   return { runId }
 }
 
@@ -83,8 +94,33 @@ export async function stopRun(runId) {
 export async function getReport(runId) {
   await bekle()
   // Kalite skoru sonradan gelir. Dosya içerikleri raporla gelmez (getFileSource ile istenir).
+  // Seçim: bu oturumda başlatılan çalıştırma ya da geçmişteki kayıt
+  const kayit = calistirmalar.get(runId) || history.find((h) => h.runId === runId) || {}
+  const secim = Object.fromEntries(
+    ['proje', 'alan', 'dil', 'tur', 'digerMetin', 'kaynak', 'url'].filter((k) => kayit[k] != null).map((k) => [k, kayit[k]]),
+  )
+
+  // Kullanılabilirlik testi: ayrı rapor biçimi
+  if (uxVar(secim.tur)) {
+    return { ...uxReport, ...secim, runId }
+  }
+
   const { dosyalar, ...digerleri } = report
-  const secim = calistirmalar.get(runId) || {}
+  // URL ile test: kaynak kod yok; birim sonuçları ve Kod sekmesi rapora girmez
+  if (secim.kaynak === 'url') {
+    return {
+      ...digerleri,
+      ...secim,
+      coverage: null,
+      testSayisi: { ...report.testSayisi, birim: 0 },
+      olasiHatalar: report.olasiHatalar.filter((h) => h.tur !== 'birim'),
+      testDosyalari: report.testDosyalari.filter((t) => t.tur !== 'birim'),
+      runId,
+      kaliteSkoru: null,
+      dosyalar: [],
+    }
+  }
+
   // Mock: yalnızca birim testi seçildiyse arayüz sonuçları rapora girmez
   const arayuzYok = secim.tur === 'birim'
   return {

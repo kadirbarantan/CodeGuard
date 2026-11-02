@@ -12,7 +12,7 @@ import LiveStats from './components/run/LiveStats'
 import AgentTimeline from './components/run/AgentTimeline'
 import ReportView from './components/report/ReportView'
 import HistoryDrawer from './components/HistoryDrawer'
-import { pythonDesteklenir, arayuzDesteklenir } from './config/testStratejileri'
+import { alanAktif, pythonDesteklenir, arayuzDesteklenir } from './config/testStratejileri'
 
 // Mock oturum: localStorage'da 'kullanici' anahtarıyla saklanır
 function kayitliKullanici() {
@@ -23,10 +23,11 @@ function kayitliKullanici() {
   }
 }
 
-// Profildeki meslek ve dillerden konfigürasyon varsayılanları (kullanıcı test başına değiştirebilir)
+// Profildeki meslek ve dillerden konfigürasyon varsayılanları (kullanıcı test başına değiştirebilir).
+// Şimdilik yalnızca Web alanı aktif: meslek başka bir alansa varsayılan Web olur.
 function profilVarsayilan(cfg, u) {
   if (!u?.profilTamam) return cfg
-  const alan = u.meslek
+  const alan = alanAktif(u.meslek) ? u.meslek : 'web'
   const uygunDiller = u.diller.filter((d) => d !== 'python' || pythonDesteklenir(alan))
   const dil = uygunDiller[0] || (pythonDesteklenir(alan) ? 'python' : 'js')
   const tur = arayuzDesteklenir(alan) ? cfg.tur : 'birim'
@@ -47,7 +48,7 @@ export default function App() {
   // Konfigürasyon seçimleri
   const [config, setConfig] = useState(() =>
     profilVarsayilan(
-      { dosya: null, alan: 'web', dil: 'python', tur: 'ikisi', digerMetin: '', baslatmaKomutu: '' },
+      { kaynak: 'kod', dosya: null, url: '', alan: 'web', dil: 'python', tur: 'ikisi', digerMetin: '', baslatmaKomutu: '' },
       kayitliKullanici(),
     ),
   )
@@ -209,7 +210,7 @@ export default function App() {
           />
           <section className="rounded-2xl border border-border bg-surface p-5 sm:p-8">
             <h2 className="mb-5 text-xl font-semibold">Ajanlar ve Süreç (canlı akış)</h2>
-            <LiveStats metrics={events.length ? events[events.length - 1].metrics : null} />
+            <LiveStats config={config} metrics={events.length ? events[events.length - 1].metrics : null} />
             <div className="mt-6">
               <AgentTimeline events={events} />
             </div>

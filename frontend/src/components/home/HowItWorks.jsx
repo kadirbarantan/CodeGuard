@@ -2,10 +2,10 @@
 import { FileUp, SlidersHorizontal, Bot, FileText } from 'lucide-react'
 
 const ADIMLAR = [
-  { no: '01', ikon: FileUp, baslik: 'Kodunu yükle', aciklama: 'Klasör, dosya ya da .zip olarak projeni ekle.' },
-  { no: '02', ikon: SlidersHorizontal, baslik: 'Alanını ve dilini seç', aciklama: 'Test alanını, dili ve test türünü belirle.' },
-  { no: '03', ikon: Bot, baslik: 'Ajanlar test etsin', aciklama: 'Ajanlar testleri yazar, çalıştırır ve eksikleri tamamlar.' },
-  { no: '04', ikon: FileText, baslik: 'Raporunu al', aciklama: 'Kapsama, hatalar ve üretilen testler tek raporda.' },
+  { no: '01', ikon: FileUp, baslik: 'Kodunu yükle ya da URL gir', aciklama: 'Projeni klasör, dosya ya da .zip olarak ekle; ya da canlı sitenin adresini yaz.' },
+  { no: '02', ikon: SlidersHorizontal, baslik: 'Test türünü seç', aciklama: 'Alanını ve dilini belirle; birim, arayüz ya da kullanılabilirlik testini seç.' },
+  { no: '03', ikon: Bot, baslik: 'Ajanlar test etsin', aciklama: 'Ajanlar testleri yazar, çalıştırır, eksikleri tamamlar; okuma desenini ve renk uyumunu ölçer.' },
+  { no: '04', ikon: FileText, baslik: 'Raporunu al', aciklama: 'Kapsama, hatalar, UX bulguları ve üretilen testler tek raporda.' },
 ]
 
 export default function HowItWorks() {

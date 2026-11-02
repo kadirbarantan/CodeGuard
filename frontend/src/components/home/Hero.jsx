@@ -1,7 +1,7 @@
 // Hero: rozet, başlık, açıklama ve 3 küçük özellik rozeti.
 import { Sparkles } from 'lucide-react'
 
-const ROZETLER = ['Birim + Arayüz (E2E) testi', 'C# · Python · JS/TS', 'Kendini düzelten ajanlar']
+const ROZETLER = ['Birim · Arayüz (E2E) · Kullanılabilirlik', 'C# · Python · JS/TS · PHP', 'Kod ya da URL ile test', 'Kendini düzelten ajanlar']
 
 export default function Hero() {
   return (
@@ -14,8 +14,9 @@ export default function Hero() {
         Kodunu yükle, <span className="text-ai-text">ajanlar test etsin.</span>
       </h1>
       <p className="mx-auto mt-4 max-w-2xl text-lg text-muted">
-        Projeni yükle, alanını ve dilini seç. Yapay zekâ ajanları kodunu okuyup birim ve arayüz
-        testlerini yazsın, çalıştırsın, eksik kalanları tamamlasın ve sana raporlasın.
+        Projeni yükle ya da sitenin adresini gir. Yapay zekâ ajanları birim ve arayüz testlerini
+        yazsın, çalıştırsın, eksik kalanları tamamlasın; kullanılabilirlik testinde okuma desenini
+        ve renk uyumunu ölçüp sana raporlasın.
       </p>
       <ul className="mt-6 flex flex-wrap justify-center gap-2">
         {ROZETLER.map((r) => (
