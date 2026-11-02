@@ -113,7 +113,7 @@ export default function ProfileForm({ kullanici, onKaydet }) {
 
       <fieldset>
         <legend className="mb-2 text-sm font-medium text-text-2">Kullandığın diller</legend>
-        <div className="grid gap-2 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {Object.entries(DILLER).map(([id, ad]) => (
             <label key={id} className={kartSinif(diller.includes(id))}>
               <input

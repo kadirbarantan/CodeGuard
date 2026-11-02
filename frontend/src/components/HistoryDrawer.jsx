@@ -2,9 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import { X } from 'lucide-react'
 import { getHistory } from '../services/api'
 
+import { TURLER as TUR } from '../config/testStratejileri'
+
 const ALAN = { web: 'Web', oyun: 'Oyun', mobil: 'Mobil', genel: 'Genel', diger: 'Diğer' }
-const DIL = { python: 'Python', csharp: 'C#', js: 'JS/TS' }
-const TUR = { birim: 'Birim', arayuz: 'Arayüz', ikisi: 'İkisi' }
+const DIL = { python: 'Python', csharp: 'C#', js: 'JS/TS', php: 'PHP' }
 
 // Sağdan kayan "Geçmiş Testlerim" paneli.
 export default function HistoryDrawer({ open, onClose, onSelect }) {
@@ -108,9 +109,9 @@ export default function HistoryDrawer({ open, onClose, onSelect }) {
                       <span className="mt-1 block text-xs text-muted">
                         {[
                           ALAN[k.alan] || k.alan,
-                          DIL[k.dil] || k.dil,
+                          k.kaynak === 'url' ? 'URL' : DIL[k.dil] || k.dil,
                           TUR[k.tur] || k.tur,
-                          k.coverage != null ? '%' + k.coverage : null,
+                          k.coverage != null ? '%' + k.coverage : k.uxSkor != null ? 'UX %' + k.uxSkor : null,
                           k.tarih,
                         ]
                           .filter(Boolean)

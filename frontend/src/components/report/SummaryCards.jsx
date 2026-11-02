@@ -6,8 +6,11 @@ export default function SummaryCards({ report }) {
   const [kalite, setKalite] = useState(report.kaliteSkoru)
 
   // Kalite skoru sonradan gelir (mutasyon testi); bileşen kalkarsa yok say
+  // Kalite skoru kaynak kod üzerinde mutasyon testiyle ölçülür; URL ile testte yoktur
+  const kaliteVar = report.kaynak !== 'url'
+
   useEffect(() => {
-    if (report.kaliteSkoru != null) return
+    if (!kaliteVar || report.kaliteSkoru != null) return
     let iptal = false
     getQualityScore(report.runId).then((s) => {
       if (!iptal) setKalite(s.kaliteSkoru)
@@ -15,7 +18,7 @@ export default function SummaryCards({ report }) {
     return () => {
       iptal = true
     }
-  }, [report.runId, report.kaliteSkoru])
+  }, [report.runId, report.kaliteSkoru, kaliteVar])
 
   const toplamTest = report.testSayisi.birim + report.testSayisi.arayuz
   const kutu = 'rounded-xl border border-border bg-bg p-4'
@@ -35,13 +38,14 @@ export default function SummaryCards({ report }) {
         <p className={etiket}>Üretilen test</p>
         <p className="mt-1 text-2xl font-semibold text-text">{toplamTest}</p>
         <p className="text-xs text-muted">
-          {report.testSayisi.birim} birim · {report.testSayisi.arayuz} arayüz
+          {kaliteVar ? `${report.testSayisi.birim} birim · ${report.testSayisi.arayuz} arayüz` : `${report.testSayisi.arayuz} arayüz`}
         </p>
       </div>
       <div className={kutu}>
         <p className={etiket}>Olası hata</p>
         <p className="mt-1 text-2xl font-semibold text-bad-text">{report.olasiHatalar.length}</p>
       </div>
+      {kaliteVar && (
       <div className={kutu}>
         <p className={etiket}>Kalite skoru</p>
         {kalite == null ? (
@@ -50,6 +54,7 @@ export default function SummaryCards({ report }) {
           <p className="mt-1 text-2xl font-semibold text-text">%{kalite}</p>
         )}
       </div>
+      )}
     </div>
   )
 }
