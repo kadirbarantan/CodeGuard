@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { X, MailCheck } from 'lucide-react'
-import { login, register, forgotPassword } from '../services/api'
+import { login, register, forgotPassword, githubIleGiris } from '../services/api'
 import ProfileForm from './ProfileForm'
+import GitHubButonu, { Ayirici } from './GitHubButonu'
 
 const EPOSTA_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const ODAK_SECICI =
@@ -53,6 +54,7 @@ export default function AuthModal({ view, pendingStart, kullanici, onViewChange,
   const [sifre, setSifre] = useState('')
   const [hatalar, setHatalar] = useState({})
   const [bekliyor, setBekliyor] = useState(false)
+  const [githubBekliyor, setGithubBekliyor] = useState(false)
   const kutuRef = useRef(null)
 
   // Görünüm değişince hataları temizle, ilk input'a odaklan
@@ -125,6 +127,19 @@ export default function AuthModal({ view, pendingStart, kullanici, onViewChange,
     }
   }
 
+  // GitHub ile giriş/kayıt: hesap yoksa backend oluşturur, sonrası e-postayla girişle aynı (onSuccess)
+  async function githubIle() {
+    if (bekliyor || githubBekliyor) return
+    setHatalar({})
+    setGithubBekliyor(true)
+    try {
+      onSuccess(await githubIleGiris())
+    } catch (err) {
+      setHatalar({ github: err?.message || 'GitHub ile giriş yapılamadı. Lütfen tekrar dene.' })
+      setGithubBekliyor(false)
+    }
+  }
+
   const linkSinif = 'font-medium text-ai-text hover:underline'
 
   return (
@@ -180,6 +195,17 @@ export default function AuthModal({ view, pendingStart, kullanici, onViewChange,
           </div>
         ) : (
           <form onSubmit={gonder} noValidate className="space-y-4">
+            {(view === 'giris' || view === 'kayit') && (
+              <>
+                <GitHubButonu onClick={githubIle} bekliyor={githubBekliyor} disabled={bekliyor} />
+                {hatalar.github && (
+                  <p role="alert" className="text-sm text-bad-text">
+                    {hatalar.github}
+                  </p>
+                )}
+                <Ayirici />
+              </>
+            )}
             {view === 'sifre' && (
               <p className="text-sm text-text-2">
                 E-posta adresini gir, sana şifre sıfırlama bağlantısı gönderelim.
@@ -215,7 +241,7 @@ export default function AuthModal({ view, pendingStart, kullanici, onViewChange,
             )}
             <button
               type="submit"
-              disabled={bekliyor}
+              disabled={bekliyor || githubBekliyor}
               className="min-h-10 w-full rounded-lg bg-accent px-4 text-sm font-medium text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {bekliyor
