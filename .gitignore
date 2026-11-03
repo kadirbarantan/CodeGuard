@@ -10,3 +10,4 @@ venv/
 
 # Ortam değişkenleri (API anahtarları vb.)
 .env
+.env.local

@@ -4,6 +4,10 @@ import { report } from '../mock/report'
 import { history } from '../mock/history'
 import { uxReport } from '../mock/uxReport'
 import { uxVar, urlAdi } from '../config/testStratejileri'
+import { githubPencereIleGiris } from './githubOAuth'
+
+// Gerçek backend adresi (.env: VITE_API_URL=http://localhost:8000). Tanımlı değilse mock çalışır.
+const API_URL = import.meta.env.VITE_API_URL
 
 // Ağ gecikmesi taklidi
 const bekle = (ms = 400) => new Promise((r) => setTimeout(r, ms))
@@ -43,6 +47,16 @@ export async function updateProfile(eposta, profil) {
   await bekle()
   localStorage.setItem(profilAnahtari(eposta), JSON.stringify(profil))
   return { eposta, ...profil, profilTamam: true }
+}
+
+// GitHub ile giriş/kayıt: hesap yoksa GitHub bilgileriyle oluşturulur.
+// Dönen kullanıcı nesnesinde ek alan: github: { kullaniciAdi }
+export async function githubIleGiris() {
+  if (API_URL) return githubPencereIleGiris(API_URL)
+  // Mock: GitHub'a gitmeden örnek bir hesapla giriş yapılmış sayılır
+  await bekle(900)
+  const kullanici = kullaniciOlustur('GitHub Kullanıcısı', 'github-demo@codeguard.dev')
+  return { ...kullanici, github: { kullaniciAdi: 'codeguard-demo' } }
 }
 
 export async function forgotPassword(eposta) {
