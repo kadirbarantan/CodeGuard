@@ -23,6 +23,11 @@
   --ai-bg: #f5f3ff;
   --ai-border: #ddd6fe;
   --overlay: rgba(15, 23, 42, 0.65);
+  /* Google ile giriş butonu: Google'ın marka kurallarındaki açık tema renkleri (değiştirme) */
+  --google-bg: #ffffff;
+  --google-hover: #f2f2f2;
+  --google-border: #747775;
+  --google-text: #1f1f1f;
 }
 
 /* Koyu tema: <html data-theme="dark"> */
@@ -48,6 +53,11 @@
   --bad-bg: rgba(239, 68, 68, 0.14);
   --ai-bg: rgba(124, 58, 237, 0.16);
   --ai-border: rgba(167, 139, 250, 0.35);
+  /* Google butonu: Google'ın koyu tema renkleri */
+  --google-bg: #131314;
+  --google-hover: #1f1f20;
+  --google-border: #8e918f;
+  --google-text: #e3e3e3;
 }
 
 /* Değişkenleri Tailwind sınıflarına bağla: --color-surface -> bg-surface */
@@ -73,9 +83,15 @@
   --color-ai-bg: var(--ai-bg);
   --color-ai-border: var(--ai-border);
   --color-overlay: var(--overlay);
+  --color-google-bg: var(--google-bg);
+  --color-google-hover: var(--google-hover);
+  --color-google-border: var(--google-border);
+  --color-google-text: var(--google-text);
 
   --font-sans: 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  /* Google butonu: marka kuralı Roboto Medium */
+  --font-google: 'Roboto', system-ui, sans-serif;
 }
 
 body {

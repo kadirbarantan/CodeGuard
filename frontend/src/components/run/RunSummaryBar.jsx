@@ -5,7 +5,7 @@ export default function RunSummaryBar({ config, round, maxRounds, onStop }) {
   const urlModu = config.kaynak === 'url'
   const alan = config.alan === 'diger' && config.digerMetin.trim() ? config.digerMetin.trim() : ALANLAR[config.alan].ad
   const ozet = [alan, urlModu ? 'URL' : DILLER[config.dil], TURLER[config.tur]].join(' · ')
-  const ad = urlModu ? urlAdi(config.url) : config.dosya?.ad
+  const ad = urlModu ? urlAdi(config.url) : config.kaynak === 'github' ? config.github?.repo : config.dosya?.ad
 
   return (
     <div className="sticky top-0 z-30 -mx-4 bg-bg px-4 py-2">

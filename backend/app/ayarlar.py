@@ -8,10 +8,14 @@ load_dotenv()
 GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID", "")
 GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET", "")
 GITHUB_REDIRECT_URI = os.getenv("GITHUB_REDIRECT_URI", "http://localhost:8000/auth/github/callback")
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
+GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8000/auth/google/callback")
+
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
 
 JWT_SECRET = os.getenv("JWT_SECRET", "")
 JWT_SURE_GUN = int(os.getenv("JWT_SURE_GUN", "7"))
 
 # Yerelde http, canlıda https: çerezin Secure bayrağı buna göre
-CANLI = GITHUB_REDIRECT_URI.startswith("https://")
+CANLI = GITHUB_REDIRECT_URI.startswith("https://") or GOOGLE_REDIRECT_URI.startswith("https://")

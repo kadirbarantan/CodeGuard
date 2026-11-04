@@ -48,7 +48,7 @@ export default function App() {
   // Konfigürasyon seçimleri
   const [config, setConfig] = useState(() =>
     profilVarsayilan(
-      { kaynak: 'kod', dosya: null, url: '', alan: 'web', dil: 'python', tur: 'ikisi', digerMetin: '', baslatmaKomutu: '' },
+      { kaynak: 'kod', dosya: null, url: '', github: null, alan: 'web', dil: 'python', tur: 'ikisi', digerMetin: '', baslatmaKomutu: '' },
       kayitliKullanici(),
     ),
   )
@@ -79,6 +79,7 @@ export default function App() {
     setPendingStart(false)
     setEvents([])
     setScreen('yukle')
+    setConfig((c) => ({ ...c, github: null })) // repo seçimi hesaba bağlı
   }
 
   // Testi başlat: runId'yi sakla, olayları dinle, çalışıyor ekranına geç
@@ -171,6 +172,13 @@ export default function App() {
     devamEt(kullanici)
   }
 
+  // GitHub sekmesinde hesap bağlama / repo erişimi: kullanıcıya yeni alanlar eklenir (örn. github)
+  function kullaniciGuncelle(degisim) {
+    const kullanici = { ...user, ...degisim }
+    localStorage.setItem('kullanici', JSON.stringify(kullanici))
+    setUser(kullanici)
+  }
+
   // Modalı kapat; test bekliyorsa seçimler korunarak başlat, beklemiyorsa profil varsayılanlarını uygula
   function devamEt(kullanici) {
     const bekleyen = pendingStart
@@ -194,7 +202,15 @@ export default function App() {
       {screen === 'yukle' && (
         <main>
           <Hero />
-          <ConfigCard config={config} onChange={setConfig} user={user} onStart={baslat} />
+          <ConfigCard
+            config={config}
+            onChange={setConfig}
+            user={user}
+            onStart={baslat}
+            onGirisYapildi={girisBasarili}
+            onKullaniciGuncelle={kullaniciGuncelle}
+            onGirisAc={() => setModal('giris')}
+          />
           <HowItWorks />
           <AgentLoop />
           <ReportPreview />

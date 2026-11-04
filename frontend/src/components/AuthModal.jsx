@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { X, MailCheck } from 'lucide-react'
-import { login, register, forgotPassword, githubIleGiris } from '../services/api'
+import { login, register, forgotPassword, githubIleGiris, googleIleGiris } from '../services/api'
 import ProfileForm from './ProfileForm'
 import GitHubButonu, { Ayirici } from './GitHubButonu'
+import GoogleButonu from './GoogleButonu'
 
 const EPOSTA_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const ODAK_SECICI =
@@ -55,6 +56,9 @@ export default function AuthModal({ view, pendingStart, kullanici, onViewChange,
   const [hatalar, setHatalar] = useState({})
   const [bekliyor, setBekliyor] = useState(false)
   const [githubBekliyor, setGithubBekliyor] = useState(false)
+  const [googleBekliyor, setGoogleBekliyor] = useState(false)
+  // Bir giriş yolu beklerken diğerleri pasif
+  const mesgul = bekliyor || githubBekliyor || googleBekliyor
   const kutuRef = useRef(null)
 
   // Görünüm değişince hataları temizle, ilk input'a odaklan
@@ -107,7 +111,7 @@ export default function AuthModal({ view, pendingStart, kullanici, onViewChange,
 
   async function gonder(e) {
     e.preventDefault()
-    if (bekliyor) return
+    if (mesgul) return
     const h = dogrula()
     setHatalar(h)
     if (Object.keys(h).length > 0) return
@@ -129,7 +133,7 @@ export default function AuthModal({ view, pendingStart, kullanici, onViewChange,
 
   // GitHub ile giriş/kayıt: hesap yoksa backend oluşturur, sonrası e-postayla girişle aynı (onSuccess)
   async function githubIle() {
-    if (bekliyor || githubBekliyor) return
+    if (mesgul) return
     setHatalar({})
     setGithubBekliyor(true)
     try {
@@ -137,6 +141,19 @@ export default function AuthModal({ view, pendingStart, kullanici, onViewChange,
     } catch (err) {
       setHatalar({ github: err?.message || 'GitHub ile giriş yapılamadı. Lütfen tekrar dene.' })
       setGithubBekliyor(false)
+    }
+  }
+
+  // Google ile giriş/kayıt: aynı doğrulanmış e-postayla açılmış hesap varsa backend ona bağlar
+  async function googleIle() {
+    if (mesgul) return
+    setHatalar({})
+    setGoogleBekliyor(true)
+    try {
+      onSuccess(await googleIleGiris())
+    } catch (err) {
+      setHatalar({ google: err?.message || 'Google ile giriş yapılamadı. Lütfen tekrar dene.' })
+      setGoogleBekliyor(false)
     }
   }
 
@@ -197,10 +214,19 @@ export default function AuthModal({ view, pendingStart, kullanici, onViewChange,
           <form onSubmit={gonder} noValidate className="space-y-4">
             {(view === 'giris' || view === 'kayit') && (
               <>
-                <GitHubButonu onClick={githubIle} bekliyor={githubBekliyor} disabled={bekliyor} />
-                {hatalar.github && (
+                {/* Geniş ekranda yan yana, dar ekranda alt alta */}
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <GitHubButonu onClick={githubIle} bekliyor={githubBekliyor} disabled={mesgul} />
+                  <GoogleButonu
+                    metin={view === 'kayit' ? 'Google ile Kaydol' : 'Google ile Giriş Yap'}
+                    onClick={googleIle}
+                    bekliyor={googleBekliyor}
+                    disabled={mesgul}
+                  />
+                </div>
+                {(hatalar.github || hatalar.google) && (
                   <p role="alert" className="text-sm text-bad-text">
-                    {hatalar.github}
+                    {hatalar.github || hatalar.google}
                   </p>
                 )}
                 <Ayirici />
@@ -241,7 +267,7 @@ export default function AuthModal({ view, pendingStart, kullanici, onViewChange,
             )}
             <button
               type="submit"
-              disabled={bekliyor || githubBekliyor}
+              disabled={mesgul}
               className="min-h-10 w-full rounded-lg bg-accent px-4 text-sm font-medium text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {bekliyor
