@@ -35,13 +35,17 @@ const ALAN_SECENEKLERI = Object.entries(ALANLAR).map(([deger, a]) => ({
   ipucu: GELISTIRILIYOR_NOTU,
 }))
 
-export default function ConfigCard({ config, onChange, user, onStart }) {
+// onGirisYapildi / onKullaniciGuncelle / onGirisAc: GitHub sekmesindeki bağlanma adımları için (App'ten)
+export default function ConfigCard({ config, onChange, user, onStart, onGirisYapildi, onKullaniciGuncelle, onGirisAc }) {
   const alan = config.alan
   const urlModu = config.kaynak === 'url'
   const sadeceBirim = !arayuzDesteklenir(alan)
   const profil = user?.profilTamam ? user : null
   const komutGerek = !urlModu && (arayuzVar(config.tur) || uxVar(config.tur))
-  const hazir = urlModu ? urlGecerli(config.url) : Boolean(config.dosya)
+  const g = config.github
+  // GitHub: en az bir dosya seçili, bağlam hesaplanmış ve sınır aşılmamış olmalı
+  const githubHazir = Boolean(user?.github?.repoErisimi && g?.secilenler?.length && !g.hesaplaniyor && !g.sinirAsildi)
+  const hazir = urlModu ? urlGecerli(config.url) : config.kaynak === 'github' ? githubHazir : Boolean(config.dosya)
 
   const dilSecenekleri = [
     { deger: 'python', ad: 'Python', pasif: !pythonDesteklenir(alan) },
@@ -60,6 +64,11 @@ export default function ConfigCard({ config, onChange, user, onStart }) {
     onChange(c)
   }
 
+  // GitHub sekmesi seçimi: ardışık güncellemeler (repo → dal → bağlam) birbirini ezmesin diye fonksiyonel güncelleme
+  function githubGuncelle(degisim) {
+    onChange((c) => ({ ...c, github: { ...(c.github || {}), ...degisim } }))
+  }
+
   return (
     <section className="mx-auto w-full max-w-6xl px-4">
       <div className="rounded-2xl border border-border bg-surface p-5 sm:p-8">
@@ -72,6 +81,15 @@ export default function ConfigCard({ config, onChange, user, onStart }) {
           onKaynak={(kaynak) => guncelle({ kaynak })}
           onDosya={(d) => guncelle({ dosya: d })}
           onUrl={(url) => guncelle({ url })}
+          github={config.github}
+          githubProps={{
+            user,
+            tur: config.tur,
+            onGithub: githubGuncelle,
+            onGirisYapildi,
+            onKullaniciGuncelle,
+            onGirisAc,
+          }}
         />
 
         <div className="mt-6 grid gap-4 sm:grid-cols-2">

@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app import ayarlar
 from app.auth.github import router as github_router
+from app.auth.google import router as google_router
 from app.auth.oturum import router as oturum_router
 
 app = FastAPI(title="CodeGuard API")
@@ -20,4 +21,5 @@ app.add_middleware(
 )
 
 app.include_router(github_router)
+app.include_router(google_router)
 app.include_router(oturum_router)

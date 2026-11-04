@@ -1,1 +1,1 @@
-"""Kimlik doğrulama: GitHub OAuth, oturum token'ı."""
+"""Kimlik doğrulama: GitHub OAuth, Google OpenID Connect, oturum token'ı."""

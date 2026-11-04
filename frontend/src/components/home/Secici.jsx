@@ -1,10 +1,10 @@
 // Açılır seçim kutusu (listbox). Yerel <select>'ten farkı: pasif seçeneklerin yanında rozet
 // ve üzerine gelince / tıklanınca açıklama gösterebilir ("Şu anda geliştirmeye devam etmektedir").
-// secenekler: [{ deger, ad, rozet?, pasif?, ipucu? }]
+// secenekler: [{ deger, ad, rozet?, pasif?, ipucu? }]  ·  yerTutucu: seçim yokken görünen soluk metin
 import { useEffect, useId, useRef, useState } from 'react'
 import { Check, ChevronDown, Clock } from 'lucide-react'
 
-export default function Secici({ etiket, deger, secenekler, onSec, devreDisi = false }) {
+export default function Secici({ etiket, deger, secenekler, onSec, devreDisi = false, yerTutucu = '' }) {
   const kimlik = useId()
   const [acik, setAcik] = useState(false)
   const [vurgulu, setVurgulu] = useState(-1)
@@ -83,7 +83,9 @@ export default function Secici({ etiket, deger, secenekler, onSec, devreDisi = f
         }}
         className="flex min-h-11 w-full items-center justify-between gap-2 rounded-lg border border-border-strong bg-surface px-3 text-left text-sm text-text outline-none focus-visible:border-accent disabled:opacity-50"
       >
-        <span id={kimlik + '-deger'} className="truncate">{secili?.ad}</span>
+        <span id={kimlik + '-deger'} className={'truncate' + (secili ? '' : ' text-muted')}>
+          {secili ? secili.ad : yerTutucu}
+        </span>
         <ChevronDown size={16} className={'shrink-0 text-muted transition-transform ' + (acik ? 'rotate-180' : '')} aria-hidden="true" />
       </button>
 

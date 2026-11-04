@@ -13,16 +13,16 @@
 
 GitHub'ın access token'ı yalnızca kimlik bilgisini okumak için kullanılır ve saklanmaz.
 """
-import json
 import secrets
 from urllib.parse import urlencode
 
 import httpx
 from fastapi import APIRouter, Cookie
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import RedirectResponse
 
 from app import ayarlar
 from app.auth.kullanicilar import github_ile_bul_veya_olustur
+from app.auth.pencere import pencere_yaniti
 from app.auth.token import token_uret
 
 router = APIRouter(prefix="/auth/github", tags=["github"])
@@ -109,21 +109,6 @@ async def _kodu_tokena_cevir(istemci: httpx.AsyncClient, code: str) -> str:
     return veri["access_token"]
 
 
-def _pencere_yaniti(token: str | None = None, hata: str | None = None) -> HTMLResponse:
-    """Açılır pencerede çalışan küçük sayfa: sonucu yalnızca FRONTEND_URL'e iletir ve kapanır."""
-    mesaj = {"type": "codeguard:github", "token": token, "hata": hata}
-    # </script> kaçışı: JSON metni script etiketini kapatamasın
-    mesaj_js = json.dumps(mesaj).replace("</", "<\\/")
-    hedef_js = json.dumps(ayarlar.FRONTEND_URL).replace("</", "<\\/")
-    html = f"""<!doctype html>
-<html lang="tr"><meta charset="utf-8"><title>CodeGuard</title>
-<body style="font-family:system-ui;padding:24px;color:#0F172A">
-<p>{"Giriş tamamlandı, bu pencere kapanıyor…" if token else "Giriş tamamlanamadı. Bu pencereyi kapatabilirsin."}</p>
-<script>
-  if (window.opener) window.opener.postMessage({mesaj_js}, {hedef_js});
-  window.close();
-</script>
-</body></html>"""
-    yanit = HTMLResponse(html, headers={"Cache-Control": "no-store"})
-    yanit.delete_cookie(STATE_CEREZI, path="/auth/github")
-    return yanit
+def _pencere_yaniti(token: str | None = None, hata: str | None = None):
+    """Sonucu ana pencereye iletir (ortak sayfa: pencere.py)."""
+    return pencere_yaniti("github", STATE_CEREZI, "/auth/github", token=token, hata=hata)

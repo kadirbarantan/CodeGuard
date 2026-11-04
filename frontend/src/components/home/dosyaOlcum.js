@@ -3,8 +3,8 @@ export const MAX_BOYUT = 5 * 1024 * 1024 // 5 MB
 export const MAX_DOSYA = 200
 const HARIC = ['node_modules', 'bin', 'obj', 'venv', '.git']
 
-// Dosya yolundaki klasörlerden biri hariç listesinde mi?
-function haricMi(yol) {
+// Dosya yolundaki klasörlerden biri hariç listesinde mi? (yükleme, GitHub ağacı ve Bağlam Çözümleyici)
+export function haricMi(yol) {
   return yol.split('/').slice(0, -1).some((p) => HARIC.includes(p))
 }
 

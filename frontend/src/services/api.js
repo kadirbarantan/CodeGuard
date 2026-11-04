@@ -4,7 +4,10 @@ import { report } from '../mock/report'
 import { history } from '../mock/history'
 import { uxReport } from '../mock/uxReport'
 import { uxVar, urlAdi } from '../config/testStratejileri'
+import { githubRepolari } from '../mock/githubRepos'
+import { baglamCozumle } from '../mock/baglamCozumleyici'
 import { githubPencereIleGiris } from './githubOAuth'
+import { googlePencereIleGiris } from './googleOAuth'
 
 // Gerçek backend adresi (.env: VITE_API_URL=http://localhost:8000). Tanımlı değilse mock çalışır.
 const API_URL = import.meta.env.VITE_API_URL
@@ -59,6 +62,68 @@ export async function githubIleGiris() {
   return { ...kullanici, github: { kullaniciAdi: 'codeguard-demo' } }
 }
 
+// Google ile giriş/kayıt (OpenID Connect): hesap yoksa Google bilgileriyle oluşturulur;
+// aynı doğrulanmış e-postayla açılmış hesap varsa ona bağlanır. Ek alan: google: { eposta }
+export async function googleIleGiris() {
+  if (API_URL) return googlePencereIleGiris(API_URL)
+  // Mock: Google'a gitmeden örnek bir hesapla giriş yapılmış sayılır
+  await bekle(900)
+  const eposta = 'google-demo@codeguard.dev'
+  return { ...kullaniciOlustur('Google Kullanıcısı', eposta), google: { eposta } }
+}
+
+// ── GitHub sekmesi (K17): bağlanma, repo erişimi, repo · dal · ağaç · bağlam ──
+// Repo erişimi (GitHub App kurulumu) ve repo uçları henüz backend'de yok (Faz 2).
+// O zamana kadar gerçek backend modunda giriş çalışır, repo adımları açık bir hata verir.
+const REPO_HENUZ_YOK = 'GitHub repo erişimi henüz hazır değil (Faz 2). Şimdilik kodu yükleyerek dene.'
+const mockRepo = (ad) => githubRepolari.find((r) => r.ad === ad)
+
+// Giriş yokken: GitHub ile giriş + repo erişimi tek adımda. Dönen: kullanıcı nesnesi
+export async function githubBaglan() {
+  if (API_URL) return githubPencereIleGiris(API_URL) // giriş olur; repo erişimi adımı sonra istenir
+  const kullanici = await githubIleGiris()
+  return { ...kullanici, github: { ...kullanici.github, repoErisimi: true } }
+}
+
+// E-postayla giriş yapmış kullanıcı: hesaba GitHub bağlanır. Dönen: kullanıcıya eklenecek alanlar
+export async function githubHesabiBagla() {
+  if (API_URL) throw new Error(REPO_HENUZ_YOK)
+  await bekle(900)
+  return { github: { kullaniciAdi: 'codeguard-demo', repoErisimi: true } }
+}
+
+// GitHub bağlı ama repolara erişim verilmemiş. Dönen: kullanıcıya eklenecek alanlar
+export async function githubRepoErisimiVer(github) {
+  if (API_URL) throw new Error(REPO_HENUZ_YOK)
+  await bekle(900)
+  return { github: { ...github, repoErisimi: true } }
+}
+
+// → [{ ad: 'sahip/repo', gizli, dil }]
+export async function getGithubRepolari() {
+  await bekle()
+  return githubRepolari.map(({ ad, gizli, dil }) => ({ ad, gizli, dil }))
+}
+
+// → [{ ad, commit }] (varsayılan dal ilk sırada)
+export async function getGithubDallari(repo) {
+  await bekle(300)
+  return mockRepo(repo)?.dallar || []
+}
+
+// → [{ yol, boyut }] (yalnızca yollar ve boyutlar; içerik indirilmez)
+export async function getGithubAgaci(repo, dal) {
+  await bekle(500)
+  return mockRepo(repo)?.agac || []
+}
+
+// Bağlam Çözümleyici: seçilen dosyaların çalışması için gereken dosyalar → { baglam: [{ yol, neden }], tumRepo }
+export async function getGithubBaglami(repo, dal, secilenler, tur) {
+  await bekle(300)
+  const r = mockRepo(repo)
+  return r ? baglamCozumle(r, secilenler, tur) : { baglam: [], tumRepo: false }
+}
+
 export async function forgotPassword(eposta) {
   await bekle()
   return { ok: true }
@@ -71,6 +136,7 @@ export async function startRun(config) {
   await bekle()
   const runId = 'run-' + Date.now()
   const urlModu = config.kaynak === 'url'
+  const githubModu = config.kaynak === 'github'
   calistirmalar.set(runId, {
     alan: config.alan,
     dil: config.dil,
@@ -78,7 +144,7 @@ export async function startRun(config) {
     digerMetin: config.digerMetin,
     kaynak: config.kaynak || 'kod',
     url: urlModu ? config.url : '',
-    proje: urlModu ? urlAdi(config.url) : config.dosya?.ad,
+    proje: urlModu ? urlAdi(config.url) : githubModu ? config.github?.repo?.split('/').pop() : config.dosya?.ad,
   })
   return { runId }
 }
