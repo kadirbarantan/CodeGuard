@@ -36,8 +36,8 @@ function BaglanmaKarti({ baslik, aciklama, butonMetni, onBagla, alt }) {
   }
 
   return (
-    <div className="rounded-xl border-2 border-dashed border-border-strong bg-bg px-4 py-10 text-center">
-      <GitBranch size={44} className="mx-auto text-accent" aria-hidden="true" />
+    <div className="rounded-2xl border-2 border-dashed border-ai-border bg-gradient-to-b from-soft/60 to-surface px-4 py-9 text-center">
+      <GitBranch size={44} className="mx-auto text-ai-text" aria-hidden="true" />
       <p className="mt-3 text-lg font-semibold">{baslik}</p>
       <p className="mx-auto mt-1 max-w-md text-sm text-muted">{aciklama}</p>
       <GitHubButonu metin={butonMetni} onClick={tikla} bekliyor={bekliyor} className="mx-auto mt-5 w-full max-w-xs" />
@@ -176,7 +176,7 @@ function RepoSecimi({ github, tur, kullaniciAdi, onGithub }) {
   const sinirAsildi = toplamSayi > MAX_DOSYA || toplamBoyut > MAX_BOYUT
 
   return (
-    <div className="rounded-xl border border-border-strong bg-bg p-4 sm:p-5">
+    <div className="rounded-2xl border border-border bg-soft/40 p-4 sm:p-5">
       <div className="grid gap-3 sm:grid-cols-2">
         <Secici
           etiket="Repo"

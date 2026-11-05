@@ -156,7 +156,7 @@ Kurallar:
      - Alan **Oyun** ya da **Mobil** ise Arayüz ve İkisi pasif olur, tür otomatik Birim'e döner. Altında not: "Bu alanda birim testi yapılır. Arayüz (E2E) testleri şimdilik yalnızca web arayüzleri için."
      - Alan **Diğer** ise metin kutusu açılır: "Alanını kısaca yaz", en fazla 100 karakter.
      - Tür **Arayüz** ya da **İkisi** ise "Başlatma komutu (isteğe bağlı, boş bırakırsan otomatik bulunur)" alanı açılır. Monospace font, örnek: `uvicorn main:app`.
-   - Tam genişlikte mor **"Otonom Testi Başlat"** butonu. Dosya yoksa pasif.
+   - Tam genişlikte mor **"Testi Başlat"** butonu. Dosya yoksa pasif.
    - Giriş yapılmamışsa butonun altında küçük not: "Testi başlatmak için giriş yapman istenecek."
 3. **HowItWorks**: 4 numaralı kart, her birinde ikon, numara, başlık ve kısa açıklama:
    - 01 Kodunu yükle

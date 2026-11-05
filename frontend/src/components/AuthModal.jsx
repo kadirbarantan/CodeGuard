@@ -171,7 +171,7 @@ export default function AuthModal({ view, pendingStart, kullanici, onViewChange,
         role="dialog"
         aria-modal="true"
         aria-labelledby="auth-baslik"
-        className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-border bg-surface p-6 shadow-xl"
+        className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl shadow-kart border border-border bg-surface p-6 shadow-xl"
       >
         <button
           type="button"

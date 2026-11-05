@@ -42,7 +42,7 @@ export default function ReportView({ report, onNew }) {
   // Kullanılabilirlik testi kendi rapor düzenini kullanır
   if (uxVar(report.tur)) {
     return (
-      <main className="mx-auto max-w-6xl space-y-4 px-4 py-8">
+      <main className="mx-auto max-w-7xl space-y-4 px-4 py-8 sm:px-6">
         <ReportHeader report={report} onNew={onNew} />
         <UxRaporu report={report} onPdf={() => setToast(BACKEND_NOTU)} />
         <Toast message={toast} onClose={toastKapat} />
@@ -61,10 +61,10 @@ export default function ReportView({ report, onNew }) {
   ]
 
   return (
-    <main className="mx-auto max-w-6xl space-y-4 px-4 py-8">
+    <main className="mx-auto max-w-7xl space-y-4 px-4 py-8 sm:px-6">
       <ReportHeader report={report} onNew={onNew} />
 
-      <section className="flex flex-col items-center gap-5 rounded-2xl border border-border bg-surface p-5 sm:p-6 lg:flex-row">
+      <section className="flex flex-col items-center gap-5 rounded-3xl border border-border bg-surface shadow-yumusak p-5 sm:p-6 lg:flex-row">
         {urlModu ? (
           <CoverageDonut yuzde={etkilesimYuzde} etiket="Etkileşim" />
         ) : (
@@ -89,7 +89,7 @@ export default function ReportView({ report, onNew }) {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-border bg-surface p-5 sm:p-6">
+      <section className="rounded-3xl border border-border bg-surface shadow-yumusak p-5 sm:p-6">
         <div role="tablist" aria-label="Rapor bölümleri" className="mb-5 flex flex-wrap gap-1 border-b border-border">
           {sekmeler.map((s) => {
             const aktif = sekme === s.id

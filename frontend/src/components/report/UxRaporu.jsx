@@ -157,7 +157,7 @@ export default function UxRaporu({ report, onPdf }) {
 
   return (
     <>
-      <section className="flex flex-col items-center gap-5 rounded-2xl border border-border bg-surface p-5 sm:p-6 lg:flex-row">
+      <section className="flex flex-col items-center gap-5 rounded-3xl border border-border bg-surface shadow-yumusak p-5 sm:p-6 lg:flex-row">
         <CoverageDonut yuzde={report.ux.skor} etiket="UX skoru" />
         <div className="grid w-full flex-1 gap-3 sm:grid-cols-2">
           <div className={kutu}>
@@ -192,7 +192,7 @@ export default function UxRaporu({ report, onPdf }) {
         </button>
       </section>
 
-      <section className="rounded-2xl border border-border bg-surface p-5 sm:p-6">
+      <section className="rounded-3xl border border-border bg-surface shadow-yumusak p-5 sm:p-6">
         <div role="tablist" aria-label="Kullanılabilirlik raporu bölümleri" className="mb-5 flex flex-wrap gap-1 border-b border-border">
           {sekmeler.map((s) => {
             const aktif = sekme === s.id

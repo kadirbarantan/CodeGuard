@@ -24,19 +24,18 @@ export default function Header({ user, onHome, onLogin, onRegister, onHistory, o
     : ''
 
   return (
-    <header className="border-b border-border bg-surface">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
+    <header className="z-40 md:sticky md:top-0 border-b border-border/70 bg-surface/80 backdrop-blur-xl">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
         <button
           type="button"
           onClick={onHome}
           className="flex min-h-10 items-center gap-2 rounded-lg font-semibold text-text"
         >
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-panel text-on-panel">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-accent to-accent-2 text-white shadow-yumusak">
             <Logo />
           </span>
-          <span className="text-lg">
-            <span className="text-text">Code</span>
-            <span className="text-accent">Guard</span>
+          <span className="text-xl font-bold tracking-tight text-text">
+            CodeGuard<span className="text-ai-text">.</span>
           </span>
         </button>
 
@@ -56,7 +55,7 @@ export default function Header({ user, onHome, onLogin, onRegister, onHistory, o
                 onClick={onProfile}
                 title="Profilim"
                 aria-label={`Profilim (${user.ad})`}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-ai-bg text-sm font-semibold text-ai-text hover:ring-2 hover:ring-accent"
+                className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-accent to-accent-2 text-sm font-semibold text-white shadow-yumusak hover:ring-2 hover:ring-ai-border"
               >
                 {basHarfler}
               </button>
@@ -80,7 +79,7 @@ export default function Header({ user, onHome, onLogin, onRegister, onHistory, o
               <button
                 type="button"
                 onClick={onRegister}
-                className="min-h-10 rounded-lg bg-accent px-4 text-sm font-medium text-white hover:opacity-90"
+                className="min-h-10 rounded-xl bg-accent px-4 text-sm font-semibold text-white shadow-yumusak transition-colors hover:bg-accent-2"
               >
                 Kayıt Ol
               </button>

@@ -1,28 +1,36 @@
 @import 'tailwindcss';
 
-/* Açık tema (varsayılan) */
+/* Açık tema (varsayılan) — Stitch "CodeGuard" paleti: derin indigo + soğuk lavanta yüzeyler */
 :root {
-  --bg: #f8fafc;
+  --bg: #fbf8ff;
   --surface: #ffffff;
-  --soft: #f1f5f9;
-  --panel: #0f172a;
-  --on-panel: #f8fafc;
-  --text: #0f172a;
-  --text-2: #334155;
-  --muted: #475569;
-  --border: #e2e8f0;
-  --border-strong: #cbd5e1;
-  --accent: #7c3aed;
+  --soft: #f3f1fa;
+  --panel: #14163a;
+  --on-panel: #f2eff9;
+  --text: #1b1b22;
+  --text-2: #454652;
+  --muted: #5f5f6e;
+  --border: #e6e4ef;
+  --border-strong: #c6c5d5;
+  --accent: #2e3da4;
+  --accent-2: #4856bd;
+  --accent-3: #7468e0;
   --ok: #10b981;
-  --bad: #ef4444;
+  --bad: #ba1a1a;
+  --warn: #b45309;
   --ok-text: #047857;
-  --bad-text: #b91c1c;
-  --ai-text: #6d28d9;
+  --bad-text: #ba1a1a;
+  --ai-text: #2e3da4;
   --ok-bg: #ecfdf5;
-  --bad-bg: #fef2f2;
-  --ai-bg: #f5f3ff;
-  --ai-border: #ddd6fe;
-  --overlay: rgba(15, 23, 42, 0.65);
+  --bad-bg: #fff0ee;
+  --ai-bg: #eef0ff;
+  --ai-border: #c9cdfb;
+  --overlay: rgba(20, 22, 58, 0.6);
+  --golge-kart: 0 20px 60px -15px rgba(46, 61, 164, 0.14);
+  --golge-yumusak: 0 2px 12px -2px rgba(46, 61, 164, 0.1);
+  --izgara: rgba(118, 118, 132, 0.08);
+  --parilti-1: rgba(46, 61, 164, 0.14);
+  --parilti-2: rgba(180, 197, 254, 0.35);
   /* Google ile giriş butonu: Google'ın marka kurallarındaki açık tema renkleri (değiştirme) */
   --google-bg: #ffffff;
   --google-hover: #f2f2f2;
@@ -30,29 +38,38 @@
   --google-text: #1f1f1f;
 }
 
-/* Koyu tema: <html data-theme="dark"> */
+/* Koyu tema: <html data-theme="dark"> — aynı indigo paletten türetildi (WCAG AA) */
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --bg: #0b1120;
-  --surface: #131c2e;
-  --soft: #1e293b;
-  --panel: #1a2340;
-  --on-panel: #f8fafc;
-  --text: #e2e8f0;
-  --text-2: #cbd5e1;
-  --muted: #94a3b8;
-  --border: #243049;
-  --border-strong: #334155;
-  --accent: #7c3aed;
+  --bg: #0e0f1f;
+  --surface: #161831;
+  --soft: #1f2240;
+  --panel: #0a0b1a;
+  --on-panel: #f2eff9;
+  --text: #e5e2ef;
+  --text-2: #c6c5d5;
+  --muted: #9d9cb2;
+  --border: #272a4a;
+  --border-strong: #393d66;
+  --accent: #4856bd;
+  --accent-2: #6672d4;
+  --accent-3: #9c8ff0;
   --ok: #10b981;
-  --bad: #ef4444;
+  --bad: #f2564b;
+  --warn: #f59e0b;
   --ok-text: #34d399;
-  --bad-text: #f87171;
-  --ai-text: #a78bfa;
+  --bad-text: #ffb4ab;
+  --ai-text: #bcc2ff;
   --ok-bg: rgba(16, 185, 129, 0.14);
-  --bad-bg: rgba(239, 68, 68, 0.14);
-  --ai-bg: rgba(124, 58, 237, 0.16);
-  --ai-border: rgba(167, 139, 250, 0.35);
+  --bad-bg: rgba(242, 86, 75, 0.15);
+  --ai-bg: rgba(72, 86, 189, 0.22);
+  --ai-border: rgba(188, 194, 255, 0.3);
+  --overlay: rgba(4, 5, 14, 0.72);
+  --golge-kart: 0 20px 60px -20px rgba(0, 0, 0, 0.6);
+  --golge-yumusak: 0 2px 12px -2px rgba(0, 0, 0, 0.4);
+  --izgara: rgba(188, 194, 255, 0.05);
+  --parilti-1: rgba(72, 86, 189, 0.28);
+  --parilti-2: rgba(116, 104, 224, 0.16);
   /* Google butonu: Google'ın koyu tema renkleri */
   --google-bg: #131314;
   --google-hover: #1f1f20;
@@ -73,6 +90,9 @@
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
   --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
+  --color-accent-3: var(--accent-3);
+  --color-warn: var(--warn);
   --color-ok: var(--ok);
   --color-bad: var(--bad);
   --color-ok-text: var(--ok-text);
@@ -87,6 +107,9 @@
   --color-google-hover: var(--google-hover);
   --color-google-border: var(--google-border);
   --color-google-text: var(--google-text);
+
+  --shadow-kart: var(--golge-kart);
+  --shadow-yumusak: var(--golge-yumusak);
 
   --font-sans: 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
@@ -103,7 +126,7 @@ body {
 
 /* Kod sekmesi: Monaco satır boyama (gece modunda da okunur) */
 .cov-ok { background: rgba(16, 185, 129, 0.16); }
-.cov-bad { background: rgba(239, 68, 68, 0.18); cursor: pointer; }
+.cov-bad { background: rgba(186, 26, 26, 0.14); cursor: pointer; }
 .cov-gri { background: rgba(148, 163, 184, 0.2); }
 .cov-serit-ok, .cov-serit-bad, .cov-serit-gri { margin-left: 3px; width: 4px !important; }
 .cov-serit-ok { background: var(--ok); }
@@ -130,3 +153,42 @@ body {
 
 /* "Kodda göster" ile gelinen satır */
 .satir-odak { box-shadow: inset 0 0 0 2px var(--accent); }
+
+/* Ana sayfa arka planı: yumuşak indigo parıltılar + ince ızgara */
+.hero-zemin {
+  background-image:
+    radial-gradient(at 20% 10%, var(--parilti-1) 0px, transparent 50%),
+    radial-gradient(at 80% 18%, var(--parilti-2) 0px, transparent 45%);
+}
+.izgara {
+  background-size: 32px 32px;
+  background-image:
+    linear-gradient(to right, var(--izgara) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--izgara) 1px, transparent 1px);
+  mask-image: radial-gradient(ellipse at center, #000, transparent 70%);
+}
+.baslik-gradyan {
+  background-image: linear-gradient(90deg, var(--accent), var(--accent-2) 45%, var(--accent-3));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* "Nasıl çalışır?" kartları: bölüm görünür olunca sırayla belirir (tek bir orkestre an) */
+@keyframes kart-gelis {
+  from { opacity: 0; transform: translateY(24px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+.adim-kart { opacity: 0; }
+.adim-kart.gorundu { animation: kart-gelis 0.7s cubic-bezier(0.16, 1, 0.3, 1) both; }
+@keyframes cizgi-dolum { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.adim-cizgi { transform-origin: left; transform: scaleX(0); }
+.adim-kart.gorundu .adim-cizgi { animation: cizgi-dolum 0.9s cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: inherit; }
+@media (prefers-reduced-motion: reduce) {
+  .adim-kart, .adim-kart.gorundu { opacity: 1; animation: none; }
+  .adim-cizgi, .adim-kart.gorundu .adim-cizgi { transform: none; animation: none; }
+}
+
+/* Açılış animasyonu: yanıp sönen imleç */
+@keyframes imlec { 50% { opacity: 0; } }
+.imlec { animation: imlec 0.9s steps(1) infinite; }
