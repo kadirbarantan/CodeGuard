@@ -77,7 +77,7 @@ Kullanıcının durumuna göre dört görünüm:
 
 - Seçim `config.github` içinde tutulur: `{ repo, dal, commit, secilenler, baglam, tumRepo, hesaplaniyor, sinirAsildi }`.
   Ardışık güncellemeler birbirini ezmesin diye ConfigCard bunu fonksiyonel `setConfig` ile günceller.
-- "Otonom Testi Başlat" yalnızca repo erişimi varken, en az bir dosya seçiliyken, bağlam hesaplanmışken ve sınır aşılmamışken aktiftir.
+- "Testi Başlat" yalnızca repo erişimi varken, en az bir dosya seçiliyken, bağlam hesaplanmışken ve sınır aşılmamışken aktiftir.
 - Çıkışta `config.github` sıfırlanır (seçim hesaba bağlı).
 - Mock veriler: `mock/githubRepos.js`, `mock/baglamCozumleyici.js`; API: `githubBaglan`, `githubHesabiBagla`,
   `githubRepoErisimiVer`, `getGithubRepolari`, `getGithubDallari`, `getGithubAgaci`, `getGithubBaglami`.

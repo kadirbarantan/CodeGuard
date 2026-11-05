@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import Header from './components/Header'
 import Hero from './components/home/Hero'
+import TerminalBolumu from './components/home/AcilisAnimasyonu'
 import ConfigCard from './components/home/ConfigCard'
 import HowItWorks from './components/home/HowItWorks'
-import AgentLoop from './components/home/AgentLoop'
+// AgentLoop (Standardizasyon Katmanı görseli) ana sayfadan kaldırıldı; tez sunumunda kullanılmak üzere dosyası duruyor.
 import ReportPreview from './components/home/ReportPreview'
 import AuthModal from './components/AuthModal'
 import { startRun, subscribeRun, stopRun, getReport } from './services/api'
@@ -212,19 +213,27 @@ export default function App() {
             onGirisAc={() => setModal('giris')}
           />
           <HowItWorks />
-          <AgentLoop />
+          <TerminalBolumu />
           <ReportPreview />
+          <footer className="border-t border-border">
+            <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-6 text-sm text-muted sm:px-6">
+              <span>
+                <strong className="font-bold text-text">CodeGuard</strong>, LLM ajanlarıyla otonom test üretimi
+              </span>
+              <span>Bitirme projesi, 2026</span>
+            </div>
+          </footer>
         </main>
       )}
       {screen === 'calisiyor' && (
-        <main className="mx-auto max-w-6xl space-y-4 px-4 pb-8 pt-4">
+        <main className="mx-auto max-w-7xl space-y-4 px-4 pb-8 pt-4 sm:px-6">
           <RunSummaryBar
             config={config}
             round={events.length ? events[events.length - 1].round : 1}
             maxRounds={events.length ? events[events.length - 1].maxRounds : 4}
             onStop={durdur}
           />
-          <section className="rounded-2xl border border-border bg-surface p-5 sm:p-8">
+          <section className="rounded-3xl border border-border bg-surface shadow-yumusak p-5 sm:p-8">
             <h2 className="mb-5 text-xl font-semibold">Ajanlar ve Süreç (canlı akış)</h2>
             <LiveStats config={config} metrics={events.length ? events[events.length - 1].metrics : null} />
             <div className="mt-6">

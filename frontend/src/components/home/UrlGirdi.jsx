@@ -9,8 +9,8 @@ export default function UrlGirdi({ url, onUrl }) {
   const hataGoster = dokunuldu && url.trim() !== '' && !gecerli
 
   return (
-    <div className="rounded-xl border-2 border-dashed border-border-strong bg-bg px-4 py-10 text-center">
-      <Globe size={44} className="mx-auto text-accent" aria-hidden="true" />
+    <div className="rounded-2xl border-2 border-dashed border-ai-border bg-gradient-to-b from-soft/60 to-surface px-4 py-9 text-center">
+      <Globe size={44} className="mx-auto text-ai-text" aria-hidden="true" />
       <p className="mt-3 text-lg font-semibold">Canlı sitenin adresini gir</p>
       <p className="mt-1 text-sm text-muted">Kod yüklemeden arayüz ve kullanılabilirlik testi yapılır.</p>
 
