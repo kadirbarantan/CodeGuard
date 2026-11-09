@@ -11,6 +11,9 @@ import { startRun, subscribeRun, stopRun, getReport } from './services/api'
 import RunSummaryBar from './components/run/RunSummaryBar'
 import LiveStats from './components/run/LiveStats'
 import AgentTimeline from './components/run/AgentTimeline'
+import PlanIlerleme from './components/run/PlanIlerleme'
+import VurguKart from './components/VurguKart'
+import { olaylariOlustur } from './mock/runEvents'
 import ReportView from './components/report/ReportView'
 import HistoryDrawer from './components/HistoryDrawer'
 import { alanAktif, pythonDesteklenir, arayuzDesteklenir } from './config/testStratejileri'
@@ -55,6 +58,8 @@ export default function App() {
   )
   // Çalıştırma: canlı olaylar, sonuç raporu (aktif runId aktifRunRef'te tutulur)
   const [events, setEvents] = useState([])
+  // Plan ilerlemesi için beklenen toplam olay (Faz 2'de backend toplam adımı kendisi gönderebilir)
+  const toplamOlay = screen === 'calisiyor' ? olaylariOlustur(config).length : 0
   const [report, setReport] = useState(null)
 
   // Aktif aboneliğin durdurma fonksiyonu ve geçerli çalıştırma kimliği (eski olayları yok saymak için)
@@ -190,7 +195,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-bg text-text">
+    <div className="min-h-screen overflow-x-clip bg-bg text-text">
       <Header
         user={user}
         onHome={anaSayfa}
@@ -202,8 +207,18 @@ export default function App() {
       />
       {screen === 'yukle' && (
         <main>
-          <Hero />
+          {/* Açılış: solda slogan, sağda test kartı (geniş ekranda yan yana) */}
+          <section className="relative isolate overflow-x-clip">
+            <div aria-hidden="true" className="hero-zemin pointer-events-none absolute inset-0 -z-10">
+              <div className="izgara absolute inset-0 opacity-70" />
+            </div>
+            <div className="mx-auto grid w-full max-w-7xl items-start gap-12 px-4 pb-16 pt-12 sm:px-6 sm:pt-16 xl:grid-cols-12 xl:gap-10 xl:pt-14">
+              <div className="xl:sticky xl:top-28 xl:col-span-4 xl:pt-10">
+                <Hero yan />
+              </div>
+              <div className="min-w-0 xl:col-span-8">
           <ConfigCard
+            yanYana
             config={config}
             onChange={setConfig}
             user={user}
@@ -212,6 +227,9 @@ export default function App() {
             onKullaniciGuncelle={kullaniciGuncelle}
             onGirisAc={() => setModal('giris')}
           />
+              </div>
+            </div>
+          </section>
           <HowItWorks />
           <TerminalBolumu />
           <ReportPreview />
@@ -226,20 +244,30 @@ export default function App() {
         </main>
       )}
       {screen === 'calisiyor' && (
-        <main className="mx-auto max-w-7xl space-y-4 px-4 pb-8 pt-4 sm:px-6">
+        <main className="relative isolate mx-auto max-w-7xl space-y-6 px-4 pb-12 pt-4 sm:px-6">
+          <div aria-hidden="true" className="hero-zemin pointer-events-none absolute left-1/2 top-0 -z-10 h-[34rem] w-screen -translate-x-1/2">
+            <div className="izgara absolute inset-0 opacity-70" />
+          </div>
           <RunSummaryBar
             config={config}
             round={events.length ? events[events.length - 1].round : 1}
             maxRounds={events.length ? events[events.length - 1].maxRounds : 4}
             onStop={durdur}
           />
-          <section className="rounded-3xl border border-border bg-surface shadow-yumusak p-5 sm:p-8">
-            <h2 className="mb-5 text-xl font-semibold">Ajanlar ve Süreç (canlı akış)</h2>
+          <VurguKart
+            baslik="Canlı Akış"
+            sag={
+              <span className="flex items-center gap-2 text-sm font-medium text-ai-text">
+                <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-accent" aria-hidden="true" />
+                Ajanlar çalışıyor
+              </span>
+            }
+            govde="space-y-5 p-4 sm:p-6"
+          >
+            <PlanIlerleme config={config} adet={events.length} toplam={toplamOlay} />
             <LiveStats config={config} metrics={events.length ? events[events.length - 1].metrics : null} />
-            <div className="mt-6">
-              <AgentTimeline events={events} />
-            </div>
-          </section>
+            <AgentTimeline events={events} />
+          </VurguKart>
         </main>
       )}
       {screen === 'rapor' && report && (

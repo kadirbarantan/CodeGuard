@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { getQualityScore } from '../../services/api'
 
 // Özet kutuları: etkileşim kapsamı, üretilen test, olası hata, kalite skoru.
-export default function SummaryCards({ report }) {
+export default function SummaryCards({ report, onHatalar }) {
   const [kalite, setKalite] = useState(report.kaliteSkoru)
 
   // Kalite skoru sonradan gelir (mutasyon testi); bileşen kalkarsa yok say
@@ -41,10 +41,17 @@ export default function SummaryCards({ report }) {
           {kaliteVar ? `${report.testSayisi.birim} birim · ${report.testSayisi.arayuz} arayüz` : `${report.testSayisi.arayuz} arayüz`}
         </p>
       </div>
-      <div className={kutu}>
+      <button
+        type="button"
+        onClick={onHatalar}
+        className={kutu + ' group text-left transition hover:border-bad hover:bg-bad-bg'}
+      >
         <p className={etiket}>Olası hata</p>
-        <p className="mt-1 text-2xl font-semibold text-bad-text">{report.olasiHatalar.length}</p>
-      </div>
+        <p className="mt-1 flex items-baseline justify-between gap-2">
+          <span className="text-2xl font-semibold text-bad-text">{report.olasiHatalar.length}</span>
+          <span className="text-xs font-medium text-bad-text group-hover:underline">Hataları gör →</span>
+        </p>
+      </button>
       {kaliteVar && (
       <div className={kutu}>
         <p className={etiket}>Kalite skoru</p>
