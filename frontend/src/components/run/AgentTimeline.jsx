@@ -56,18 +56,23 @@ export default function AgentTimeline({ events }) {
                     <span className="h-2 w-2 rounded-full bg-accent" />
                   </span>
                 ) : (
-                  <span className="mt-4 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-ok text-white">
+                  <span className="mt-3 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-ok text-white">
                     <Check size={14} strokeWidth={3} />
                   </span>
                 )}
                 {!aktif && <span className="w-px flex-1 bg-border-strong" />}
               </div>
-              <div
-                className={
-                  'mb-3 min-w-0 flex-1 rounded-xl border p-4 ' +
-                  (aktif ? 'border-ai-border bg-ai-bg' : 'border-border bg-surface')
-                }
-              >
+              {!aktif ? (
+                // Biten adım: tek satır, ayrıntı üzerine gelince
+                <div title={o.message} className="mb-2 mt-3 flex min-w-0 flex-1 items-center gap-2 rounded-lg px-1 text-sm">
+                  <span className="min-w-0 shrink truncate font-semibold text-text sm:shrink-0">{o.agent}</span>
+                  <span className={'hidden shrink-0 rounded-full px-2 py-0.5 text-xs font-medium sm:inline ' + (llm ? 'bg-ai-bg text-ai-text' : 'bg-soft text-text-2')}>
+                    {o.kind}
+                  </span>
+                  <span className="hidden min-w-0 truncate text-muted sm:inline">{o.message}</span>
+                </div>
+              ) : (
+              <div className="mb-3 min-w-0 flex-1 rounded-xl border border-ai-border bg-ai-bg p-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-semibold text-text">{o.agent}</span>
                   <span
@@ -84,6 +89,7 @@ export default function AgentTimeline({ events }) {
                 </div>
                 <p className="mt-1 text-sm text-text-2">{o.message}</p>
               </div>
+              )}
             </li>
           )
         })}

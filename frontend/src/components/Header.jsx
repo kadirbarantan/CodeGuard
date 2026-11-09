@@ -35,7 +35,7 @@ export default function Header({ user, onHome, onLogin, onRegister, onHistory, o
             <Logo />
           </span>
           <span className="text-xl font-bold tracking-tight text-text">
-            CodeGuard<span className="text-ai-text">.</span>
+            CodeGuard
           </span>
         </button>
 

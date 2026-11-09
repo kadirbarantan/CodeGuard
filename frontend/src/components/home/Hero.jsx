@@ -8,7 +8,38 @@ const CIPLER = [
   { ad: 'Kendini düzelten ajanlar', nokta: 'bg-ok' },
 ]
 
-export default function Hero() {
+// yan: geniş ekranda test kartının solunda, sola yaslı ve daha küçük başlıkla (arka plan dekoru üst bölümde)
+export default function Hero({ yan = false }) {
+  if (yan) {
+    return (
+      <div className="text-center xl:text-left">
+        <span className="inline-flex items-center gap-2 rounded-full border border-ai-border bg-surface/80 px-4 py-1.5 text-sm font-medium text-ai-text shadow-yumusak backdrop-blur">
+          <Sparkles size={15} aria-hidden="true" />
+          LLM ajanlarıyla otonom test üretimi
+        </span>
+        <h1 className="mt-5 text-4xl font-extrabold leading-[1.08] tracking-tight text-text sm:text-5xl xl:text-[2.75rem]">
+          Kodunu yükle, <br className="hidden sm:block" />
+          <span className="baslik-gradyan">ajanlar test etsin.</span>
+        </h1>
+        <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-muted xl:mx-0">
+          Projeni yükle, GitHub'dan seç ya da sitenin adresini gir. Yapay zekâ ajanları birim ve arayüz testlerini
+          yazsın, çalıştırsın, eksik kalanları tamamlasın; kullanılabilirlik testinde okuma desenini ve renk
+          uyumunu ölçüp sana raporlasın.
+        </p>
+        <ul className="mt-6 flex flex-wrap justify-center gap-2 xl:justify-start">
+          {CIPLER.map((c) => (
+            <li
+              key={c.ad}
+              className="flex items-center gap-2 rounded-full border border-border bg-surface/70 px-3 py-1 text-xs font-medium text-text-2"
+            >
+              <span className={'h-1.5 w-1.5 rounded-full ' + c.nokta} aria-hidden="true" />
+              {c.ad}
+            </li>
+          ))}
+        </ul>
+      </div>
+    )
+  }
   return (
     <section className="relative isolate overflow-hidden px-4 pb-10 pt-14 text-center sm:pt-20">
       {/* Dekor: parıltı + ızgara (ekran okuyucudan gizli) */}

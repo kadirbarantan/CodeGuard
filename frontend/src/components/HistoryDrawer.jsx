@@ -1,11 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
-import { X } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, X } from 'lucide-react'
 import { getHistory } from '../services/api'
 
 import { TURLER as TUR } from '../config/testStratejileri'
 
 const ALAN = { web: 'Web', oyun: 'Oyun', mobil: 'Mobil', genel: 'Genel', diger: 'Diğer' }
 const DIL = { python: 'Python', csharp: 'C#', js: 'JS/TS', php: 'PHP' }
+
+// Skor çubuğu rengi: yüksek yeşil, orta mavi, düşük kırmızı
+function cubukRengi(d) {
+  return d >= 85 ? 'bg-ok' : d >= 60 ? 'bg-accent' : 'bg-bad'
+}
 
 // Sağdan kayan "Geçmiş Testlerim" paneli.
 export default function HistoryDrawer({ open, onClose, onSelect }) {
@@ -88,35 +93,50 @@ export default function HistoryDrawer({ open, onClose, onSelect }) {
             <ul className="space-y-2">
               {liste.map((k) => {
                 const basarili = k.durum === 'tamamlandi'
+                const skor = k.coverage ?? k.uxSkor ?? null
+                const skorAdi = k.coverage != null ? 'Kod kapsaması' : 'UX skoru'
                 return (
                   <li key={k.runId}>
                     <button
                       type="button"
                       onClick={() => sec(k)}
-                      className="w-full rounded-xl border border-border bg-bg p-4 text-left hover:border-accent"
+                      className="w-full rounded-2xl border border-border bg-bg p-4 text-left transition hover:border-accent hover:shadow-yumusak"
                     >
                       <span className="flex items-center justify-between gap-2">
-                        <span className="font-semibold text-text">{k.proje}</span>
+                        <span className="min-w-0 truncate font-semibold text-text">{k.proje}</span>
                         <span
                           className={
-                            'rounded-full px-2 py-0.5 text-xs font-medium ' +
+                            'flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ' +
                             (basarili ? 'bg-ok-bg text-ok-text' : 'bg-bad-bg text-bad-text')
                           }
                         >
+                          {basarili ? <CheckCircle2 size={12} aria-hidden="true" /> : <AlertTriangle size={12} aria-hidden="true" />}
                           {basarili ? 'Tamamlandı' : 'Kurulum hatası'}
                         </span>
                       </span>
-                      <span className="mt-1 block text-xs text-muted">
-                        {[
-                          ALAN[k.alan] || k.alan,
-                          k.kaynak === 'url' ? 'URL' : DIL[k.dil] || k.dil,
-                          TUR[k.tur] || k.tur,
-                          k.coverage != null ? '%' + k.coverage : k.uxSkor != null ? 'UX %' + k.uxSkor : null,
-                          k.tarih,
-                        ]
+                      <span className="mt-2 flex flex-wrap gap-1.5">
+                        {[ALAN[k.alan] || k.alan, k.kaynak === 'url' ? 'URL' : DIL[k.dil] || k.dil, TUR[k.tur] || k.tur]
                           .filter(Boolean)
-                          .join(' · ')}
+                          .map((e) => (
+                            <span key={e} className="rounded-md border border-border bg-surface px-1.5 py-0.5 text-xs text-text-2">
+                              {e}
+                            </span>
+                          ))}
+                        <span className="ml-auto self-center text-xs text-muted">{k.tarih}</span>
                       </span>
+                      {skor != null ? (
+                        <span className="mt-3 block">
+                          <span className="flex justify-between text-xs">
+                            <span className="text-muted">{skorAdi}</span>
+                            <span className="font-semibold text-text">%{skor}</span>
+                          </span>
+                          <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-soft" aria-hidden="true">
+                            <span className={'block h-full rounded-full ' + cubukRengi(skor)} style={{ width: skor + '%' }} />
+                          </span>
+                        </span>
+                      ) : (
+                        !basarili && <span className="mt-3 block text-xs text-bad-text">Test çalıştırılamadı; ayrıntı için tıkla.</span>
+                      )}
                     </button>
                   </li>
                 )

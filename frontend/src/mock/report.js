@@ -156,6 +156,8 @@ export const report = {
   tur: 'ikisi',
   tarih: '26.10.2026',
   turSayisi: 4,
+  ilkCoverage: 34, // 1. turun sonundaki kapsama (canlı akıştaki ilk doğrulama)
+  ilkEtkilesim: 9, // 1. turda kapsanan etkileşim
   coverage: { testEdilebilir: 94, toplam: 89 },
   etkilesim: { kapsanan: 22, toplam: 24 },
   testSayisi: { birim: 52, arayuz: 6 },

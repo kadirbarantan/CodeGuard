@@ -1,9 +1,9 @@
 // Test konfigürasyonu kartı: girdi (kod ya da URL), alan/dil/tür seçimi ve başlat butonu.
-import { Info, Play } from 'lucide-react'
+import { Play } from 'lucide-react'
 import GirdiSecici, { GirdiSekmeleri } from './GirdiSecici'
 import Secici from './Secici'
 import TurSecici from './TurSecici'
-import StratejiOnizleme from './StratejiOnizleme'
+import StratejiOnizleme, { PlanOzeti } from './StratejiOnizleme'
 import {
   ALANLAR,
   GELISTIRILIYOR_NOTU,
@@ -36,7 +36,7 @@ const ALAN_SECENEKLERI = Object.entries(ALANLAR).map(([deger, a]) => ({
 }))
 
 // onGirisYapildi / onKullaniciGuncelle / onGirisAc: GitHub sekmesindeki bağlanma adımları için (App'ten)
-export default function ConfigCard({ config, onChange, user, onStart, onGirisYapildi, onKullaniciGuncelle, onGirisAc }) {
+export default function ConfigCard({ config, onChange, user, onStart, onGirisYapildi, onKullaniciGuncelle, onGirisAc, yanYana = false }) {
   const alan = config.alan
   const urlModu = config.kaynak === 'url'
   const sadeceBirim = !arayuzDesteklenir(alan)
@@ -70,8 +70,17 @@ export default function ConfigCard({ config, onChange, user, onStart, onGirisYap
   }
 
   return (
-    <section id="test-baslat" className="mx-auto w-full max-w-7xl scroll-mt-24 px-4 sm:px-6">
-      <div className="rounded-3xl border border-border bg-surface shadow-kart">
+    <section id="test-baslat" className={'scroll-mt-24 ' + (yanYana ? 'relative isolate' : 'mx-auto w-full max-w-7xl px-4 sm:px-6')}>
+      {/* Yan yana düzende kartın arkasında yumuşak renkli parıltı */}
+      {yanYana && (
+        <div aria-hidden="true" className="pointer-events-none absolute -inset-5 -z-10 rounded-[2.75rem] bg-gradient-to-br from-accent/50 via-accent-3/35 to-ok/20 opacity-80 blur-3xl" />
+      )}
+      <div
+        className={
+          'rounded-3xl border bg-surface ' +
+          (yanYana ? 'border-accent/40 ring-4 ring-accent/10 shadow-[0_50px_100px_-30px_rgba(46,61,164,0.6),0_0_0_1px_rgba(255,255,255,0.4)_inset]' : 'border-border shadow-kart')
+        }
+      >
         {/* Pencere başlığı: kart bir geliştirici aracı penceresi gibi; sağda girdi sekmeleri */}
         <div className="flex flex-col gap-3 rounded-t-3xl border-b border-border bg-soft/70 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <div className="flex items-center gap-3">
@@ -81,14 +90,14 @@ export default function ConfigCard({ config, onChange, user, onStart, onGirisYap
               <span className="h-3 w-3 rounded-full bg-[#28c840]" />
             </span>
             <span className="h-4 w-px bg-border-strong" aria-hidden="true" />
-            <h2 className="text-base font-bold text-text">Test Konfigürasyonu</h2>
+            <h2 className={yanYana ? 'text-lg font-extrabold text-text' : 'text-base font-bold text-text'}>Ajanı Görevlendir</h2>
           </div>
           <GirdiSekmeleri kaynak={config.kaynak} onKaynak={(kaynak) => guncelle({ kaynak })} />
         </div>
 
-        <div className="grid gap-6 p-4 sm:p-6 lg:grid-cols-12 lg:p-7">
+        <div className={'grid gap-6 p-4 sm:p-6 ' + (yanYana ? '' : 'lg:grid-cols-12 lg:p-7')}>
           {/* Sol (ana iş): kod girdisi ve test ayarları tek alanda, altında Başlat */}
-          <div className="min-w-0 space-y-5 lg:col-span-8">
+          <div className={'min-w-0 space-y-5 ' + (yanYana ? '' : 'lg:col-span-8')}>
             <div className="space-y-5 rounded-2xl border-2 border-ai-border bg-gradient-to-b from-ai-bg/60 to-surface p-4 sm:p-5">
             <GirdiSecici
               kaynak={config.kaynak}
@@ -132,18 +141,6 @@ export default function ConfigCard({ config, onChange, user, onStart, onGirisYap
                 )}
               </div>
 
-              {/* Bilgi notu: şimdilik web odaklıyız (PHP de bu yüzden eklendi) */}
-              <p className="flex gap-2.5 rounded-xl border border-ai-border bg-ai-bg px-3 py-2.5 text-sm text-text-2">
-                <Info size={16} className="mt-0.5 shrink-0 text-ai-text" aria-hidden="true" />
-                <span>
-                  <strong className="font-semibold text-ai-text">Şu an web odaklı ilerliyoruz.</strong>{' '}
-                  {config.dil === 'php' && !urlModu
-                    ? 'PHP desteği web projeleri (Laravel, Symfony ya da saf PHP) için tasarlandı.'
-                    : 'C#, Python, JS/TS ve yeni eklenen PHP; web projeleri için test edilir.'}{' '}
-                  Oyun, Mobil ve Genel alanları geliştirme aşamasında.
-                </span>
-              </p>
-
               <TurSecici tur={config.tur} kaynak={config.kaynak} sadeceBirim={sadeceBirim} onSec={(tur) => guncelle({ tur })} />
 
               {alan === 'diger' && (
@@ -178,6 +175,9 @@ export default function ConfigCard({ config, onChange, user, onStart, onGirisYap
             </div>
             </div>
 
+            {/* Yan yana düzende plan, Başlat'ın hemen üstünde kısa özet olarak */}
+            {yanYana && <PlanOzeti config={config} />}
+
             {/* Başlat: ayarların hemen altında, sabit yerinde */}
             <div>
               <button
@@ -204,11 +204,13 @@ export default function ConfigCard({ config, onChange, user, onStart, onGirisYap
           </div>
 
           {/* Sağ (ikincil): seçime göre değişen plan önizlemesi; geniş ekranda kaydırırken yanında kalır */}
-          <aside className="min-w-0 lg:col-span-4">
-            <div className="lg:sticky lg:top-24">
-              <StratejiOnizleme config={config} sade />
-            </div>
-          </aside>
+          {!yanYana && (
+            <aside className="min-w-0 lg:col-span-4">
+              <div className="lg:sticky lg:top-24">
+                <StratejiOnizleme config={config} sade />
+              </div>
+            </aside>
+          )}
         </div>
       </div>
     </section>

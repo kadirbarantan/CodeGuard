@@ -1,6 +1,7 @@
 // "Bu testte neler yapılacak?": seçilen alan, dil ve test türüne göre üretilen test planı.
 // Seçim değişince plan da değişir; test süreci sabit değildir.
-import { Box, Globe, ScanSearch, Sparkles, Target, Workflow, Wrench } from 'lucide-react'
+import { useState } from 'react'
+import { ArrowRight, Box, ChevronDown, Globe, ScanSearch, Sparkles, Target, Workflow, Wrench } from 'lucide-react'
 import { stratejiOlustur } from '../../config/testStratejileri'
 
 const TIP = {
@@ -10,16 +11,61 @@ const TIP = {
   tarayici: { ikon: Globe, etiket: 'Tarayıcı', sinif: 'bg-soft text-text-2' },
 }
 
-// sade: ana sayfada sağ sütundaki ikincil görünüm (daha küçük, sakin; açıklamalar tek satır)
-export default function StratejiOnizleme({ config, sade = false }) {
+// Başlat butonunun hemen üstünde duran kısa plan: adımlar tek satırda akış olarak; "Ayrıntılar" ile tam liste açılır
+export function PlanOzeti({ config }) {
+  const plan = stratejiOlustur(config)
+  const [acik, setAcik] = useState(false)
+  return (
+    <section aria-labelledby="plan-ozet-baslik" className="rounded-2xl border border-border bg-soft/50 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3 id="plan-ozet-baslik" className="flex items-center gap-2 text-sm font-semibold text-text">
+          <Workflow size={15} className="text-ai-text" aria-hidden="true" />
+          Bu testte neler yapılacak?
+          <span className="font-normal text-muted">{plan.adimlar.length} adım</span>
+        </h3>
+        <button
+          type="button"
+          onClick={() => setAcik((a) => !a)}
+          aria-expanded={acik}
+          aria-controls="plan-ayrinti"
+          className="flex min-h-8 items-center gap-1 rounded-lg px-2 text-xs font-semibold text-ai-text hover:bg-ai-bg"
+        >
+          {acik ? 'Gizle' : 'Ayrıntılar'}
+          <ChevronDown size={14} className={'transition-transform ' + (acik ? 'rotate-180' : '')} aria-hidden="true" />
+        </button>
+      </div>
+
+      {!acik && (
+        <ol className="mt-3 flex flex-wrap items-center gap-x-1.5 gap-y-2" aria-live="polite">
+          {plan.adimlar.map((a, i) => (
+            <li key={a.ad} className="flex items-center gap-1.5" title={a.aciklama}>
+              <span className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2 py-1 text-xs text-text-2">
+                <span className="font-mono font-bold text-ai-text">{i + 1}</span> {a.ad}
+              </span>
+              {i < plan.adimlar.length - 1 && <ArrowRight size={12} className="text-muted" aria-hidden="true" />}
+            </li>
+          ))}
+        </ol>
+      )}
+      {acik && (
+        <div id="plan-ayrinti" className="mt-3">
+          <StratejiOnizleme config={config} sade cercevesiz />
+        </div>
+      )}
+    </section>
+  )
+}
+
+// sade: ikincil görünüm (daha küçük, sakin; açıklamalar tek satır) · cercevesiz: başka bir kutunun içinde başlıksız
+export default function StratejiOnizleme({ config, sade = false, cercevesiz = false }) {
   const plan = stratejiOlustur(config)
 
   return (
     <section
       aria-labelledby="plan-baslik"
-      className={'flex flex-1 flex-col rounded-2xl border border-border p-4 ' + (sade ? 'bg-soft/40' : 'bg-soft/50 sm:p-5')}
+      className={cercevesiz ? '' : 'flex flex-1 flex-col rounded-2xl border border-border p-4 ' + (sade ? 'bg-soft/40' : 'bg-soft/50 sm:p-5')}
     >
-      <div className="flex items-start gap-3 border-b border-border pb-3">
+      <div className={cercevesiz ? 'hidden' : 'flex items-start gap-3 border-b border-border pb-3'}>
         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-soft text-muted">
           <Workflow size={16} aria-hidden="true" />
         </span>
@@ -31,7 +77,7 @@ export default function StratejiOnizleme({ config, sade = false }) {
         </div>
       </div>
 
-      <ol className={'mt-3 overflow-y-auto pr-1 ' + (sade ? 'max-h-[30rem] space-y-1' : 'max-h-[26rem] space-y-2')} aria-live="polite">
+      <ol className={(cercevesiz ? '' : 'mt-3 ') + 'overflow-y-auto pr-1 ' + (sade ? 'max-h-[30rem] space-y-1' : 'max-h-[26rem] space-y-2')} aria-live="polite">
         {plan.adimlar.map((a, i) => {
           const t = TIP[a.tip]
           const Ikon = t.ikon
