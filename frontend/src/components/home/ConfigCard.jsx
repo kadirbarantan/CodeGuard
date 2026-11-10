@@ -11,7 +11,8 @@ import {
   arayuzVar,
   arayuzDesteklenir,
   pythonDesteklenir,
-  turSecilebilir,
+  turDuzelt,
+  turListesi,
   urlGecerli,
   denetimVar,
 } from '../../config/testStratejileri'
@@ -45,7 +46,9 @@ export default function ConfigCard({ config, onChange, user, onStart, onGirisYap
   const g = config.github
   // GitHub: en az bir dosya seçili, bağlam hesaplanmış ve sınır aşılmamış olmalı
   const githubHazir = Boolean(user?.github?.repoErisimi && g?.secilenler?.length && !g.hesaplaniyor && !g.sinirAsildi)
-  const hazir = urlModu ? urlGecerli(config.url) : config.kaynak === 'github' ? githubHazir : Boolean(config.dosya)
+  const turSecili = turListesi(config.tur).length > 0
+  const girdiHazir = urlModu ? urlGecerli(config.url) : config.kaynak === 'github' ? githubHazir : Boolean(config.dosya)
+  const hazir = turSecili && girdiHazir
 
   const dilSecenekleri = [
     { deger: 'python', ad: 'Python', pasif: !pythonDesteklenir(alan) },
@@ -59,8 +62,8 @@ export default function ConfigCard({ config, onChange, user, onStart, onGirisYap
     const c = { ...config, ...degisim }
     if (!alanAktif(c.alan)) c.alan = 'web'
     if (!pythonDesteklenir(c.alan) && c.dil === 'python') c.dil = 'js'
-    if (!arayuzDesteklenir(c.alan) && c.tur !== 'birim') c.tur = 'birim'
-    if (!turSecilebilir(c.tur, c.kaynak)) c.tur = 'arayuz'
+    // Tür listesi: URL'de birim, Oyun/Mobilde birim dışı türler çıkar; hepsi düşerse uygun tek tür seçilir
+    c.tur = turDuzelt(c.tur, c.alan, c.kaynak)
     onChange(c)
   }
 
@@ -103,7 +106,7 @@ export default function ConfigCard({ config, onChange, user, onStart, onGirisYap
               kaynak={config.kaynak}
               dosya={config.dosya}
               url={config.url}
-              onDosya={(d) => guncelle({ dosya: d })}
+              onDosya={(d) => guncelle(d?.ornek ? { dosya: d, dil: d.dil } : { dosya: d })}
               onUrl={(url) => guncelle({ url })}
               github={config.github}
               githubProps={{
@@ -191,13 +194,16 @@ export default function ConfigCard({ config, onChange, user, onStart, onGirisYap
               </button>
               {(!hazir || !user) && (
                 <p className="mt-2 text-center text-xs text-muted">
-                  {!hazir
+                  {/* Önce girdi, sonra test türü istenir */}
+                  {!girdiHazir
                     ? urlModu
                       ? 'Başlatmak için sitenin adresini gir.'
                       : config.kaynak === 'github'
                         ? 'Başlatmak için repodan en az bir dosya seç.'
                         : 'Başlatmak için önce kodunu ekle.'
-                    : 'Testi başlatmak için giriş yapman istenecek.'}
+                    : !turSecili
+                      ? 'Başlatmak için en az bir test türü seç.'
+                      : 'Testi başlatmak için giriş yapman istenecek.'}
                 </p>
               )}
             </div>

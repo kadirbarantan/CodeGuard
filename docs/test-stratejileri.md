@@ -19,7 +19,14 @@
 ## 1a. Şu anki kapsam (Hafta 3)
 - **Aktif alan: yalnızca Web.** Oyun, Mobil, Genel ve Diğer seçenekleri menüde "Yakında" rozetiyle pasif görünür; üzerine gelince ya da tıklanınca "Şu anda geliştirmeye devam etmektedir" yazar, seçilemez. Aşağıdaki tablolardaki diğer alan tanımları gelecek çalışma için korunur.
 - **Diller:** C#, Python, JS/TS ve **PHP**. Web dışındaki alanlar seçicide "Yakında" rozetiyle gösterilir (ayrı bir bilgi notu yok).
-- **Test türleri:** Birim · Arayüz · İkisi · **Kullanılabilirlik** · **Erişilebilirlik**.
+- **Test türleri (çoklu seçim):** Birim · Arayüz · Kullanılabilirlik · Erişilebilirlik; tek satırlık segment butonlarında birden fazlası seçilebilir (seçilenlerde tik işareti). **Varsayılan seçim yoktur**, kullanıcı ne test edileceğini kendisi seçer. En az bir tür seçilmeden "Testi Başlat" pasiftir. Butonun altındaki ipucu önce girdiyi (kod / URL / repo), sonra test türünü ister. 3 ya da daha fazla tür seçilince "test daha uzun sürer" uyarısı çıkar. Eski "İkisi" seçeneği kaldırıldı (Birim + Arayüz seçmek aynı işi görür).
+
+## 1a-2. Birden fazla test türü (çoklu seçim)
+- **Plan:** Her grup kendi adımlarını üretir, adımlar tek planda birleşir; her adımın yanında grubu görünür. Grupların ayrı "İçgörü ve rapor" adımları kalkar, sonda tek **ortak rapor** adımı olur. Uygulama bir kez başlatılır: denetimlerin ikinci "Sayfaları gez" adımı atlanır.
+- **Canlı akış:** Her olayda grup etiketi (Birim + Arayüz / Kullanılabilirlik / Erişilebilirlik / Ortak). Canlı metrikler gruplara ayrılmış başlıklar altında görünür. Tur sayacı kod testleri varsa görünür; yalnızca denetim seçildiyse "Analiz ediliyor" yazar.
+- **Rapor:** Tek tür grubu seçildiyse rapor eskisi gibidir. Birden fazla grup seçildiyse üstte "Bu testte çalışanlar" kartı: her grubun kısa sonucu (ör. Kapsama %94 · WCAG uyumu %46) ve raporlar arası geçiş. Her grubun raporu tek başına seçildiğindeki raporla aynıdır.
+- **Geçmiş Testlerim:** Seçilen her tür ayrı etiket; her grubun skoru ayrı çubuk.
+- **Backend (Faz 2):** `tur` artık dizi (`["birim","arayuz","erisilebilirlik"]`). Gruplar paralel çalışabilir; uygulama bir kez başlatılır ve tarayıcı oturumu paylaşılır. Rapor biçimi: `{ ...seçim, tur: [...], parcalar: [{ id: "kod" | "ux" | "erisim", ad, rapor }] }`. Canlı olaylara `grup` alanı eklenir.
 - **Girdi:** "Kaynak Kod Yükle" ya da **"URL Gir"**. URL ile yalnızca Arayüz, Kullanılabilirlik ve Erişilebilirlik seçilebilir (birim testi için kaynak kod gerekir), dil seçimi gerekmez.
 
 ## 1b. Kullanılabilirlik (UX/UI) testi
@@ -94,4 +101,4 @@ Kurallar:
 
 ## 3. Arayüzde nerede görünür?
 - **"Ajanı Görevlendir" kartı → "Bu testte neler yapılacak?"**: Seçime göre üretilen adımları, araçları ve odak konularını gösterir. Seçim değişince plan da anında değişir.
-- **Canlı akış**: Ajan adımları stratejiden üretilir. Örneğin Oyun testinde "Bağımlılık Analizi" adımı vardır ama "UI Keşif" adımı yoktur. Web + İkisi seçildiğinde arayüz adımları da akışa eklenir.
+- **Canlı akış**: Ajan adımları stratejiden üretilir. Örneğin Oyun testinde "Bağımlılık Analizi" adımı vardır ama "UI Keşif" adımı yoktur. Web'de Arayüz de seçildiğinde arayüz adımları da akışa eklenir; birden fazla grup seçildiyse her olayın yanında grubu yazar.

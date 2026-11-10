@@ -153,7 +153,7 @@ export const report = {
   proje: 'blog-api',
   alan: 'web',
   dil: 'python',
-  tur: 'ikisi',
+  tur: ['birim', 'arayuz'],
   tarih: '26.10.2026',
   turSayisi: 4,
   ilkCoverage: 34, // 1. turun sonundaki kapsama (canlı akıştaki ilk doğrulama)

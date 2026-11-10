@@ -15,6 +15,13 @@ const TIP = {
 export function PlanOzeti({ config }) {
   const plan = stratejiOlustur(config)
   const [acik, setAcik] = useState(false)
+  if (plan.adimlar.length === 0) {
+    return (
+      <p className="rounded-2xl border border-dashed border-border-strong bg-soft/50 p-4 text-sm text-muted">
+        Plan, en az bir test türü seçince burada görünür.
+      </p>
+    )
+  }
   return (
     <section aria-labelledby="plan-ozet-baslik" className="rounded-2xl border border-border bg-soft/50 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -38,7 +45,7 @@ export function PlanOzeti({ config }) {
       {!acik && (
         <ol className="mt-3 flex flex-wrap items-center gap-x-1.5 gap-y-2" aria-live="polite">
           {plan.adimlar.map((a, i) => (
-            <li key={a.ad} className="flex items-center gap-1.5" title={a.aciklama}>
+            <li key={i + a.ad} className="flex items-center gap-1.5" title={a.grup ? `${a.grup} · ${a.aciklama}` : a.aciklama}>
               <span className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2 py-1 text-xs text-text-2">
                 <span className="font-mono font-bold text-ai-text">{i + 1}</span> {a.ad}
               </span>
@@ -83,7 +90,7 @@ export default function StratejiOnizleme({ config, sade = false, cercevesiz = fa
           const Ikon = t.ikon
           return (
             <li
-              key={a.ad}
+              key={i + a.ad}
               className={
                 'flex gap-3 rounded-xl ' +
                 (sade ? 'px-2 py-1.5 hover:bg-surface' : 'border border-border bg-surface p-3 shadow-sm transition-colors hover:border-ai-border')
@@ -98,6 +105,7 @@ export default function StratejiOnizleme({ config, sade = false, cercevesiz = fa
                   <span className={'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ' + t.sinif}>
                     <Ikon size={12} aria-hidden="true" /> {t.etiket}
                   </span>
+                  {a.grup && <span className="rounded-md border border-border px-1.5 py-0.5 text-xs text-muted">{a.grup}</span>}
                 </div>
                 <p className={sade ? 'mt-0.5 line-clamp-1 text-xs text-muted' : 'mt-0.5 text-sm text-text-2'} title={a.aciklama}>
                   {a.aciklama}

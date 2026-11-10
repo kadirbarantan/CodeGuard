@@ -1,60 +1,76 @@
-// Test türü: Birim · Arayüz · İkisi · Kullanılabilirlik · Erişilebilirlik segment butonları.
-// Kartın genişliğine göre 2, 3 ya da 5 sütun (container query).
-// URL ile testte birim testi yapılamaz (kaynak kod gerekir); bu seçenekler pasif olur.
-import { turSecilebilir } from '../../config/testStratejileri'
+// Test türü: Birim · Arayüz · Kullanılabilirlik · Erişilebilirlik segment butonları; birden fazlası seçilebilir.
+// Varsayılan seçim yoktur: kullanıcı ne test edileceğini kendisi seçer.
+// Kartın genişliğine göre 2 ya da 4 sütun (container query).
+// URL ile testte birim testi yapılamaz (kaynak kod gerekir); Oyun ve Mobilde yalnızca birim testi.
+import { Check } from 'lucide-react'
+import { TUR_SIRASI, turAdi, turListesi, turSecilebilir } from '../../config/testStratejileri'
 
-const SECENEKLER = [
-  { deger: 'birim', ad: 'Birim', aciklama: 'Fonksiyon ve sınıflar tek tek test edilir.' },
-  { deger: 'arayuz', ad: 'Arayüz', aciklama: 'Tarayıcıda tıklama, form ve gezinme akışları test edilir.' },
-  { deger: 'ikisi', ad: 'İkisi', aciklama: 'Birim ve arayüz testleri birlikte yapılır.' },
-  {
-    deger: 'kullanilabilirlik',
+const SECENEKLER = {
+  birim: { ad: 'Birim', aciklama: 'Fonksiyon ve sınıflar tek tek test edilir.' },
+  arayuz: { ad: 'Arayüz', aciklama: 'Tarayıcıda tıklama, form ve gezinme akışları test edilir.' },
+  kullanilabilirlik: {
     ad: 'Kullanılabilirlik',
     aciklama: 'Sitenin Z / F okuma desenine uygunluğu, renk uyumu ve genel kullanıcı deneyimi (UX) ölçülür.',
   },
-  {
-    deger: 'erisilebilirlik',
+  erisilebilirlik: {
     ad: 'Erişilebilirlik',
     aciklama:
-      'Site WCAG 2.2 AA ölçütlerine göre, engel gruplarını gözeterek denetlenir: ekran okuyucu, kontrast ve renk körlüğü, klavyeyle gezinme, altyazı, form hataları ve hareket.',
+      'Site WCAG 2.2 AA ölçütlerine göre denetlenir: renk kontrastı, klavyeyle gezinme, alternatif metin, form etiketleri ve ekran okuyucu uyumu.',
   },
-]
+}
 
 export default function TurSecici({ tur, kaynak, sadeceBirim, onSec }) {
-  const secili = SECENEKLER.find((s) => s.deger === tur)
+  const secili = turListesi(tur)
+
+  function degistir(t) {
+    onSec(secili.includes(t) ? secili.filter((x) => x !== t) : [...secili, t])
+  }
+
+  // Alttaki açıklama: hiç seçim yoksa yönlendirme, tek seçimde o türün açıklaması, çoklu seçimde birlikte yapılacağı
+  const aciklama =
+    secili.length === 0
+      ? 'Bir ya da birden fazla test türü seç.'
+      : secili.length === 1
+        ? SECENEKLER[secili[0]].aciklama
+        : `${turAdi(secili)} tek testte yapılır.${secili.length >= 3 ? ' Uygulama bir kez başlatılır ama test daha uzun sürer.' : ''}`
+
   return (
     <div className="@container">
-      <span id="tur-etiket" className="mb-1 block text-sm font-medium text-text-2">Test türü</span>
+      <span id="tur-etiket" className="mb-1 block text-sm font-medium text-text-2">
+        Test türü <span className="font-normal text-muted">· birden fazla seçebilirsin</span>
+      </span>
       <div
-        role="radiogroup"
+        role="group"
         aria-labelledby="tur-etiket"
         aria-describedby="tur-aciklama"
-        className="grid grid-cols-2 gap-1 rounded-lg bg-soft p-1 @md:grid-cols-3 @2xl:grid-cols-5"
+        className="grid grid-cols-2 gap-1 rounded-lg bg-soft p-1 @md:grid-cols-4"
       >
-        {SECENEKLER.map((s, i) => {
-          const seciliMi = tur === s.deger
-          const kodGerekir = !turSecilebilir(s.deger, kaynak)
-          const pasif = kodGerekir || (sadeceBirim && s.deger !== 'birim')
+        {TUR_SIRASI.map((t) => {
+          const s = SECENEKLER[t]
+          const seciliMi = secili.includes(t)
+          const kodGerekir = !turSecilebilir(t, kaynak)
+          const pasif = kodGerekir || (sadeceBirim && t !== 'birim')
           return (
             <button
-              key={s.deger}
+              key={t}
               type="button"
-              role="radio"
+              role="checkbox"
               aria-checked={seciliMi}
               disabled={pasif}
-              title={kodGerekir ? 'Birim testi için kaynak kod gerekir' : undefined}
-              onClick={() => onSec(s.deger)}
-              className={`${i === SECENEKLER.length - 1 ? 'col-span-2 @md:col-span-1 ' : ''}min-h-10 rounded-md px-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+              title={kodGerekir ? 'Birim testi için kaynak kod gerekir' : pasif ? 'Bu alanda yalnızca birim testi yapılır' : undefined}
+              onClick={() => degistir(t)}
+              className={`flex min-h-10 items-center justify-center gap-1.5 rounded-md px-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
                 seciliMi ? 'bg-surface text-ai-text shadow-sm' : 'text-muted hover:text-text'
               }`}
             >
+              {seciliMi && <Check size={14} strokeWidth={3} aria-hidden="true" />}
               {s.ad}
             </button>
           )
         })}
       </div>
-      <p id="tur-aciklama" className="mt-1.5 text-xs text-muted">
-        {secili?.aciklama}
+      <p id="tur-aciklama" className="mt-1.5 text-xs text-muted" aria-live="polite">
+        {aciklama}
         {kaynak === 'url' && ' URL ile testte birim testi yapılamaz; kaynak kod gerekir.'}
       </p>
     </div>

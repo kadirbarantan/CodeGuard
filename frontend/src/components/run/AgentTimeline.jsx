@@ -3,6 +3,13 @@ import { Check } from 'lucide-react'
 
 const ALT_ESIK = 40 // px: kullanıcı bu kadar alttaysa "en altta" sayılır
 
+// Birden fazla test türü seçildiğinde olayın hangi gruba ait olduğu (Birim + Arayüz, Kullanılabilirlik, Erişilebilirlik, Ortak)
+function GrupEtiketi({ grup, gizliMobil = false }) {
+  return (
+    <span className={(gizliMobil ? 'hidden sm:inline ' : '') + 'shrink-0 rounded-md border border-border bg-surface px-1.5 py-0.5 text-xs text-text-2'}>{grup}</span>
+  )
+}
+
 // Dikey zaman çizelgesi: son olay aktif, öncekiler tamamlanmış.
 // Kendi kutusunda kayar; sayfa kaymaz.
 export default function AgentTimeline({ events }) {
@@ -66,6 +73,7 @@ export default function AgentTimeline({ events }) {
                 // Biten adım: tek satır, ayrıntı üzerine gelince
                 <div title={o.message} className="mb-2 mt-3 flex min-w-0 flex-1 items-center gap-2 rounded-lg px-1 text-sm">
                   <span className="min-w-0 shrink truncate font-semibold text-text sm:shrink-0">{o.agent}</span>
+                  {o.grup && <GrupEtiketi grup={o.grup} gizliMobil />}
                   <span className={'hidden shrink-0 rounded-full px-2 py-0.5 text-xs font-medium sm:inline ' + (llm ? 'bg-ai-bg text-ai-text' : 'bg-soft text-text-2')}>
                     {o.kind}
                   </span>
@@ -75,6 +83,7 @@ export default function AgentTimeline({ events }) {
               <div className="mb-3 min-w-0 flex-1 rounded-xl border border-ai-border bg-ai-bg p-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-semibold text-text">{o.agent}</span>
+                  {o.grup && <GrupEtiketi grup={o.grup} />}
                   <span
                     className={
                       'rounded-full px-2 py-0.5 text-xs font-medium ' +

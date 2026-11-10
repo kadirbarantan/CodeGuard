@@ -1,11 +1,11 @@
 // Çalışma ekranı üst satırı (yapışkan): dosya adı · seçim özeti · tur · Durdur
 import { useEffect, useRef, useState } from 'react'
-import { ALANLAR, DILLER, TURLER, denetimVar, urlAdi } from '../../config/testStratejileri'
+import { ALANLAR, DILLER, sadeceDenetim, turAdi, urlAdi } from '../../config/testStratejileri'
 
 export default function RunSummaryBar({ config, round, maxRounds, onStop }) {
   const urlModu = config.kaynak === 'url'
   const alan = config.alan === 'diger' && config.digerMetin.trim() ? config.digerMetin.trim() : ALANLAR[config.alan].ad
-  const ozet = [alan, urlModu ? 'URL' : DILLER[config.dil], TURLER[config.tur]].join(' · ')
+  const ozet = [alan, urlModu ? 'URL' : DILLER[config.dil], turAdi(config.tur)].join(' · ')
   const ad = urlModu ? urlAdi(config.url) : config.kaynak === 'github' ? config.github?.repo : config.dosya?.ad
   // Yanlışlıkla durdurmayı önlemek için iki adımlı: önce sor, sonra durdur
   const [soruyor, setSoruyor] = useState(false)
@@ -23,7 +23,7 @@ export default function RunSummaryBar({ config, round, maxRounds, onStop }) {
         <div className="ml-auto flex flex-wrap items-center justify-end gap-3">
           <span className="flex items-center gap-2 whitespace-nowrap text-sm font-medium text-ai-text">
             <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-accent" />
-            {denetimVar(config.tur) ? 'Analiz ediliyor' : `Tur ${round} / ${maxRounds}`}
+            {sadeceDenetim(config.tur) ? 'Analiz ediliyor' : `Tur ${round} / ${maxRounds}`}
           </span>
           {soruyor ? (
             <div role="alertdialog" aria-label="Testi durdurma onayı" className="flex flex-wrap items-center gap-2 rounded-xl border border-bad/50 bg-bad-bg px-3 py-1.5">

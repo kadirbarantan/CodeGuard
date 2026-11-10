@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { AlertTriangle, CheckCircle2, X } from 'lucide-react'
 import { getHistory } from '../services/api'
 
-import { TURLER as TUR } from '../config/testStratejileri'
+import { TURLER as TUR, turListesi } from '../config/testStratejileri'
 
 const ALAN = { web: 'Web', oyun: 'Oyun', mobil: 'Mobil', genel: 'Genel', diger: 'Diğer' }
 const DIL = { python: 'Python', csharp: 'C#', js: 'JS/TS', php: 'PHP' }
@@ -93,8 +93,12 @@ export default function HistoryDrawer({ open, onClose, onSelect }) {
             <ul className="space-y-2">
               {liste.map((k) => {
                 const basarili = k.durum === 'tamamlandi'
-                const skor = k.coverage ?? k.uxSkor ?? k.erisimSkor ?? null
-                const skorAdi = k.coverage != null ? 'Kod kapsaması' : k.uxSkor != null ? 'UX skoru' : 'WCAG uyumu'
+                // Seçilen her test grubunun skoru ayrı çubukta (birden fazla tür seçildiyse birden fazla çubuk)
+                const skorlar = [
+                  ['Kod kapsaması', k.coverage],
+                  ['UX skoru', k.uxSkor],
+                  ['WCAG uyumu', k.erisimSkor],
+                ].filter(([, d]) => d != null)
                 return (
                   <li key={k.runId}>
                     <button
@@ -115,7 +119,7 @@ export default function HistoryDrawer({ open, onClose, onSelect }) {
                         </span>
                       </span>
                       <span className="mt-2 flex flex-wrap gap-1.5">
-                        {[ALAN[k.alan] || k.alan, k.kaynak === 'url' ? 'URL' : DIL[k.dil] || k.dil, TUR[k.tur] || k.tur]
+                        {[ALAN[k.alan] || k.alan, k.kaynak === 'url' ? 'URL' : DIL[k.dil] || k.dil, ...turListesi(k.tur).map((t) => TUR[t])]
                           .filter(Boolean)
                           .map((e) => (
                             <span key={e} className="rounded-md border border-border bg-surface px-1.5 py-0.5 text-xs text-text-2">
@@ -124,16 +128,18 @@ export default function HistoryDrawer({ open, onClose, onSelect }) {
                           ))}
                         <span className="ml-auto self-center text-xs text-muted">{k.tarih}</span>
                       </span>
-                      {skor != null ? (
-                        <span className="mt-3 block">
-                          <span className="flex justify-between text-xs">
-                            <span className="text-muted">{skorAdi}</span>
-                            <span className="font-semibold text-text">%{skor}</span>
+                      {skorlar.length > 0 ? (
+                        skorlar.map(([skorAdi, skor]) => (
+                          <span key={skorAdi} className="mt-3 block">
+                            <span className="flex justify-between text-xs">
+                              <span className="text-muted">{skorAdi}</span>
+                              <span className="font-semibold text-text">%{skor}</span>
+                            </span>
+                            <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-soft" aria-hidden="true">
+                              <span className={'block h-full rounded-full ' + cubukRengi(skor)} style={{ width: skor + '%' }} />
+                            </span>
                           </span>
-                          <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-soft" aria-hidden="true">
-                            <span className={'block h-full rounded-full ' + cubukRengi(skor)} style={{ width: skor + '%' }} />
-                          </span>
-                        </span>
+                        ))
                       ) : (
                         !basarili && <span className="mt-3 block text-xs text-bad-text">Test çalıştırılamadı; ayrıntı için tıkla.</span>
                       )}

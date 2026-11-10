@@ -18,6 +18,7 @@ import {
   getGithubAgaci,
   getGithubBaglami,
 } from '../../services/api'
+import { turListesi } from '../../config/testStratejileri'
 
 // Durum 1–3: bağlanma kartı (diğer girdi kutularıyla aynı kesik çizgili alan)
 function BaglanmaKarti({ baslik, aciklama, butonMetni, onBagla, alt }) {
@@ -123,6 +124,8 @@ function RepoSecimi({ github, tur, kullaniciAdi, onGithub }) {
   // Seçim ya da test türü değişince bağlamı yeniden hesapla (Bağlam Çözümleyici)
   const secilenler = g.secilenler || []
   const secimAnahtari = secilenler.join('|')
+  // Tür listesi her güncellemede yeni dizi olabilir; bağlam yalnızca içerik değişince yeniden hesaplanır
+  const turAnahtari = turListesi(tur).join('|')
   useEffect(() => {
     if (!g.repo || !g.dal || !agac) return
     if (secilenler.length === 0) {
@@ -137,7 +140,7 @@ function RepoSecimi({ github, tur, kullaniciAdi, onGithub }) {
     return () => {
       iptal = true
     }
-  }, [g.repo, g.dal, agac, secimAnahtari, tur]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [g.repo, g.dal, agac, secimAnahtari, turAnahtari]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Sınır durumu konfigürasyona yazılır: aşılırsa "Testi Başlat" pasif olur
   const boyutHaritasi = Object.fromEntries((agac || []).map((d) => [d.yol, d.boyut]))

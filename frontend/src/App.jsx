@@ -16,7 +16,7 @@ import VurguKart from './components/VurguKart'
 import { olaylariOlustur } from './mock/runEvents'
 import ReportView from './components/report/ReportView'
 import HistoryDrawer from './components/HistoryDrawer'
-import { alanAktif, pythonDesteklenir, arayuzDesteklenir } from './config/testStratejileri'
+import { alanAktif, pythonDesteklenir, turDuzelt } from './config/testStratejileri'
 
 // Mock oturum: localStorage'da 'kullanici' anahtarıyla saklanır
 function kayitliKullanici() {
@@ -34,7 +34,7 @@ function profilVarsayilan(cfg, u) {
   const alan = alanAktif(u.meslek) ? u.meslek : 'web'
   const uygunDiller = u.diller.filter((d) => d !== 'python' || pythonDesteklenir(alan))
   const dil = uygunDiller[0] || (pythonDesteklenir(alan) ? 'python' : 'js')
-  const tur = arayuzDesteklenir(alan) ? cfg.tur : 'birim'
+  const tur = turDuzelt(cfg.tur, alan, cfg.kaynak)
   return { ...cfg, alan, dil, tur, digerMetin: alan === 'diger' ? u.digerMeslek : cfg.digerMetin }
 }
 
@@ -52,7 +52,7 @@ export default function App() {
   // Konfigürasyon seçimleri
   const [config, setConfig] = useState(() =>
     profilVarsayilan(
-      { kaynak: 'kod', dosya: null, url: '', github: null, alan: 'web', dil: 'python', tur: 'ikisi', digerMetin: '', baslatmaKomutu: '' },
+      { kaynak: 'kod', dosya: null, url: '', github: null, alan: 'web', dil: 'python', tur: [], digerMetin: '', baslatmaKomutu: '' },
       kayitliKullanici(),
     ),
   )

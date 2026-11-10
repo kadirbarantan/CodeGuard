@@ -1,7 +1,8 @@
 // Büyük sürükle-bırak alanı: klasör / dosya / zip seçimi, sayım ve limit uyarısı.
 import { useRef, useState } from 'react'
-import { CircleCheck, FileArchive, FolderOpen, TriangleAlert, Upload } from 'lucide-react'
+import { CircleCheck, FileArchive, FolderOpen, PlayCircle, TriangleAlert, Upload } from 'lucide-react'
 import { MAX_BOYUT, MAX_DOSYA, birakmadanOlc, boyutYaz, inputtanOlc } from './dosyaOlcum'
+import { ORNEK_PROJE } from '../../config/ornekler'
 
 export default function UploadBox({ dosya, onDosya }) {
   const klasorRef = useRef(null)
@@ -68,6 +69,15 @@ export default function UploadBox({ dosya, onDosya }) {
             <FileArchive size={17} className="text-muted" aria-hidden="true" /> Tek dosya ya da .zip
           </button>
         </div>
+        <button
+          type="button"
+          onClick={() => kabulEt(ORNEK_PROJE)}
+          className="mt-4 inline-flex min-h-10 items-center gap-1.5 rounded-lg px-2 text-sm font-medium text-ai-text hover:underline"
+        >
+          <PlayCircle size={16} aria-hidden="true" />
+          Kodun yok mu? Örnek projeyle dene
+          <span className="font-mono text-xs font-normal text-muted">(blog-api · Python)</span>
+        </button>
         <input ref={klasorRef} type="file" webkitdirectory="" multiple onChange={inputDegisti} className="hidden" aria-label="Klasör seç" />
         <input ref={dosyaRef} type="file" onChange={inputDegisti} className="hidden" aria-label="Dosya veya zip seç" />
       </div>
@@ -77,6 +87,9 @@ export default function UploadBox({ dosya, onDosya }) {
           <CircleCheck size={16} />
           <span className="font-mono font-medium">{dosya.ad}</span>
           <span>· {dosya.sayi} dosya · {boyutYaz(dosya.boyut)} · Yüklendi</span>
+          {dosya.ornek && (
+            <span className="rounded-full bg-ai-bg px-2 py-0.5 text-xs font-medium text-ai-text">Örnek proje · hataları önceden biliniyor</span>
+          )}
         </p>
       )}
       {hata && (
