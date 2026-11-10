@@ -49,10 +49,8 @@ function erisimOlaylari(config) {
   return olaylar
 }
 
-export function olaylariOlustur(config) {
-  const st = stratejiOlustur(config)
-  if (st.ux) return uxOlaylari(config)
-  if (st.erisim) return erisimOlaylari(config)
+// Birim ve/veya arayüz testleri: ajan döngüsü (en fazla 4 tur)
+function kodOlaylari(config, st) {
   const urlModu = config.kaynak === 'url'
   const arac = DIL_ARACLARI[config.dil]
   const alanS = ALAN_STRATEJI[config.alan]
@@ -108,6 +106,48 @@ export function olaylariOlustur(config) {
   }
   ekle('İçgörü Ajanı', 'LLM', 'Kapsanamayan satırlar açıklanıyor, rapor hazırlanıyor.', 4, mm())
   return olaylar
+}
+
+// Seçilen test gruplarının olaylarını tek akışta birleştirir.
+// Tek grup seçiliyse olaylar olduğu gibi döner. Birden fazlaysa (mock'ta sırayla; backend'de gruplar paralel çalışır):
+// - her olaya grubunun adı (grup) eklenir, canlı akışta etiket olarak görünür;
+// - metrikler birikir (coverage / ux / uyum … aynı olayda), böylece canlı kartlar hepsini birlikte gösterir;
+// - kod testi varsa tur bilgisi kodun turundan gelir, denetimler son turda sürer;
+// - ikinci "sayfaları gez" ve grupların ayrı İçgörü olayları atlanır, sonda tek ortak İçgörü olayı gelir.
+export function olaylariOlustur(config) {
+  const st = stratejiOlustur(config)
+  const kodVar = st.birim || st.arayuz
+  const parcalar = []
+  if (kodVar) parcalar.push({ id: 'kod', ad: st.parcalar.find((p) => p.id === 'kod').ad, olaylar: kodOlaylari(config, st) })
+  if (st.ux) parcalar.push({ id: 'ux', ad: 'Kullanılabilirlik', olaylar: uxOlaylari(config) })
+  if (st.erisim) parcalar.push({ id: 'erisim', ad: 'Erişilebilirlik', olaylar: erisimOlaylari(config) })
+  if (parcalar.length <= 1) return parcalar[0]?.olaylar || []
+
+  const sonuc = []
+  let metrik = {}
+  let tur = 1
+  let sayfalarGezildi = false
+  for (const p of parcalar) {
+    for (const o of p.olaylar) {
+      metrik = { ...metrik, ...o.metrics }
+      if (p.id === 'kod') tur = o.round
+      const gezinti = o.agent === 'Tarayıcı Ajanı'
+      if (o.agent === 'İçgörü Ajanı' || (gezinti && sayfalarGezildi)) continue
+      if (gezinti) sayfalarGezildi = true
+      sonuc.push({ ...o, grup: p.ad, metrics: metrik, round: kodVar ? tur : 1, maxRounds: kodVar ? 4 : 1 })
+    }
+  }
+  sonuc.push({
+    type: 'agent_step',
+    agent: 'İçgörü Ajanı',
+    kind: 'LLM',
+    grup: 'Ortak',
+    message: `${parcalar.map((p) => p.ad).join(', ')} sonuçları tek raporda birleştiriliyor.`,
+    round: kodVar ? 4 : 1,
+    maxRounds: kodVar ? 4 : 1,
+    metrics: metrik,
+  })
+  return sonuc
 }
 
 // Akışın sonunda gelen bitiş olayı (runId api.js'te eklenir)

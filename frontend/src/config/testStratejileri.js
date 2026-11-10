@@ -17,13 +17,29 @@ export const DILLER = {
   php: 'PHP',
 }
 
+// Test türleri birden fazla seçilebilir: config.tur bir dizidir, ör. ['birim', 'arayuz'].
+// (Eski kayıtlardaki tek tür metni ve 'ikisi' de okunur; bkz. turListesi.)
 export const TURLER = {
   birim: 'Birim',
   arayuz: 'Arayüz',
-  ikisi: 'İkisi',
   kullanilabilirlik: 'Kullanılabilirlik',
   erisilebilirlik: 'Erişilebilirlik',
 }
+export const TUR_SIRASI = ['birim', 'arayuz', 'kullanilabilirlik', 'erisilebilirlik']
+// Kod testleri ajan döngüsüyle (1 + 3 tur) çalışır; site denetimleri çalışan site üzerinde tek geçişte ölçülür
+export const KOD_TURLERI = ['birim', 'arayuz']
+export const DENETIM_TURLERI = ['kullanilabilirlik', 'erisilebilirlik']
+// Arayüzde varsayılan seçim yoktur (kullanıcı kendisi seçer). Bu değer yalnızca türü kayıtlı olmayan eski mock kayıtlar içindir.
+export const VARSAYILAN_TURLER = ['birim', 'arayuz']
+
+// Dizi, tek tür metni ya da eski 'ikisi' → sıralı tür dizisi
+export function turListesi(tur) {
+  const liste = Array.isArray(tur) ? tur : tur === 'ikisi' ? ['birim', 'arayuz'] : tur ? [tur] : []
+  return TUR_SIRASI.filter((t) => liste.includes(t))
+}
+
+// Kısa ad: "Birim + Arayüz", "Arayüz + Erişilebilirlik" …
+export const turAdi = (tur) => turListesi(tur).map((t) => TURLER[t]).join(' + ')
 
 // Test girdisi: kaynak kod yükleme ya da canlı sitenin adresi
 export const KAYNAKLAR = { kod: 'Kaynak Kod Yükle', url: 'URL Gir' }
@@ -37,16 +53,28 @@ export const GELISTIRILIYOR_NOTU = 'Şu anda geliştirmeye devam etmektedir'
 export const pythonDesteklenir = (alan) => alan !== 'mobil'
 export const arayuzDesteklenir = (alan) => alan !== 'oyun' && alan !== 'mobil'
 
-// Seçilen türün içerdiği test grupları
-export const birimVar = (tur) => tur === 'birim' || tur === 'ikisi'
-export const arayuzVar = (tur) => tur === 'arayuz' || tur === 'ikisi'
-export const uxVar = (tur) => tur === 'kullanilabilirlik'
-export const erisimVar = (tur) => tur === 'erisilebilirlik'
-// Tur döngüsü olmayan, çalışan site üzerinde tek geçişte ölçülen testler
+// Seçimde hangi test grupları var
+export const birimVar = (tur) => turListesi(tur).includes('birim')
+export const arayuzVar = (tur) => turListesi(tur).includes('arayuz')
+export const uxVar = (tur) => turListesi(tur).includes('kullanilabilirlik')
+export const erisimVar = (tur) => turListesi(tur).includes('erisilebilirlik')
+// Tur döngüsü olmayan, çalışan site üzerinde tek geçişte ölçülen testlerden en az biri var mı
 export const denetimVar = (tur) => uxVar(tur) || erisimVar(tur)
+// Yalnızca denetim seçili (birim / arayüz yok): canlı akışta tur yerine "Analiz ediliyor"
+export const sadeceDenetim = (tur) => denetimVar(tur) && !birimVar(tur) && !arayuzVar(tur)
 
-// URL ile yalnızca canlı site test edilebilir: birim testi için kaynak kod gerekir
-export const turSecilebilir = (tur, kaynak) => kaynak !== 'url' || tur === 'arayuz' || denetimVar(tur)
+// Tek bir tür bu kaynakla seçilebilir mi? URL ile birim testi yapılamaz (kaynak kod gerekir)
+export const turSecilebilir = (tur, kaynak) => kaynak !== 'url' || tur !== 'birim'
+
+// Seçimi alan ve kaynak kurallarına göre düzelt. Kurallar seçimin tamamını silerse uygun bir varsayılana döner;
+// kullanıcının kendi bıraktığı boş seçimde Başlat pasif kalır.
+export function turDuzelt(tur, alan, kaynak) {
+  const once = turListesi(tur)
+  let sonra = once.filter((t) => turSecilebilir(t, kaynak))
+  if (!arayuzDesteklenir(alan)) sonra = sonra.filter((t) => t === 'birim')
+  if (once.length && !sonra.length) sonra = kaynak === 'url' ? ['arayuz'] : ['birim']
+  return sonra
+}
 
 // "https://ornek.com/yol" → "ornek.com"
 export function urlAdi(url) {
@@ -140,109 +168,22 @@ export const ALAN_STRATEJI = {
 }
 ALAN_STRATEJI.diger = ALAN_STRATEJI.genel
 
-// Seçime göre test planını üretir: adımlar, araçlar ve odak konuları
-// adim.tip: 'analiz' | 'llm' | 'sandbox' | 'tarayici'
-// kaynak: 'kod' (proje yüklendi) | 'url' (canlı site adresi girildi)
-export function stratejiOlustur({ alan, dil, tur, digerMetin = '', kaynak = 'kod', url = '' }) {
+// ---- Test planı: her test grubu kendi adımlarını üretir, seçilen gruplar tek planda birleşir ----
+// adim.tip: 'analiz' | 'llm' | 'sandbox' | 'tarayici' · adim.grup: adımın ait olduğu test grubu (birden fazla grup seçiliyse görünür)
+// kaynak: 'kod' (proje yüklendi) | 'github' | 'url' (canlı site adresi girildi)
+
+// Kod testleri (birim ve/veya arayüz): ajan döngüsü
+function kodPlani({ alan, dil, kaynak, birim, arayuz, motor, hedef }) {
   const arac = DIL_ARACLARI[dil]
   const s = ALAN_STRATEJI[alan]
   const urlModu = kaynak === 'url'
-  const birim = !urlModu && birimVar(tur)
-  const arayuz = arayuzVar(tur) && arayuzDesteklenir(alan)
-  const ux = uxVar(tur)
-  const erisim = erisimVar(tur)
-  const motor = birim ? MOTOR[alan]?.[dil] : undefined
-  const hedef = urlModu ? urlAdi(url) || 'girilen adres' : null
   const adimlar = []
-
-  if (erisim) {
-    const statik = !urlModu && ERISIM_STATIK[dil]
-    if (statik) {
-      adimlar.push({
-        tip: 'analiz',
-        ad: 'Statik tarama',
-        aciklama: `Şablonlar ve bileşenler uygulama çalıştırılmadan taranır (${statik}): eksik alt metin, etiketsiz form alanı, yanlış başlık sırası.`,
-      })
-    }
-    adimlar.push({
-      tip: 'tarayici',
-      ad: 'Sayfaları gez',
-      aciklama: urlModu
-        ? `${hedef} açılır; sayfalar masaüstü ve mobil genişlikte gezilir.`
-        : 'Uygulama ayağa kaldırılır; sayfalar masaüstü ve mobil genişlikte gezilir.',
-    })
-    adimlar.push({ tip: 'analiz', ad: 'Otomatik WCAG taraması', aciklama: `Her sayfa axe-core ve Lighthouse ile ${WCAG_SURUM} kurallarına göre taranır; kontrast oranları ölçülür.` })
-    adimlar.push({ tip: 'tarayici', ad: 'Klavye ve odak testi', aciklama: 'Playwright yalnızca Tab ve Enter ile gezinir: her öğeye ulaşılıyor mu, odak görünüyor mu, sıra mantıklı mı, klavye tuzağı var mı.' })
-    adimlar.push({ tip: 'analiz', ad: 'Ekran okuyucu ağacı', aciklama: 'Tarayıcının erişilebilirlik ağacı çıkarılır; ARIA rolleri, öğe adları ve başlık sırası kontrol edilir.' })
-    adimlar.push({
-      tip: 'tarayici',
-      ad: 'Görme simülasyonu',
-      aciklama: 'Sayfalar renk körlüğü (protanopi, döteranopi, tritanopi, akromatopsi) ve bulanık görme simülasyonuyla açılır; yalnızca renkle verilen bilgi aranır. 320 px genişlik ve %200 yakınlaştırmada taşan ya da kırpılan içerik aranır.',
-    })
-    adimlar.push({
-      tip: 'tarayici',
-      ad: 'Form, medya ve hareket',
-      aciklama: 'Formlar bilerek yanlış gönderilir: hata görünüyor mu, alanla bağlı mı, ekran okuyucuya duyuruluyor mu. Videolarda altyazı aranır; "hareketi azalt" açıkken animasyonların durduğu kontrol edilir.',
-    })
-    adimlar.push({
-      tip: 'llm',
-      ad: 'Anlam kontrolü',
-      aciklama: 'Otomatik araçların bakamadığı anlam kontrol edilir: alternatif metin görseli gerçekten anlatıyor mu, hata mesajı neyin yanlış olduğunu söylüyor mu (Gemini, görsel girdi).',
-    })
-    adimlar.push({
-      tip: 'llm',
-      ad: 'İçgörü ve rapor',
-      aciklama: urlModu
-        ? 'İhlaller WCAG maddesine göre gruplanır, önem sırasına konur, her birine düzeltme önerisi yazılır.'
-        : 'İhlaller WCAG maddesine göre gruplanır, koddaki dosya ve satıra bağlanır, her birine düzeltme önerisi yazılır.',
-    })
-    const araclar = [...ERISIM_ARACLARI]
-    if (statik) araclar.push(statik)
-    return {
-      baslik: `${ALANLAR[alan].ad} · ${urlModu ? hedef : DILLER[dil]}`,
-      adimlar,
-      araclar,
-      odak: ERISIM_ODAK,
-      birim: false,
-      arayuz: false,
-      ux: false,
-      erisim: true,
-      motor,
-    }
-  }
-
-  if (!urlModu && !ux) {
-    adimlar.push({ tip: 'analiz', ad: 'Kod Haritası', aciklama: 'Kod analiz edilir; fonksiyonlar, sınıflar ve dallar çıkarılır.' })
+  if (!urlModu) {
+    adimlar.push({ tip: 'analiz', ad: 'Kod Haritası', aciklama: 'Kod analiz edilir; fonksiyonlar, sınıflar ve dallar çıkarılır. Her birim için ne yaptığı ve ne kadar riskli olduğu yorumlanır; ajan riskli birimlerden başlar.' })
   }
   if (motor) {
     adimlar.push({ tip: 'analiz', ad: 'Bağımlılık ayrıştırma', aciklama: `${motor} kullanan kod ayrılır, yalnızca test edilebilir mantık test edilir.` })
   }
-
-  if (ux) {
-    adimlar.push({
-      tip: 'tarayici',
-      ad: 'Sayfaları gez ve görüntü al',
-      aciklama: urlModu
-        ? `${hedef} açılır; sayfalar masaüstü ve mobil genişlikte gezilir, ekran görüntüsü ve sayfa düzeni alınır.`
-        : 'Uygulama ayağa kaldırılır; sayfalar masaüstü ve mobil genişlikte gezilir, ekran görüntüsü ve sayfa düzeni alınır.',
-    })
-    adimlar.push({ tip: 'analiz', ad: 'Okuma deseni (Z / F)', aciklama: 'Logo, menü, başlık ve ana butonun konumu Z ve F okuma desenlerine göre puanlanır.' })
-    adimlar.push({ tip: 'analiz', ad: 'Renk uyumu', aciklama: 'Renk paleti çıkarılır; renklerin uyumu ve aynı rengin hep aynı anlamda kullanılıp kullanılmadığı incelenir.' })
-    adimlar.push({ tip: 'llm', ad: 'UX değerlendirmesi', aciklama: 'Ajan ekran görüntülerini görsel hiyerarşi, tutarlılık ve kullanım kolaylığı ilkelerine göre inceler.' })
-    adimlar.push({ tip: 'llm', ad: 'İçgörü ve rapor', aciklama: 'Bulgular önem sırasına konur, her biri için somut öneri yazılır.' })
-    return {
-      baslik: `${ALANLAR[alan].ad} · ${urlModu ? hedef : DILLER[dil]}`,
-      adimlar,
-      araclar: UX_ARACLARI,
-      odak: UX_ODAK,
-      birim: false,
-      arayuz: false,
-      ux: true,
-      erisim: false,
-      motor,
-    }
-  }
-
   // URL ile testte kod yok: odak yalnızca kullanıcı akışlarıdır
   const odak = urlModu ? URL_ODAK : s.odak
   adimlar.push({ tip: 'llm', ad: 'Test planı', aciklama: `Planlayıcı ajan odağı belirler: ${odak.slice(0, 2).join(', ')}.` })
@@ -278,16 +219,127 @@ export function stratejiOlustur({ alan, dil, tur, digerMetin = '', kaynak = 'kod
   if (birim && alan === 'web') araclar.push(arac.api)
   if (birim && (alan === 'genel' || alan === 'diger')) araclar.push(arac.ozellik)
   if (arayuz) araclar.push(urlModu ? 'Playwright' : arac.arayuz)
+  return { adimlar, araclar, odak }
+}
 
+// Kullanılabilirlik: tek geçişlik denetim
+function uxPlani({ kaynak, hedef }) {
+  const urlModu = kaynak === 'url'
+  const adimlar = [
+    {
+      tip: 'tarayici',
+      ad: 'Sayfaları gez ve görüntü al',
+      aciklama: urlModu
+        ? `${hedef} açılır; sayfalar masaüstü ve mobil genişlikte gezilir, ekran görüntüsü ve sayfa düzeni alınır.`
+        : 'Uygulama ayağa kaldırılır; sayfalar masaüstü ve mobil genişlikte gezilir, ekran görüntüsü ve sayfa düzeni alınır.',
+    },
+    { tip: 'analiz', ad: 'Okuma deseni (Z / F)', aciklama: 'Logo, menü, başlık ve ana butonun konumu Z ve F okuma desenlerine göre puanlanır.' },
+    { tip: 'analiz', ad: 'Renk uyumu', aciklama: 'Renk paleti çıkarılır; renklerin uyumu ve aynı rengin hep aynı anlamda kullanılıp kullanılmadığı incelenir.' },
+    { tip: 'llm', ad: 'UX değerlendirmesi', aciklama: 'Ajan ekran görüntülerini görsel hiyerarşi, tutarlılık ve kullanım kolaylığı ilkelerine göre inceler.' },
+    { tip: 'llm', ad: 'İçgörü ve rapor', aciklama: 'Bulgular önem sırasına konur, her biri için somut öneri yazılır.' },
+  ]
+  return { adimlar, araclar: UX_ARACLARI, odak: UX_ODAK }
+}
+
+// Erişilebilirlik: tek geçişlik WCAG denetimi
+function erisimPlani({ dil, kaynak, hedef }) {
+  const urlModu = kaynak === 'url'
+  const statik = !urlModu && ERISIM_STATIK[dil]
+  const adimlar = []
+  if (statik) {
+    adimlar.push({
+      tip: 'analiz',
+      ad: 'Statik tarama',
+      aciklama: `Şablonlar ve bileşenler uygulama çalıştırılmadan taranır (${statik}): eksik alt metin, etiketsiz form alanı, yanlış başlık sırası.`,
+    })
+  }
+  adimlar.push({
+    tip: 'tarayici',
+    ad: 'Sayfaları gez',
+    aciklama: urlModu
+      ? `${hedef} açılır; sayfalar masaüstü ve mobil genişlikte gezilir.`
+      : 'Uygulama ayağa kaldırılır; sayfalar masaüstü ve mobil genişlikte gezilir.',
+  })
+  adimlar.push({ tip: 'analiz', ad: 'Otomatik WCAG taraması', aciklama: `Her sayfa axe-core ve Lighthouse ile ${WCAG_SURUM} kurallarına göre taranır; kontrast oranları ölçülür.` })
+  adimlar.push({ tip: 'tarayici', ad: 'Klavye ve odak testi', aciklama: 'Playwright yalnızca Tab ve Enter ile gezinir: her öğeye ulaşılıyor mu, odak görünüyor mu, sıra mantıklı mı, klavye tuzağı var mı.' })
+  adimlar.push({ tip: 'analiz', ad: 'Ekran okuyucu ağacı', aciklama: 'Tarayıcının erişilebilirlik ağacı çıkarılır; ARIA rolleri, öğe adları ve başlık sırası kontrol edilir.' })
+  adimlar.push({
+    tip: 'tarayici',
+    ad: 'Görme simülasyonu',
+    aciklama: 'Sayfalar renk körlüğü (protanopi, döteranopi, tritanopi, akromatopsi) ve bulanık görme simülasyonuyla açılır; yalnızca renkle verilen bilgi aranır. 320 px genişlik ve %200 yakınlaştırmada taşan ya da kırpılan içerik aranır.',
+  })
+  adimlar.push({
+    tip: 'tarayici',
+    ad: 'Form, medya ve hareket',
+    aciklama: 'Formlar bilerek yanlış gönderilir: hata görünüyor mu, alanla bağlı mı, ekran okuyucuya duyuruluyor mu. Videolarda altyazı aranır; "hareketi azalt" açıkken animasyonların durduğu kontrol edilir.',
+  })
+  adimlar.push({
+    tip: 'llm',
+    ad: 'Anlam kontrolü',
+    aciklama: 'Otomatik araçların bakamadığı anlam kontrol edilir: alternatif metin görseli gerçekten anlatıyor mu, hata mesajı neyin yanlış olduğunu söylüyor mu (Gemini, görsel girdi).',
+  })
+  adimlar.push({
+    tip: 'llm',
+    ad: 'İçgörü ve rapor',
+    aciklama: urlModu
+      ? 'İhlaller WCAG maddesine göre gruplanır, önem sırasına konur, her birine düzeltme önerisi yazılır.'
+      : 'İhlaller WCAG maddesine göre gruplanır, koddaki dosya ve satıra bağlanır, her birine düzeltme önerisi yazılır.',
+  })
+  const araclar = [...ERISIM_ARACLARI]
+  if (statik) araclar.push(statik)
+  return { adimlar, araclar, odak: ERISIM_ODAK }
+}
+
+// Seçime göre test planını üretir: adımlar, araçlar ve odak konuları.
+// Birden fazla grup seçiliyse adımlar sırayla birleşir (backend'de gruplar paralel çalışır, uygulama bir kez başlatılır):
+// her grubun kendi "İçgörü ve rapor" adımı kalkar, sonda tek ortak rapor adımı olur; denetimlerin ikinci "Sayfaları gez" adımı atlanır.
+export function stratejiOlustur({ alan, dil, tur, digerMetin = '', kaynak = 'kod', url = '' }) {
+  const urlModu = kaynak === 'url'
+  const birim = !urlModu && birimVar(tur)
+  const arayuz = arayuzVar(tur) && arayuzDesteklenir(alan)
+  const ux = uxVar(tur)
+  const erisim = erisimVar(tur)
+  const motor = birim ? MOTOR[alan]?.[dil] : undefined
+  const hedef = urlModu ? urlAdi(url) || 'girilen adres' : null
+  const ortak = { alan, dil, kaynak, birim, arayuz, motor, hedef }
+
+  const parcalar = []
+  if (birim || arayuz) parcalar.push({ id: 'kod', ad: [birim && 'Birim', arayuz && 'Arayüz'].filter(Boolean).join(' + '), ...kodPlani(ortak) })
+  if (ux) parcalar.push({ id: 'ux', ad: 'Kullanılabilirlik', ...uxPlani(ortak) })
+  if (erisim) parcalar.push({ id: 'erisim', ad: 'Erişilebilirlik', ...erisimPlani(ortak) })
+
+  const coklu = parcalar.length > 1
+  const adimlar = []
+  let sayfalarGezildi = false
+  for (const p of parcalar) {
+    for (const a of p.adimlar) {
+      if (coklu && a.ad === 'İçgörü ve rapor') continue
+      const gezinti = a.ad === 'Sayfaları gez ve görüntü al' || a.ad === 'Sayfaları gez'
+      if (coklu && gezinti && sayfalarGezildi) continue
+      if (gezinti) sayfalarGezildi = true
+      adimlar.push(coklu ? { ...a, grup: p.ad } : a)
+    }
+  }
+  if (coklu) {
+    adimlar.push({
+      tip: 'llm',
+      ad: 'İçgörü ve rapor',
+      grup: 'Ortak',
+      aciklama: `${parcalar.map((p) => p.ad).join(', ')} sonuçları tek raporda birleştirilir; her biri için bulgular ve öneriler yazılır.`,
+    })
+  }
+
+  const tekil = (dizi) => [...new Set(dizi)]
   return {
     baslik: `${alan === 'diger' && digerMetin.trim() ? digerMetin.trim() : ALANLAR[alan].ad} · ${urlModu ? hedef : DILLER[dil]}`,
     adimlar,
-    araclar,
-    odak,
+    araclar: tekil(parcalar.flatMap((p) => p.araclar)),
+    odak: tekil(parcalar.flatMap((p) => p.odak)),
+    parcalar: parcalar.map((p) => ({ id: p.id, ad: p.ad })),
     birim,
     arayuz,
-    ux: false,
-    erisim: false,
+    ux,
+    erisim,
     motor,
   }
 }

@@ -1,10 +1,11 @@
 // Mock backend: gerçek API ile aynı imza. Faz 2'de yalnızca bu dosya değişecek.
 import { olaylariOlustur, doneEvent } from '../mock/runEvents'
 import { report } from '../mock/report'
+import { kodYorumu } from '../mock/kodYorumu'
 import { history } from '../mock/history'
 import { uxReport } from '../mock/uxReport'
 import { erisimReport, ihlalKaynagi } from '../mock/erisimReport'
-import { erisimVar, uxVar, urlAdi } from '../config/testStratejileri'
+import { KOD_TURLERI, VARSAYILAN_TURLER, arayuzVar, erisimVar, turAdi, turListesi, uxVar, urlAdi } from '../config/testStratejileri'
 import { githubRepolari } from '../mock/githubRepos'
 import { baglamCozumle } from '../mock/baglamCozumleyici'
 import { githubPencereIleGiris } from './githubOAuth'
@@ -152,7 +153,7 @@ export async function startRun(config) {
 
 // Olayları ~1,3 sn arayla gönderir, sonda 'done'. Durdurma fonksiyonu döner.
 export function subscribeRun(runId, onEvent) {
-  const olaylar = olaylariOlustur(calistirmalar.get(runId) || { alan: 'web', dil: 'python', tur: 'ikisi' })
+  const olaylar = olaylariOlustur(calistirmalar.get(runId) || { alan: 'web', dil: 'python', tur: VARSAYILAN_TURLER })
   let i = 0
   const zamanlayici = setInterval(() => {
     if (i < olaylar.length) {
@@ -172,31 +173,8 @@ export async function stopRun(runId) {
   return { ok: true }
 }
 
-export async function getReport(runId) {
-  await bekle()
-  // Kalite skoru sonradan gelir. Dosya içerikleri raporla gelmez (getFileSource ile istenir).
-  // Seçim: bu oturumda başlatılan çalıştırma ya da geçmişteki kayıt
-  const kayit = calistirmalar.get(runId) || history.find((h) => h.runId === runId) || {}
-  const secim = Object.fromEntries(
-    ['proje', 'alan', 'dil', 'tur', 'digerMetin', 'kaynak', 'url'].filter((k) => kayit[k] != null).map((k) => [k, kayit[k]]),
-  )
-
-  // Kullanılabilirlik testi: ayrı rapor biçimi
-  if (uxVar(secim.tur)) {
-    return { ...uxReport, ...secim, runId }
-  }
-
-  // Erişilebilirlik testi: ayrı rapor biçimi. URL ile testte kaynak kod olmadığı için ihlaller koda bağlanmaz.
-  if (erisimVar(secim.tur)) {
-    const kodVar = secim.kaynak !== 'url'
-    return {
-      ...erisimReport,
-      ...secim,
-      runId,
-      ihlaller: erisimReport.ihlaller.map(({ kaynak, ...i }) => (kodVar && kaynak ? { ...i, kaynak: ihlalKaynagi(kaynak, secim.dil) } : i)),
-    }
-  }
-
+// Kod testleri raporu (birim ve/veya arayüz)
+function kodRaporu(secim, runId) {
   const { dosyalar, ...digerleri } = report
   // URL ile test: kaynak kod yok; birim sonuçları ve Kod sekmesi rapora girmez
   if (secim.kaynak === 'url') {
@@ -213,8 +191,8 @@ export async function getReport(runId) {
     }
   }
 
-  // Mock: yalnızca birim testi seçildiyse arayüz sonuçları rapora girmez
-  const arayuzYok = secim.tur === 'birim'
+  // Mock: arayüz testi seçilmediyse arayüz sonuçları rapora girmez
+  const arayuzYok = !arayuzVar(secim.tur)
   return {
     ...digerleri,
     ...secim,
@@ -226,6 +204,49 @@ export async function getReport(runId) {
     runId,
     kaliteSkoru: null,
     dosyalar: dosyalar.map(({ kod, ...d }) => d),
+    // Kod Yorumu: Kod Haritası birimleri + LLM açıklaması ve risk (yalnızca kaynak kod varsa)
+    kodYorumu,
+  }
+}
+
+// Erişilebilirlik raporu: URL ile testte kaynak kod olmadığı için ihlaller koda bağlanmaz
+function erisimRaporu(secim, runId) {
+  const kodVar = secim.kaynak !== 'url'
+  return {
+    ...erisimReport,
+    ...secim,
+    runId,
+    ihlaller: erisimReport.ihlaller.map(({ kaynak, ...i }) => (kodVar && kaynak ? { ...i, kaynak: ihlalKaynagi(kaynak, secim.dil) } : i)),
+  }
+}
+
+// Rapor: seçilen her test grubu kendi raporunu üretir (kod testleri, kullanılabilirlik, erişilebilirlik).
+// Tek grup seçildiyse o rapor döner. Birden fazla grup seçildiyse birleşik rapor döner:
+//   { ...seçim, runId, tur: [...], turSayisi, parcalar: [{ id: 'kod' | 'ux' | 'erisim', ad, rapor }] }
+// Her parçanın rapor biçimi tek başına seçildiğindeki raporla aynıdır.
+export async function getReport(runId) {
+  await bekle()
+  // Kalite skoru sonradan gelir. Dosya içerikleri raporla gelmez (getFileSource ile istenir).
+  // Seçim: bu oturumda başlatılan çalıştırma ya da geçmişteki kayıt
+  const kayit = calistirmalar.get(runId) || history.find((h) => h.runId === runId) || {}
+  const secim = Object.fromEntries(
+    ['proje', 'alan', 'dil', 'tur', 'digerMetin', 'kaynak', 'url'].filter((k) => kayit[k] != null).map((k) => [k, kayit[k]]),
+  )
+  const turler = turListesi(secim.tur ?? VARSAYILAN_TURLER)
+
+  const parcalar = []
+  const kodTurleri = turler.filter((t) => KOD_TURLERI.includes(t))
+  if (kodTurleri.length) parcalar.push({ id: 'kod', ad: turAdi(kodTurleri), rapor: kodRaporu({ ...secim, tur: kodTurleri }, runId) })
+  if (uxVar(turler)) parcalar.push({ id: 'ux', ad: 'Kullanılabilirlik', rapor: { ...uxReport, ...secim, tur: ['kullanilabilirlik'], runId } })
+  if (erisimVar(turler)) parcalar.push({ id: 'erisim', ad: 'Erişilebilirlik', rapor: erisimRaporu({ ...secim, tur: ['erisilebilirlik'] }, runId) })
+
+  if (parcalar.length === 1) return parcalar[0].rapor
+  return {
+    ...secim,
+    runId,
+    tur: turler,
+    turSayisi: parcalar.find((p) => p.id === 'kod')?.rapor.turSayisi ?? null,
+    parcalar,
   }
 }
 
