@@ -93,8 +93,8 @@ export default function HistoryDrawer({ open, onClose, onSelect }) {
             <ul className="space-y-2">
               {liste.map((k) => {
                 const basarili = k.durum === 'tamamlandi'
-                const skor = k.coverage ?? k.uxSkor ?? null
-                const skorAdi = k.coverage != null ? 'Kod kapsaması' : 'UX skoru'
+                const skor = k.coverage ?? k.uxSkor ?? k.erisimSkor ?? null
+                const skorAdi = k.coverage != null ? 'Kod kapsaması' : k.uxSkor != null ? 'UX skoru' : 'WCAG uyumu'
                 return (
                   <li key={k.runId}>
                     <button

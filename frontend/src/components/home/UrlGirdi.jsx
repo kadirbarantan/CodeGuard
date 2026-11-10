@@ -1,4 +1,4 @@
-// URL ile test: kod yüklemeden canlı sitenin adresi girilir (arayüz ve kullanılabilirlik testi).
+// URL ile test: kod yüklemeden canlı sitenin adresi girilir (arayüz, kullanılabilirlik ve erişilebilirlik testi).
 import { useState } from 'react'
 import { CircleCheck, Globe, TriangleAlert } from 'lucide-react'
 import { urlAdi, urlGecerli } from '../../config/testStratejileri'
@@ -12,7 +12,7 @@ export default function UrlGirdi({ url, onUrl }) {
     <div className="rounded-2xl border-2 border-dashed border-ai-border bg-gradient-to-b from-soft/60 to-surface px-4 py-9 text-center">
       <Globe size={44} className="mx-auto text-ai-text" aria-hidden="true" />
       <p className="mt-3 text-lg font-semibold">Canlı sitenin adresini gir</p>
-      <p className="mt-1 text-sm text-muted">Kod yüklemeden arayüz ve kullanılabilirlik testi yapılır.</p>
+      <p className="mt-1 text-sm text-muted">Kod yüklemeden arayüz, kullanılabilirlik ve erişilebilirlik testi yapılır.</p>
 
       <label htmlFor="site-url" className="sr-only">Site adresi</label>
       <input

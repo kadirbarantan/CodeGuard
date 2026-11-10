@@ -1,31 +1,55 @@
 // Canlı akış olayları (WebSocket mesajını taklit eder). Faz 2'de backend aynı biçimi gönderecek.
 // Olaylar seçilen test stratejisine göre üretilir: alan, dil ve tür değişince ajan adımları da değişir.
-import { stratejiOlustur, DIL_ARACLARI, ALAN_STRATEJI, urlAdi } from '../config/testStratejileri'
+import { stratejiOlustur, DIL_ARACLARI, ALAN_STRATEJI, ERISIM_STATIK, urlAdi } from '../config/testStratejileri'
 
 const m = (coverage, uiCovered, uiTotal, passed, bugs) => ({ coverage, uiCovered, uiTotal, passed, bugs })
 
 // Kullanılabilirlik (UX) testi: tek geçişlik değerlendirme (tur döngüsü yok).
-// metrics: { ux: genel skor, desen: okuma deseni uyumu, kontrast: AA altı metin sayısı, bulgu: UX bulgusu sayısı }
+// metrics: { ux: genel skor, desen: okuma deseni uyumu, renk: renk uyumu, bulgu: UX bulgusu sayısı }
 function uxOlaylari(config) {
   const hedef = config.kaynak === 'url' ? urlAdi(config.url) : 'Uygulama'
   const olaylar = []
   const ekle = (agent, kind, message, metrics) =>
     olaylar.push({ type: 'agent_step', agent, kind, message, round: 1, maxRounds: 1, metrics })
-  const u = (ux, desen, kontrast, bulgu) => ({ ux, desen, kontrast, bulgu })
+  const u = (ux, desen, renk, bulgu) => ({ ux, desen, renk, bulgu })
 
   ekle('Tarayıcı Ajanı', 'Tarayıcı', `${hedef} açıldı; 6 sayfa masaüstü ve mobil genişlikte gezildi, 12 ekran görüntüsü alındı.`, u(null, null, null, 0))
   ekle('Planlayıcı Ajan', 'LLM', 'Değerlendirme planı hazır: okuma deseni, renk uyumu, görsel hiyerarşi, mobil uyum.', u(null, null, null, 0))
   ekle('Okuma Deseni Analizi', 'Analiz', 'Ana sayfa Z desenine %78 uyumlu; "Kayıt ol" butonu desenin bitiş noktasının dışında kalıyor.', u(null, 78, null, 1))
   ekle('Okuma Deseni Analizi', 'Analiz', 'Yazı listesi ve detay sayfası F desenine uygun; fiyatlar sayfasında başlıklar sağa yaslı.', u(null, 74, null, 2))
-  ekle('Renk ve Kontrast', 'Analiz · axe-core', '5 renkli palet çıkarıldı; 3 metin WCAG AA kontrast sınırının altında.', u(null, 74, 3, 4))
-  ekle('UX Değerlendirme Ajanı', 'LLM', 'Ekran görüntüleri görsel hiyerarşi ve tutarlılık ilkelerine göre incelendi; 2 yeni bulgu.', u(null, 74, 3, 6))
-  ekle('İçgörü Ajanı', 'LLM', 'Bulgular önem sırasına konuyor, her biri için öneri yazılıyor.', u(72, 74, 3, 6))
+  ekle('Renk Uyumu', 'Analiz', '5 renkli palet çıkarıldı; turuncu üç farklı anlamda kullanılıyor.', u(null, 74, 81, 3))
+  ekle('UX Değerlendirme Ajanı', 'LLM', 'Ekran görüntüleri görsel hiyerarşi ve tutarlılık ilkelerine göre incelendi; 2 yeni bulgu.', u(null, 74, 81, 6))
+  ekle('İçgörü Ajanı', 'LLM', 'Bulgular önem sırasına konuyor, her biri için öneri yazılıyor.', u(72, 74, 81, 6))
+  return olaylar
+}
+
+// Erişilebilirlik testi: tek geçişlik denetim (tur döngüsü yok).
+// metrics: { uyum: WCAG ölçüt uyumu %, lighthouse: Lighthouse erişilebilirlik puanı, ihlal: ihlal türü sayısı, kritik: kritik ihlal sayısı }
+function erisimOlaylari(config) {
+  const urlModu = config.kaynak === 'url'
+  const hedef = urlModu ? urlAdi(config.url) : 'Uygulama'
+  const olaylar = []
+  const ekle = (agent, kind, message, metrics) =>
+    olaylar.push({ type: 'agent_step', agent, kind, message, round: 1, maxRounds: 1, metrics })
+  const e = (uyum, lighthouse, ihlal, kritik) => ({ uyum, lighthouse, ihlal, kritik })
+
+  const statik = !urlModu && ERISIM_STATIK[config.dil]
+  if (statik) {
+    ekle('Statik Tarayıcı', `Analiz · ${statik}`, 'Şablonlarda 14 alternatif metinsiz görsel ve 5 etiketsiz form alanı bulundu.', e(null, null, 2, 0))
+  }
+  ekle('Tarayıcı Ajanı', 'Tarayıcı', `${urlModu ? hedef + ' açıldı' : 'Uygulama başlatıldı'}; 6 sayfa masaüstü ve mobil genişlikte gezildi.`, e(null, null, statik ? 2 : 0, 0))
+  ekle('WCAG Tarayıcı', 'Analiz · axe-core', '6 sayfada 6 tür ihlal bulundu; 7 metin kontrast sınırının altında.', e(null, null, 6, 0))
+  ekle('Lighthouse', 'Analiz', 'Erişilebilirlik puanı 74 / 100.', e(null, 74, 6, 0))
+  ekle('Klavye Testi', 'Tarayıcı · Playwright', "Mobil menüye klavyeyle ulaşılamıyor; /register'deki tarih seçicide klavye tuzağı var; odak hiçbir sayfada görünmüyor.", e(null, 74, 8, 2))
+  ekle('Erişilebilirlik Ağacı', 'Analiz', "4 ikon düğmesinin adı yok; /pricing'de başlık seviyesi atlanıyor.", e(null, 74, 9, 2))
+  ekle('İçgörü Ajanı', 'LLM', urlModu ? 'İhlaller WCAG maddelerine göre gruplanıyor, düzeltme önerileri yazılıyor.' : 'İhlaller WCAG maddelerine göre gruplanıp koddaki yerlerine bağlanıyor, düzeltme önerileri yazılıyor.', e(65, 74, 9, 2))
   return olaylar
 }
 
 export function olaylariOlustur(config) {
   const st = stratejiOlustur(config)
   if (st.ux) return uxOlaylari(config)
+  if (st.erisim) return erisimOlaylari(config)
   const urlModu = config.kaynak === 'url'
   const arac = DIL_ARACLARI[config.dil]
   const alanS = ALAN_STRATEJI[config.alan]

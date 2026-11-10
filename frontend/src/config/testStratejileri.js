@@ -17,7 +17,13 @@ export const DILLER = {
   php: 'PHP',
 }
 
-export const TURLER = { birim: 'Birim', arayuz: 'Arayüz', ikisi: 'İkisi', kullanilabilirlik: 'Kullanılabilirlik' }
+export const TURLER = {
+  birim: 'Birim',
+  arayuz: 'Arayüz',
+  ikisi: 'İkisi',
+  kullanilabilirlik: 'Kullanılabilirlik',
+  erisilebilirlik: 'Erişilebilirlik',
+}
 
 // Test girdisi: kaynak kod yükleme ya da canlı sitenin adresi
 export const KAYNAKLAR = { kod: 'Kaynak Kod Yükle', url: 'URL Gir' }
@@ -35,9 +41,12 @@ export const arayuzDesteklenir = (alan) => alan !== 'oyun' && alan !== 'mobil'
 export const birimVar = (tur) => tur === 'birim' || tur === 'ikisi'
 export const arayuzVar = (tur) => tur === 'arayuz' || tur === 'ikisi'
 export const uxVar = (tur) => tur === 'kullanilabilirlik'
+export const erisimVar = (tur) => tur === 'erisilebilirlik'
+// Tur döngüsü olmayan, çalışan site üzerinde tek geçişte ölçülen testler
+export const denetimVar = (tur) => uxVar(tur) || erisimVar(tur)
 
 // URL ile yalnızca canlı site test edilebilir: birim testi için kaynak kod gerekir
-export const turSecilebilir = (tur, kaynak) => kaynak !== 'url' || tur === 'arayuz' || tur === 'kullanilabilirlik'
+export const turSecilebilir = (tur, kaynak) => kaynak !== 'url' || tur === 'arayuz' || denetimVar(tur)
 
 // "https://ornek.com/yol" → "ornek.com"
 export function urlAdi(url) {
@@ -67,8 +76,28 @@ export const DIL_ARACLARI = {
 }
 
 // Kullanılabilirlik (UX) testi araçları: dilden bağımsızdır, çalışan site üzerinde ölçülür
-export const UX_ARACLARI = ['Playwright', 'axe-core', 'Lighthouse']
-export const UX_ODAK = ['Z / F okuma deseni', 'renk uyumu ve kontrast', 'görsel hiyerarşi', 'mobil uyum']
+// (Renk kontrastı erişilebilirlik testinde ölçülür; burada renk uyumu ve anlam tutarlılığı vardır.)
+export const UX_ARACLARI = ['Playwright', 'Lighthouse', 'Gemini (görsel girdi)']
+export const UX_ODAK = ['Z / F okuma deseni', 'renk uyumu', 'görsel hiyerarşi', 'mobil uyum']
+
+// Erişilebilirlik testi: WCAG 2.2 AA ölçütleri. Çalışan site üzerinde ölçülür; kaynak kod varsa koddan da taranır.
+export const WCAG_SURUM = 'WCAG 2.2 AA'
+export const ERISIM_ARACLARI = ['axe-core', 'Lighthouse', 'Playwright (klavye testi)']
+// Kaynak kod varsa çalıştırmadan yapılan statik tarama (dile göre)
+export const ERISIM_STATIK = {
+  js: 'eslint-plugin-jsx-a11y',
+  python: 'HTML şablon taraması',
+  csharp: 'Razor şablon taraması',
+  php: 'Blade / HTML şablon taraması',
+}
+export const ERISIM_ODAK = [
+  'renk kontrastı',
+  'klavyeyle gezinme ve odak sırası',
+  'görsellerin alternatif metni',
+  'form etiketleri ve hata mesajları',
+  'ekran okuyucu uyumu (ARIA, başlık sırası)',
+  'dokunma hedefi boyutu',
+]
 // URL ile arayüz testinde odak (kaynak kod olmadığı için yalnızca kullanıcı akışları)
 export const URL_ODAK = ['kullanıcı akışları', 'form doğrulama mesajları', 'gezinme ve yönlendirme', 'hata durumları']
 
@@ -109,9 +138,51 @@ export function stratejiOlustur({ alan, dil, tur, digerMetin = '', kaynak = 'kod
   const birim = !urlModu && birimVar(tur)
   const arayuz = arayuzVar(tur) && arayuzDesteklenir(alan)
   const ux = uxVar(tur)
+  const erisim = erisimVar(tur)
   const motor = birim ? MOTOR[alan]?.[dil] : undefined
   const hedef = urlModu ? urlAdi(url) || 'girilen adres' : null
   const adimlar = []
+
+  if (erisim) {
+    const statik = !urlModu && ERISIM_STATIK[dil]
+    if (statik) {
+      adimlar.push({
+        tip: 'analiz',
+        ad: 'Statik tarama',
+        aciklama: `Şablonlar ve bileşenler uygulama çalıştırılmadan taranır (${statik}): eksik alt metin, etiketsiz form alanı, yanlış başlık sırası.`,
+      })
+    }
+    adimlar.push({
+      tip: 'tarayici',
+      ad: 'Sayfaları gez',
+      aciklama: urlModu
+        ? `${hedef} açılır; sayfalar masaüstü ve mobil genişlikte gezilir.`
+        : 'Uygulama ayağa kaldırılır; sayfalar masaüstü ve mobil genişlikte gezilir.',
+    })
+    adimlar.push({ tip: 'analiz', ad: 'Otomatik WCAG taraması', aciklama: `Her sayfa axe-core ve Lighthouse ile ${WCAG_SURUM} kurallarına göre taranır; kontrast oranları ölçülür.` })
+    adimlar.push({ tip: 'tarayici', ad: 'Klavye ve odak testi', aciklama: 'Playwright yalnızca Tab ve Enter ile gezinir: her öğeye ulaşılıyor mu, odak görünüyor mu, sıra mantıklı mı, klavye tuzağı var mı.' })
+    adimlar.push({ tip: 'analiz', ad: 'Ekran okuyucu ağacı', aciklama: 'Tarayıcının erişilebilirlik ağacı çıkarılır; ARIA rolleri, öğe adları ve başlık sırası kontrol edilir.' })
+    adimlar.push({
+      tip: 'llm',
+      ad: 'İçgörü ve rapor',
+      aciklama: urlModu
+        ? 'İhlaller WCAG maddesine göre gruplanır, önem sırasına konur, her birine düzeltme önerisi yazılır.'
+        : 'İhlaller WCAG maddesine göre gruplanır, koddaki dosya ve satıra bağlanır, her birine düzeltme önerisi yazılır.',
+    })
+    const araclar = [...ERISIM_ARACLARI]
+    if (statik) araclar.push(statik)
+    return {
+      baslik: `${ALANLAR[alan].ad} · ${urlModu ? hedef : DILLER[dil]}`,
+      adimlar,
+      araclar,
+      odak: ERISIM_ODAK,
+      birim: false,
+      arayuz: false,
+      ux: false,
+      erisim: true,
+      motor,
+    }
+  }
 
   if (!urlModu && !ux) {
     adimlar.push({ tip: 'analiz', ad: 'Kod Haritası', aciklama: 'Kod analiz edilir; fonksiyonlar, sınıflar ve dallar çıkarılır.' })
@@ -129,7 +200,7 @@ export function stratejiOlustur({ alan, dil, tur, digerMetin = '', kaynak = 'kod
         : 'Uygulama ayağa kaldırılır; sayfalar masaüstü ve mobil genişlikte gezilir, ekran görüntüsü ve sayfa düzeni alınır.',
     })
     adimlar.push({ tip: 'analiz', ad: 'Okuma deseni (Z / F)', aciklama: 'Logo, menü, başlık ve ana butonun konumu Z ve F okuma desenlerine göre puanlanır.' })
-    adimlar.push({ tip: 'analiz', ad: 'Renk uyumu ve kontrast', aciklama: 'Renk paleti çıkarılır, metin kontrastı WCAG 2.1 AA ölçütüne göre ölçülür.' })
+    adimlar.push({ tip: 'analiz', ad: 'Renk uyumu', aciklama: 'Renk paleti çıkarılır; renklerin uyumu ve aynı rengin hep aynı anlamda kullanılıp kullanılmadığı incelenir.' })
     adimlar.push({ tip: 'llm', ad: 'UX değerlendirmesi', aciklama: 'Ajan ekran görüntülerini görsel hiyerarşi, tutarlılık ve kullanım kolaylığı ilkelerine göre inceler.' })
     adimlar.push({ tip: 'llm', ad: 'İçgörü ve rapor', aciklama: 'Bulgular önem sırasına konur, her biri için somut öneri yazılır.' })
     return {
@@ -140,6 +211,7 @@ export function stratejiOlustur({ alan, dil, tur, digerMetin = '', kaynak = 'kod
       birim: false,
       arayuz: false,
       ux: true,
+      erisim: false,
       motor,
     }
   }
@@ -188,6 +260,7 @@ export function stratejiOlustur({ alan, dil, tur, digerMetin = '', kaynak = 'kod
     birim,
     arayuz,
     ux: false,
+    erisim: false,
     motor,
   }
 }

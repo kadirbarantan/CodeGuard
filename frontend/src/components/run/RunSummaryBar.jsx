@@ -1,6 +1,6 @@
 // Çalışma ekranı üst satırı (yapışkan): dosya adı · seçim özeti · tur · Durdur
 import { useEffect, useRef, useState } from 'react'
-import { ALANLAR, DILLER, TURLER, urlAdi, uxVar } from '../../config/testStratejileri'
+import { ALANLAR, DILLER, TURLER, denetimVar, urlAdi } from '../../config/testStratejileri'
 
 export default function RunSummaryBar({ config, round, maxRounds, onStop }) {
   const urlModu = config.kaynak === 'url'
@@ -23,7 +23,7 @@ export default function RunSummaryBar({ config, round, maxRounds, onStop }) {
         <div className="ml-auto flex flex-wrap items-center justify-end gap-3">
           <span className="flex items-center gap-2 whitespace-nowrap text-sm font-medium text-ai-text">
             <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-accent" />
-            {uxVar(config.tur) ? 'Analiz ediliyor' : `Tur ${round} / ${maxRounds}`}
+            {denetimVar(config.tur) ? 'Analiz ediliyor' : `Tur ${round} / ${maxRounds}`}
           </span>
           {soruyor ? (
             <div role="alertdialog" aria-label="Testi durdurma onayı" className="flex flex-wrap items-center gap-2 rounded-xl border border-bad/50 bg-bad-bg px-3 py-1.5">

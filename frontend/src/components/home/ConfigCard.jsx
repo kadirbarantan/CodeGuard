@@ -13,7 +13,7 @@ import {
   pythonDesteklenir,
   turSecilebilir,
   urlGecerli,
-  uxVar,
+  denetimVar,
 } from '../../config/testStratejileri'
 
 // Profil varsayılanından gelen değerin yanında görünen küçük etiket
@@ -41,7 +41,7 @@ export default function ConfigCard({ config, onChange, user, onStart, onGirisYap
   const urlModu = config.kaynak === 'url'
   const sadeceBirim = !arayuzDesteklenir(alan)
   const profil = user?.profilTamam ? user : null
-  const komutGerek = !urlModu && (arayuzVar(config.tur) || uxVar(config.tur))
+  const komutGerek = !urlModu && (arayuzVar(config.tur) || denetimVar(config.tur))
   const g = config.github
   // GitHub: en az bir dosya seçili, bağlam hesaplanmış ve sınır aşılmamış olmalı
   const githubHazir = Boolean(user?.github?.repoErisimi && g?.secilenler?.length && !g.hesaplaniyor && !g.sinirAsildi)

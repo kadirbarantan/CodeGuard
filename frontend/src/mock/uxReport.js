@@ -1,13 +1,13 @@
 // Kullanılabilirlik (UX) testi raporu (mock). Faz 2'de backend aynı biçimi gönderecek.
 // Okuma deseni: sayfadaki önemli öğelerin (logo, menü, başlık, ana buton) konumu Z ya da F desenine göre puanlanır.
-// Kontrast: WCAG 2.1 AA, normal metin için en az 4.5:1.
+// Renk kontrastı bu raporda yok: WCAG ölçütleriyle Erişilebilirlik testinde ölçülür (mock/erisimReport.js).
 export const uxReport = {
   proje: 'ornek-site.com',
   alan: 'web',
   tur: 'kullanilabilirlik',
   tarih: '02.11.2026',
   turSayisi: null,
-  ux: { skor: 72, desen: 74, renk: 81, kontrastSorun: 3 },
+  ux: { skor: 72, desen: 74, renk: 81 },
 
   sayfalar: [
     { yol: '/', desen: 'Z', uyum: 78, not: 'Logo ve menü doğru yerde; "Kayıt ol" butonu Z deseninin bitiş noktasının (sağ alt) dışında kalıyor.' },
@@ -28,12 +28,6 @@ export const uxReport = {
   renkNotu:
     'Palet genel olarak uyumlu: mor ana renk ile turuncu vurgu birbirini tamamlıyor. Ancak turuncu hem uyarı, hem indirim hem de "Yakında" rozeti için kullanılıyor; anlamı tutarsız.',
 
-  kontrast: [
-    { oge: 'Alt bilgi bağlantıları', sayfa: '/', on: '#9CA3AF', arka: '#F9FAFB', oran: 2.4 },
-    { oge: 'Form ipucu metni', sayfa: '/register', on: '#A1A1AA', arka: '#FFFFFF', oran: 2.6 },
-    { oge: '"Yakında" rozeti', sayfa: '/pricing', on: '#F59E0B', arka: '#FFFFFF', oran: 2.1 },
-  ],
-
   bulgular: [
     {
       onem: 'yuksek',
@@ -51,10 +45,10 @@ export const uxReport = {
     },
     {
       onem: 'orta',
-      baslik: 'Düşük kontrastlı metinler',
-      sayfa: '3 sayfa',
-      aciklama: '3 metin WCAG AA sınırının (4.5:1) altında; özellikle güneş altında ve düşük parlaklıkta okunmuyor.',
-      oneri: 'İkincil metin rengini #6B7280 yap (4.8:1).',
+      baslik: 'Ana içerik ile kenar çubuğu yarışıyor',
+      sayfa: '/blog',
+      aciklama: 'Kenar çubuğundaki renkli kampanya kutusu yazı listesinden daha çok dikkat çekiyor; göz önce reklama gidiyor.',
+      oneri: 'Kampanya kutusunu sadeleştir ya da listenin altına taşı; yazı başlıklarını büyüt.',
     },
     {
       onem: 'orta',

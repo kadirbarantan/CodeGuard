@@ -142,7 +142,7 @@ Kurallar:
    - Başlık: "Kodunu yükle, **ajanlar test etsin.**" (ikinci kısım mor)
    - Açıklama paragrafı
    - 3 rozet: "Birim + Arayüz (E2E) testi" · "C# · Python · JS/TS" · "Kendini düzelten ajanlar"
-2. **ConfigCard (tam genişlik)**, başlığı "Test Konfigürasyonu":
+2. **ConfigCard (tam genişlik)**, başlığı "Ajanı Görevlendir":
    - **Büyük sürükle-bırak alanı**: kesikli çerçeve, büyük yükleme ikonu, "Kodunu buraya sürükle bırak", "Klasör, dosya ya da .zip · en fazla 5 MB / 200 dosya", "Bilgisayarından seç" butonu. Dosya seçilince altında dosya adı, dosya sayısı, boyut ve "Yüklendi" yazısı görünür.
      - Klasör seçimi için `<input type="file" webkitdirectory>`, tek dosya/zip için ayrı bir input.
      - `node_modules`, `bin`, `obj`, `venv`, `.git` klasörleri sayıma katılmaz.

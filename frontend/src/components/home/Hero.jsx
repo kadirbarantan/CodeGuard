@@ -2,7 +2,7 @@
 import { Sparkles } from 'lucide-react'
 
 const CIPLER = [
-  { ad: 'Birim, arayüz (E2E) ve kullanılabilirlik', nokta: 'bg-accent' },
+  { ad: 'Birim, arayüz, UX ve erişilebilirlik', nokta: 'bg-accent' },
   { ad: 'C#, Python, JS/TS, PHP', nokta: 'bg-accent-2' },
   { ad: 'Kod, GitHub ya da URL ile test', nokta: 'bg-accent-3' },
   { ad: 'Kendini düzelten ajanlar', nokta: 'bg-ok' },
@@ -23,8 +23,8 @@ export default function Hero({ yan = false }) {
         </h1>
         <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-muted xl:mx-0">
           Projeni yükle, GitHub'dan seç ya da sitenin adresini gir. Yapay zekâ ajanları birim ve arayüz testlerini
-          yazsın, çalıştırsın, eksik kalanları tamamlasın; kullanılabilirlik testinde okuma desenini ve renk
-          uyumunu ölçüp sana raporlasın.
+          yazsın, çalıştırsın, eksik kalanları tamamlasın; kullanılabilirlik ve erişilebilirlik testlerinde sitenin
+          deneyimini ve WCAG uyumunu ölçüp sana raporlasın.
         </p>
         <ul className="mt-6 flex flex-wrap justify-center gap-2 xl:justify-start">
           {CIPLER.map((c) => (
@@ -59,8 +59,8 @@ export default function Hero({ yan = false }) {
 
       <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-text-2 sm:text-lg">
         Projeni yükle, GitHub'dan seç ya da sitenin adresini gir. Yapay zekâ ajanları birim ve arayüz testlerini
-        yazsın, çalıştırsın, eksik kalanları tamamlasın; kullanılabilirlik testinde okuma desenini ve renk
-        uyumunu ölçüp sana raporlasın.
+        yazsın, çalıştırsın, eksik kalanları tamamlasın; kullanılabilirlik ve erişilebilirlik testlerinde sitenin
+        deneyimini ve WCAG uyumunu ölçüp sana raporlasın.
       </p>
 
       <ul className="mx-auto mt-7 flex max-w-4xl flex-wrap justify-center gap-2.5">

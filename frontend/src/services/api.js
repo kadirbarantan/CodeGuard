@@ -3,7 +3,8 @@ import { olaylariOlustur, doneEvent } from '../mock/runEvents'
 import { report } from '../mock/report'
 import { history } from '../mock/history'
 import { uxReport } from '../mock/uxReport'
-import { uxVar, urlAdi } from '../config/testStratejileri'
+import { erisimReport, ihlalKaynagi } from '../mock/erisimReport'
+import { erisimVar, uxVar, urlAdi } from '../config/testStratejileri'
 import { githubRepolari } from '../mock/githubRepos'
 import { baglamCozumle } from '../mock/baglamCozumleyici'
 import { githubPencereIleGiris } from './githubOAuth'
@@ -183,6 +184,17 @@ export async function getReport(runId) {
   // Kullanılabilirlik testi: ayrı rapor biçimi
   if (uxVar(secim.tur)) {
     return { ...uxReport, ...secim, runId }
+  }
+
+  // Erişilebilirlik testi: ayrı rapor biçimi. URL ile testte kaynak kod olmadığı için ihlaller koda bağlanmaz.
+  if (erisimVar(secim.tur)) {
+    const kodVar = secim.kaynak !== 'url'
+    return {
+      ...erisimReport,
+      ...secim,
+      runId,
+      ihlaller: erisimReport.ihlaller.map(({ kaynak, ...i }) => (kodVar ? { ...i, kaynak: ihlalKaynagi(kaynak, secim.dil) } : i)),
+    }
   }
 
   const { dosyalar, ...digerleri } = report

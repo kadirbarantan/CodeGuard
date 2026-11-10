@@ -1,15 +1,15 @@
-// Kullanılabilirlik (UX) testi raporu: özet, UX bulguları, okuma deseni (Z / F), renk uyumu ve kontrast.
+// Kullanılabilirlik (UX) testi raporu: özet, UX bulguları, okuma deseni (Z / F) ve renk uyumu.
+// Renk kontrastı Erişilebilirlik testinde (ErisimRaporu) WCAG ölçütleriyle ölçülür.
 import { useState } from 'react'
-import { Lightbulb } from 'lucide-react'
+import { Info, Lightbulb } from 'lucide-react'
 import CoverageDonut from './CoverageDonut'
+import VurguKart from '../VurguKart'
 
 const ONEM = {
   yuksek: { ad: 'Yüksek', sinif: 'bg-bad-bg text-bad-text' },
   orta: { ad: 'Orta', sinif: 'bg-ai-bg text-ai-text' },
   dusuk: { ad: 'Düşük', sinif: 'bg-soft text-text-2' },
 }
-
-const GEREKEN_KONTRAST = 4.5 // WCAG 2.1 AA, normal metin
 
 // Z ya da F okuma deseninin küçük çizimi
 function DesenIkonu({ desen }) {
@@ -88,9 +88,9 @@ function OkumaDeseni({ sayfalar }) {
   )
 }
 
-function RenkKontrast({ report }) {
+function RenkUyumu({ report }) {
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className="space-y-4">
       <section className="rounded-xl border border-border bg-bg p-4">
         <h3 className="mb-3 font-semibold text-text">Renk paleti</h3>
         <div className="flex h-10 overflow-hidden rounded-lg border border-border" aria-hidden="true">
@@ -98,7 +98,7 @@ function RenkKontrast({ report }) {
             <span key={r.hex} style={{ background: r.hex, width: r.oran + '%' }} />
           ))}
         </div>
-        <ul className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <ul className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
           {report.palet.map((r) => (
             <li key={r.hex} className="flex items-center gap-2 text-sm">
               <span className="h-5 w-5 shrink-0 rounded border border-border" style={{ background: r.hex }} />
@@ -113,51 +113,27 @@ function RenkKontrast({ report }) {
         </ul>
         <p className="mt-3 text-sm text-text-2">{report.renkNotu}</p>
       </section>
-
-      <section className="rounded-xl border border-border bg-bg p-4">
-        <h3 className="font-semibold text-text">Kontrast sorunları</h3>
-        <p className="mb-3 text-xs text-muted">WCAG 2.1 AA: normal metin için en az {GEREKEN_KONTRAST}:1</p>
-        <ul className="space-y-2">
-          {report.kontrast.map((k) => (
-            <li key={k.oge} className="flex items-center gap-3 rounded-lg bg-surface p-3">
-              <span
-                className="flex h-10 w-12 shrink-0 items-center justify-center rounded-md border border-border text-lg font-semibold"
-                style={{ color: k.on, background: k.arka }}
-                aria-hidden="true"
-              >
-                Aa
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-sm text-text">{k.oge}</span>
-                <span className="font-mono text-xs text-muted">
-                  {k.sayfa} · {k.on} / {k.arka}
-                </span>
-              </span>
-              <span className="text-right">
-                <span className="block text-sm font-semibold text-bad-text">{k.oran}:1</span>
-                <span className="text-xs text-muted">gereken {GEREKEN_KONTRAST}:1</span>
-              </span>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <p className="flex gap-2 text-sm text-muted">
+        <Info size={15} className="mt-0.5 shrink-0" aria-hidden="true" />
+        Metinlerin kontrast oranı bu raporda yok; Erişilebilirlik testinde WCAG ölçütleriyle ölçülür.
+      </p>
     </div>
   )
 }
 
-export default function UxRaporu({ report, onPdf }) {
+export default function UxRaporu({ report }) {
   const [sekme, setSekme] = useState('bulgular')
   const sekmeler = [
     { id: 'bulgular', ad: `UX Bulguları (${report.bulgular.length})` },
     { id: 'desen', ad: 'Okuma Deseni' },
-    { id: 'renk', ad: 'Renk ve Kontrast' },
+    { id: 'renk', ad: 'Renk Uyumu' },
   ]
   const kutu = 'rounded-xl border border-border bg-bg p-4'
   const etiket = 'text-sm text-muted'
 
   return (
     <>
-      <section className="flex flex-col items-center gap-5 rounded-3xl border border-border bg-surface shadow-yumusak p-5 sm:p-6 lg:flex-row">
+      <VurguKart baslik="Test Özeti" govde="flex flex-col items-center gap-5 p-5 sm:p-6 lg:flex-row">
         <CoverageDonut yuzde={report.ux.skor} etiket="UX skoru" />
         <div className="grid w-full flex-1 gap-3 sm:grid-cols-2">
           <div className={kutu}>
@@ -171,9 +147,9 @@ export default function UxRaporu({ report, onPdf }) {
             <p className="text-xs text-muted">{report.palet.length} renkli palet</p>
           </div>
           <div className={kutu}>
-            <p className={etiket}>Kontrast sorunu</p>
-            <p className="mt-1 text-2xl font-semibold text-bad-text">{report.kontrast.length}</p>
-            <p className="text-xs text-muted">WCAG AA altında</p>
+            <p className={etiket}>İncelenen sayfa</p>
+            <p className="mt-1 text-2xl font-semibold text-text">{report.sayfalar.length}</p>
+            <p className="text-xs text-muted">masaüstü ve mobil genişlikte</p>
           </div>
           <div className={kutu}>
             <p className={etiket}>UX bulgusu</p>
@@ -183,14 +159,7 @@ export default function UxRaporu({ report, onPdf }) {
             </p>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={onPdf}
-          className="min-h-10 w-full rounded-lg bg-accent px-4 text-sm font-medium text-white hover:opacity-90 lg:w-auto"
-        >
-          PDF Raporu Al
-        </button>
-      </section>
+      </VurguKart>
 
       <section className="rounded-3xl border border-border bg-surface shadow-yumusak p-5 sm:p-6">
         <div role="tablist" aria-label="Kullanılabilirlik raporu bölümleri" className="mb-5 flex flex-wrap gap-1 border-b border-border">
@@ -218,7 +187,7 @@ export default function UxRaporu({ report, onPdf }) {
         <div id={'ux-panel-' + sekme} role="tabpanel" aria-labelledby={'ux-sekme-' + sekme}>
           {sekme === 'bulgular' && <Bulgular bulgular={report.bulgular} />}
           {sekme === 'desen' && <OkumaDeseni sayfalar={report.sayfalar} />}
-          {sekme === 'renk' && <RenkKontrast report={report} />}
+          {sekme === 'renk' && <RenkUyumu report={report} />}
         </div>
       </section>
     </>

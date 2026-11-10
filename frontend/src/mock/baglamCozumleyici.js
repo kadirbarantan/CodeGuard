@@ -4,7 +4,7 @@
 // Hedef: kullanıcının seçtiği dosyalar (testler bunlara yazılır, coverage bunlarda ölçülür).
 // Bağlam: hedefin çalışması için gereken dosyalar (otomatik eklenir, test edilmez).
 import { haricMi } from '../components/home/dosyaOlcum'
-import { arayuzVar, uxVar } from '../config/testStratejileri'
+import { arayuzVar, denetimVar } from '../config/testStratejileri'
 
 // Adım 1: her zaman eklenen manifest ve ayar dosyaları
 const SABIT = [
@@ -43,8 +43,8 @@ export function baglamCozumle(repo, hedefler, tur) {
     if (!hedefSet.has(yol) && !baglam.has(yol) && dosyalar.some((d) => d.yol === yol)) baglam.set(yol, neden)
   }
 
-  // Arayüz ve kullanılabilirlik testinde uygulamanın tamamı ayağa kalkmalı
-  if (arayuzVar(tur) || uxVar(tur)) {
+  // Arayüz, kullanılabilirlik ve erişilebilirlik testinde uygulamanın tamamı ayağa kalkmalı
+  if (arayuzVar(tur) || denetimVar(tur)) {
     for (const d of dosyalar) ekle(d.yol, 'Arayüz testi için uygulamanın tamamı gerekir')
     return { baglam: [...baglam].map(([yol, neden]) => ({ yol, neden })), tumRepo: true }
   }
