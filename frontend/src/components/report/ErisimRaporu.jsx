@@ -1,9 +1,12 @@
 // Erişilebilirlik testi raporu: özet, ihlaller (WCAG maddesi, önem, öğe, öneri; kod varsa dosya ve satır),
-// klavye ve odak testi, kontrast ölçümleri ve denetlenen WCAG ölçütleri.
-import { useState } from 'react'
-import { Check, ChevronDown, Code2, Info, Keyboard, Lightbulb, Minus, X } from 'lucide-react'
+// engel gruplarına göre etki ve görme simülasyonu, klavye ve odak testi, kontrast ölçümleri ve denetlenen WCAG ölçütleri.
+import { useId, useState } from 'react'
+import { Brain, Check, ChevronDown, Code2, EarOff, EyeOff, Glasses, Info, Keyboard, Lightbulb, Minus, ScanEye, X } from 'lucide-react'
 import CoverageDonut from './CoverageDonut'
 import VurguKart from '../VurguKart'
+import { ENGEL_GRUPLARI } from '../../config/testStratejileri'
+
+const GRUP_IKON = { gorme: EyeOff, azgorme: Glasses, hareket: Keyboard, isitme: EarOff, bilissel: Brain }
 
 const ONEM = {
   kritik: { ad: 'Kritik', sinif: 'bg-bad text-white' },
@@ -42,7 +45,7 @@ function KodParcasi({ kaynak }) {
 
 function IhlalKarti({ ihlal, olcut }) {
   const [kodAcik, setKodAcik] = useState(false)
-  const kodId = 'kod-' + ihlal.wcag.replace(/\./g, '-')
+  const kodId = 'kod' + useId().replace(/:/g, '')
   return (
     <li className="rounded-xl border border-border bg-bg p-4">
       <div className="flex flex-wrap items-center gap-2">
@@ -56,6 +59,8 @@ function IhlalKarti({ ihlal, olcut }) {
         </span>
         <span>{ihlal.adet} öğe</span>
         <span className="font-mono">{ihlal.oge}</span>
+        {ihlal.grup && <span>Etkilenen: {ENGEL_GRUPLARI[ihlal.grup].ad}</span>}
+        {ihlal.yontem && <span>Bulan: {ihlal.yontem}</span>}
       </p>
       <p className="mt-2 text-sm text-text-2">{ihlal.aciklama}</p>
       <p className="mt-2 flex gap-2 text-sm text-ai-text">
@@ -124,6 +129,81 @@ function Ihlaller({ report, olcutBul }) {
           <IhlalKarti key={i.wcag + i.baslik} ihlal={i} olcut={olcutBul(i.wcag)} />
         ))}
       </ul>
+    </div>
+  )
+}
+
+// Engel gruplarına göre etki: her grup için ihlaller; altında görme simülasyonu sonuçları
+function EngelGruplari({ report }) {
+  return (
+    <div className="space-y-5">
+      <p className="text-sm text-text-2">
+        Her ihlal, en çok etkilediği kullanıcı grubuna göre gruplandı. Bir grupta kritik ihlal varsa o kullanıcılar sitenin bir
+        bölümünü hiç kullanamıyor demektir.
+      </p>
+      <ul className="grid gap-3 md:grid-cols-2">
+        {Object.entries(ENGEL_GRUPLARI).map(([id, g]) => {
+          const liste = report.ihlaller.filter((i) => i.grup === id)
+          const kritik = liste.filter((i) => i.onem === 'kritik').length
+          const Ikon = GRUP_IKON[id]
+          return (
+            <li key={id} className={kutu + ' flex flex-col gap-3'}>
+              <div className="flex items-start gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-ai-bg text-ai-text">
+                  <Ikon size={18} aria-hidden="true" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block font-semibold text-text">{g.ad}</span>
+                  <span className="block text-xs text-muted">{g.kim}</span>
+                </span>
+                <span className="text-right">
+                  <span className={'block text-xl font-semibold ' + (liste.length ? 'text-bad-text' : 'text-ok-text')}>{liste.length}</span>
+                  <span className="text-xs text-muted">ihlal{kritik ? ` · ${kritik} kritik` : ''}</span>
+                </span>
+              </div>
+              {liste.length > 0 ? (
+                <ul className="space-y-1.5 border-t border-border pt-3 text-sm">
+                  {liste.map((i) => (
+                    <li key={i.wcag + i.baslik} className="flex items-baseline gap-2">
+                      <span className={'shrink-0 rounded-full px-1.5 py-px text-[11px] font-semibold ' + ONEM[i.onem].sinif}>{ONEM[i.onem].ad}</span>
+                      <span className="text-text-2">{i.baslik}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="flex items-center gap-1.5 border-t border-border pt-3 text-sm text-ok-text">
+                  <Check size={14} aria-hidden="true" /> Bu grup için ihlal bulunmadı
+                </p>
+              )}
+            </li>
+          )
+        })}
+      </ul>
+
+      {report.simulasyon && (
+        <section className={kutu}>
+          <h3 className="mb-1 flex items-center gap-2 font-semibold text-text">
+            <ScanEye size={16} className="text-ai-text" aria-hidden="true" />
+            Görme simülasyonu ve yakınlaştırma
+          </h3>
+          <p className="mb-3 text-xs text-muted">
+            Sayfalar Chromium'un görme bozukluğu öykünmesiyle açıldı; ekran görüntüleri Gemini ile normal görünümle karşılaştırıldı.
+          </p>
+          <ul className="divide-y divide-border">
+            {report.simulasyon.map((s) => (
+              <li key={s.ad} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 py-2 text-sm">
+                <span className="w-32 shrink-0 font-medium text-text">{s.ad}</span>
+                <span className="w-44 shrink-0 text-xs text-muted">{s.aciklama}</span>
+                <span className={'flex min-w-0 flex-1 basis-60 items-baseline gap-1.5 ' + (s.sonuc === 'sorun' ? 'text-bad-text' : 'text-ok-text')}>
+                  {s.sonuc === 'sorun' ? <X size={13} className="shrink-0" aria-hidden="true" /> : <Check size={13} className="shrink-0" aria-hidden="true" />}
+                  <span className="sr-only">{s.sonuc === 'sorun' ? 'Sorun:' : 'Sorun yok:'}</span>
+                  {s.bulgu}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   )
 }
@@ -283,9 +363,14 @@ export default function ErisimRaporu({ report }) {
   const kritik = report.ihlaller.filter((i) => i.onem === 'kritik').length
   const ogeSayisi = report.ihlaller.reduce((t, i) => t + i.adet, 0)
   const kodVar = report.ihlaller.some((i) => i.kaynak)
+  // En çok ihlalin etkilediği engel grubu
+  const enCok = Object.keys(ENGEL_GRUPLARI)
+    .map((id) => [id, report.ihlaller.filter((i) => i.grup === id).length])
+    .sort((a, b) => b[1] - a[1])[0]
 
   const sekmeler = [
     { id: 'ihlaller', ad: `İhlaller (${report.ihlaller.length})` },
+    { id: 'gruplar', ad: 'Engel Grupları' },
     { id: 'klavye', ad: 'Klavye ve Odak' },
     { id: 'kontrast', ad: `Kontrast (${report.kontrast.length})` },
     { id: 'olcutler', ad: 'WCAG Ölçütleri' },
@@ -302,6 +387,7 @@ export default function ErisimRaporu({ report }) {
         <p className="rounded-xl bg-ai-bg px-4 py-2.5 text-sm text-ai-text">
           {report.ozet.sayfa} sayfa {report.wcag} ölçütlerine göre denetlendi; uyum %{uyum} ({gecen} / {denetlenen} ölçüt).{' '}
           {kritik} kritik olmak üzere {report.ihlaller.length} tür ihlal, toplam {ogeSayisi} öğede bulundu.
+          {enCok && enCok[1] > 0 && ` En çok etkilenen grup: ${ENGEL_GRUPLARI[enCok[0]].ad} (${enCok[1]} ihlal).`}
           {kodVar && ' Her ihlal koddaki yerine bağlandı.'}
         </p>
         <div className="flex flex-col items-center gap-5 lg:flex-row">
@@ -361,14 +447,15 @@ export default function ErisimRaporu({ report }) {
         </div>
         <div id={'er-panel-' + sekme} role="tabpanel" aria-labelledby={'er-sekme-' + sekme}>
           {sekme === 'ihlaller' && <Ihlaller report={report} olcutBul={olcutBul} />}
+          {sekme === 'gruplar' && <EngelGruplari report={report} />}
           {sekme === 'klavye' && <KlavyeOdak report={report} />}
           {sekme === 'kontrast' && <Kontrast report={report} />}
           {sekme === 'olcutler' && <Olcutler report={report} />}
         </div>
         <p className="mt-5 flex gap-2 border-t border-border pt-4 text-xs text-muted">
           <Info size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
-          Otomatik araçlar erişilebilirlik sorunlarının hepsini bulamaz; örneğin alternatif metnin anlamlı olup olmadığı ya da
-          okuma sırasının mantığı için ekran okuyucuyla elle deneme önerilir.
+          Otomatik araçlar erişilebilirlik sorunlarının hepsini bulamaz. Alternatif metinlerin ve hata mesajlarının anlamı Gemini ile
+          ayrıca kontrol edildi; yine de okuma sırasının mantığı ve videodaki konuşma gibi konular için ekran okuyucuyla elle deneme önerilir.
         </p>
       </section>
     </>
