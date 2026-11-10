@@ -82,7 +82,7 @@ export const UX_ODAK = ['Z / F okuma deseni', 'renk uyumu', 'görsel hiyerarşi'
 
 // Erişilebilirlik testi: WCAG 2.2 AA ölçütleri. Çalışan site üzerinde ölçülür; kaynak kod varsa koddan da taranır.
 export const WCAG_SURUM = 'WCAG 2.2 AA'
-export const ERISIM_ARACLARI = ['axe-core', 'Lighthouse', 'Playwright (klavye testi)']
+export const ERISIM_ARACLARI = ['axe-core', 'Lighthouse', 'Playwright (klavye testi)', 'Chromium görme simülasyonu', 'Gemini (görsel girdi)']
 // Kaynak kod varsa çalıştırmadan yapılan statik tarama (dile göre)
 export const ERISIM_STATIK = {
   js: 'eslint-plugin-jsx-a11y',
@@ -97,7 +97,19 @@ export const ERISIM_ODAK = [
   'form etiketleri ve hata mesajları',
   'ekran okuyucu uyumu (ARIA, başlık sırası)',
   'dokunma hedefi boyutu',
+  'renk körlüğü ve yalnızca renkle verilen bilgi',
+  'yakınlaştırma ve dar ekran (320 px)',
+  'video altyazısı',
+  'kendiliğinden hareket eden içerik',
 ]
+// Raporda ihlallerin gruplandığı engel grupları (hangi kullanıcıları etkiliyor)
+export const ENGEL_GRUPLARI = {
+  gorme: { ad: 'Görme engelli', kim: 'Ekran okuyucuyla gezinen kullanıcılar' },
+  azgorme: { ad: 'Az görme ve renk körlüğü', kim: 'Kontrast, renk ve yakınlaştırmaya ihtiyaç duyanlar' },
+  hareket: { ad: 'Hareket engelli', kim: 'Fare kullanamayan, klavye ya da anahtarla gezinenler' },
+  isitme: { ad: 'İşitme engelli', kim: 'Sesli içeriği altyazıyla takip edenler' },
+  bilissel: { ad: 'Bilişsel ve dikkat', kim: 'Açık talimata, sakin bir sayfaya ihtiyaç duyanlar' },
+}
 // URL ile arayüz testinde odak (kaynak kod olmadığı için yalnızca kullanıcı akışları)
 export const URL_ODAK = ['kullanıcı akışları', 'form doğrulama mesajları', 'gezinme ve yönlendirme', 'hata durumları']
 
@@ -162,6 +174,21 @@ export function stratejiOlustur({ alan, dil, tur, digerMetin = '', kaynak = 'kod
     adimlar.push({ tip: 'analiz', ad: 'Otomatik WCAG taraması', aciklama: `Her sayfa axe-core ve Lighthouse ile ${WCAG_SURUM} kurallarına göre taranır; kontrast oranları ölçülür.` })
     adimlar.push({ tip: 'tarayici', ad: 'Klavye ve odak testi', aciklama: 'Playwright yalnızca Tab ve Enter ile gezinir: her öğeye ulaşılıyor mu, odak görünüyor mu, sıra mantıklı mı, klavye tuzağı var mı.' })
     adimlar.push({ tip: 'analiz', ad: 'Ekran okuyucu ağacı', aciklama: 'Tarayıcının erişilebilirlik ağacı çıkarılır; ARIA rolleri, öğe adları ve başlık sırası kontrol edilir.' })
+    adimlar.push({
+      tip: 'tarayici',
+      ad: 'Görme simülasyonu',
+      aciklama: 'Sayfalar renk körlüğü (protanopi, döteranopi, tritanopi, akromatopsi) ve bulanık görme simülasyonuyla açılır; yalnızca renkle verilen bilgi aranır. 320 px genişlik ve %200 yakınlaştırmada taşan ya da kırpılan içerik aranır.',
+    })
+    adimlar.push({
+      tip: 'tarayici',
+      ad: 'Form, medya ve hareket',
+      aciklama: 'Formlar bilerek yanlış gönderilir: hata görünüyor mu, alanla bağlı mı, ekran okuyucuya duyuruluyor mu. Videolarda altyazı aranır; "hareketi azalt" açıkken animasyonların durduğu kontrol edilir.',
+    })
+    adimlar.push({
+      tip: 'llm',
+      ad: 'Anlam kontrolü',
+      aciklama: 'Otomatik araçların bakamadığı anlam kontrol edilir: alternatif metin görseli gerçekten anlatıyor mu, hata mesajı neyin yanlış olduğunu söylüyor mu (Gemini, görsel girdi).',
+    })
     adimlar.push({
       tip: 'llm',
       ad: 'İçgörü ve rapor',

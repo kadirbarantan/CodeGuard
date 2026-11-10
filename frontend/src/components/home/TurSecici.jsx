@@ -16,7 +16,7 @@ const SECENEKLER = [
     deger: 'erisilebilirlik',
     ad: 'Erişilebilirlik',
     aciklama:
-      'Site WCAG 2.2 AA ölçütlerine göre denetlenir: renk kontrastı, klavyeyle gezinme, alternatif metin, form etiketleri ve ekran okuyucu uyumu.',
+      'Site WCAG 2.2 AA ölçütlerine göre, engel gruplarını gözeterek denetlenir: ekran okuyucu, kontrast ve renk körlüğü, klavyeyle gezinme, altyazı, form hataları ve hareket.',
   },
 ]
 

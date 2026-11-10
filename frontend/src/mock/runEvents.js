@@ -42,7 +42,10 @@ function erisimOlaylari(config) {
   ekle('Lighthouse', 'Analiz', 'Erişilebilirlik puanı 74 / 100.', e(null, 74, 6, 0))
   ekle('Klavye Testi', 'Tarayıcı · Playwright', "Mobil menüye klavyeyle ulaşılamıyor; /register'deki tarih seçicide klavye tuzağı var; odak hiçbir sayfada görünmüyor.", e(null, 74, 8, 2))
   ekle('Erişilebilirlik Ağacı', 'Analiz', "4 ikon düğmesinin adı yok; /pricing'de başlık seviyesi atlanıyor.", e(null, 74, 9, 2))
-  ekle('İçgörü Ajanı', 'LLM', urlModu ? 'İhlaller WCAG maddelerine göre gruplanıyor, düzeltme önerileri yazılıyor.' : 'İhlaller WCAG maddelerine göre gruplanıp koddaki yerlerine bağlanıyor, düzeltme önerileri yazılıyor.', e(65, 74, 9, 2))
+  ekle('Görme Simülasyonu', 'Tarayıcı · Chromium', "Döteranopi ve protanopi simülasyonunda /pricing'deki var / yok noktaları ayırt edilemiyor; 320 px genişlikte blog yazısı yatay kaydırma istiyor.", e(null, 74, 11, 2))
+  ekle('Form, Medya ve Hareket', 'Tarayıcı · Playwright', "/register formu yanlış gönderildi: hata ekran okuyucuya duyurulmuyor. Tanıtım videosunda altyazı yok; ana sayfadaki kaydırıcı durdurulamıyor.", e(null, 74, 14, 2))
+  ekle('Anlam Kontrolü', 'LLM · Gemini', '9 görselin alternatif metni görseli anlatmıyor ("banner-final.png", "resim"); "Hata oluştu" mesajı neyin yanlış olduğunu söylemiyor.', e(null, 74, 16, 2))
+  ekle('İçgörü Ajanı', 'LLM', urlModu ? 'İhlaller WCAG maddelerine ve engel gruplarına göre gruplanıyor, düzeltme önerileri yazılıyor.' : 'İhlaller WCAG maddelerine ve engel gruplarına göre gruplanıp koddaki yerlerine bağlanıyor, düzeltme önerileri yazılıyor.', e(46, 74, 16, 2))
   return olaylar
 }
 

@@ -193,7 +193,7 @@ export async function getReport(runId) {
       ...erisimReport,
       ...secim,
       runId,
-      ihlaller: erisimReport.ihlaller.map(({ kaynak, ...i }) => (kodVar ? { ...i, kaynak: ihlalKaynagi(kaynak, secim.dil) } : i)),
+      ihlaller: erisimReport.ihlaller.map(({ kaynak, ...i }) => (kodVar && kaynak ? { ...i, kaynak: ihlalKaynagi(kaynak, secim.dil) } : i)),
     }
   }
 
