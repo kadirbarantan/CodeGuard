@@ -14,8 +14,8 @@ const ADIMLAR = [
   {
     ikon: SlidersHorizontal,
     baslik: 'Test türünü seç',
-    aciklama: 'Alanını ve dilini belirle; birim, arayüz ya da kullanılabilirlik testini seç. Test planı seçimine göre değişir.',
-    cipler: ['Birim', 'Arayüz (E2E)', 'Kullanılabilirlik'],
+    aciklama: 'Alanını ve dilini belirle; birim, arayüz, kullanılabilirlik ya da erişilebilirlik testini seç. Test planı seçimine göre değişir.',
+    cipler: ['Birim', 'Arayüz (E2E)', 'Kullanılabilirlik', 'Erişilebilirlik'],
   },
   {
     ikon: Bot,
@@ -26,7 +26,7 @@ const ADIMLAR = [
   {
     ikon: FileCheck2,
     baslik: 'Raporunu al',
-    aciklama: 'Satır kapsaması, olası hatalar, kullanılabilirlik bulguları ve üretilen testler tek raporda; testleri indirip projene ekleyebilirsin.',
+    aciklama: 'Satır kapsaması, olası hatalar, kullanılabilirlik ve erişilebilirlik bulguları ve üretilen testler tek raporda; testleri indirip projene ekleyebilirsin.',
     cipler: ['Satır kapsaması', 'Olası hatalar', 'Üretilen testler'],
     genis: true,
     son: true,

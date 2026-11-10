@@ -1,4 +1,4 @@
-import { arayuzVar, birimVar, uxVar } from '../../config/testStratejileri'
+import { arayuzVar, birimVar, erisimVar, uxVar } from '../../config/testStratejileri'
 
 // Canlı metrikler: son olayın metrics alanından beslenir.
 function Cubuk({ oran }) {
@@ -15,7 +15,7 @@ const etiket = 'text-sm text-muted'
 
 const SUTUN = { 1: '', 2: 'sm:grid-cols-2', 3: 'sm:grid-cols-3', 4: 'sm:grid-cols-2 lg:grid-cols-4' }
 
-// Kartlar seçilen teste göre değişir: birim → kod coverage, arayüz → etkileşim, kullanılabilirlik → UX ölçümleri
+// Kartlar seçilen teste göre değişir: birim → kod coverage, arayüz → etkileşim, kullanılabilirlik → UX ölçümleri, erişilebilirlik → WCAG ölçümleri
 export default function LiveStats({ config, metrics }) {
   const m = metrics || {}
   const kartlar = []
@@ -32,13 +32,35 @@ export default function LiveStats({ config, metrics }) {
         <p className="mt-1 text-2xl font-semibold text-text">{m.desen == null ? '—' : '%' + m.desen}</p>
         <Cubuk oran={m.desen || 0} />
       </div>,
-      <div key="kontrast" className={kutu}>
-        <p className={etiket}>Kontrast sorunu</p>
-        <p className="mt-1 text-2xl font-semibold text-text">{m.kontrast == null ? '—' : m.kontrast}</p>
+      <div key="renk" className={kutu}>
+        <p className={etiket}>Renk uyumu</p>
+        <p className="mt-1 text-2xl font-semibold text-text">{m.renk == null ? '—' : '%' + m.renk}</p>
+        <Cubuk oran={m.renk || 0} />
       </div>,
       <div key="bulgu" className={kutu}>
         <p className={etiket}>UX bulgusu</p>
         <p className="mt-1 text-2xl font-semibold text-bad-text">{m.bulgu || 0}</p>
+      </div>,
+    )
+  } else if (erisimVar(config.tur)) {
+    kartlar.push(
+      <div key="uyum" className={kutu}>
+        <p className={etiket}>WCAG uyumu</p>
+        <p className="mt-1 text-2xl font-semibold text-text">{m.uyum == null ? 'Ölçülüyor…' : '%' + m.uyum}</p>
+        <Cubuk oran={m.uyum || 0} />
+      </div>,
+      <div key="lh" className={kutu}>
+        <p className={etiket}>Lighthouse erişilebilirlik</p>
+        <p className="mt-1 text-2xl font-semibold text-text">{m.lighthouse == null ? '—' : m.lighthouse + ' / 100'}</p>
+        <Cubuk oran={m.lighthouse || 0} />
+      </div>,
+      <div key="ihlal" className={kutu}>
+        <p className={etiket}>İhlal türü</p>
+        <p className="mt-1 text-2xl font-semibold text-bad-text">{m.ihlal || 0}</p>
+      </div>,
+      <div key="kritik" className={kutu}>
+        <p className={etiket}>Kritik ihlal</p>
+        <p className="mt-1 text-2xl font-semibold text-bad-text">{m.kritik || 0}</p>
       </div>,
     )
   } else {

@@ -8,7 +8,8 @@ import BugsTab from './BugsTab'
 import TestsTab from './TestsTab'
 import Toast from '../Toast'
 import UxRaporu from './UxRaporu'
-import { uxVar } from '../../config/testStratejileri'
+import ErisimRaporu from './ErisimRaporu'
+import { denetimVar, uxVar } from '../../config/testStratejileri'
 import VurguKart from '../VurguKart'
 import { ayrilma, yonelme } from '../../config/sayiEki'
 
@@ -48,13 +49,13 @@ export default function ReportView({ report, onNew }) {
     setSekme('arayuz')
   }
 
-  // Kullanılabilirlik testi kendi rapor düzenini kullanır
-  if (uxVar(report.tur)) {
+  // Kullanılabilirlik ve erişilebilirlik testleri kendi rapor düzenini kullanır
+  if (denetimVar(report.tur)) {
     return (
       <main className="relative isolate mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6">
         <Zemin />
-        <ReportHeader report={report} onNew={onNew} />
-        <UxRaporu report={report} onPdf={() => setToast(BACKEND_NOTU)} />
+        <ReportHeader report={report} onNew={onNew} onPdf={() => setToast(BACKEND_NOTU)} />
+        {uxVar(report.tur) ? <UxRaporu report={report} /> : <ErisimRaporu report={report} />}
         <Toast message={toast} onClose={toastKapat} />
       </main>
     )
