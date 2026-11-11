@@ -102,3 +102,14 @@ Kurallar:
 ## 3. Arayüzde nerede görünür?
 - **"Ajanı Görevlendir" kartı → "Bu testte neler yapılacak?"**: Seçime göre üretilen adımları, araçları ve odak konularını gösterir. Seçim değişince plan da anında değişir.
 - **Canlı akış**: Ajan adımları stratejiden üretilir. Örneğin Oyun testinde "Bağımlılık Analizi" adımı vardır ama "UI Keşif" adımı yoktur. Web'de Arayüz de seçildiğinde arayüz adımları da akışa eklenir; birden fazla grup seçildiyse her olayın yanında grubu yazar.
+
+## 4. Test sonucu durumları (K24)
+Her üretilen test ve her arayüz akışı üç durumdan birini alır:
+
+| Durum | Anlamı | Kapsamaya ve olası hatalara sayılır mı? |
+|---|---|---|
+| **Geçti** | Test koştu, beklenen davranış görüldü | Kapsamaya sayılır |
+| **Kaldı** | Test koştu, beklenen davranış görülmedi; ajan kodu değiştirmez, testi gerekçesiyle **olası hata** olarak işaretler (K6) | Olası hataya sayılır |
+| **Çalıştırılamadı** | Test ortam yüzünden hiç koşamadı (dış servise ağ kapalı, süre aşımı, eksik servis vb.); `neden` ile raporlanır | Hiçbirine sayılmaz; hata bulgusu değildir |
+
+Rapor biçimi: test dosyasında `sonuclar: { gecti, kaldi, calistirilamadi }` ve `calistirilamayanlar: [{ test, neden }]`; arayüz akışında `durum: 'gecti' | 'kaldi' | 'calistirilamadi'` ve `neden`; canlı olayda `metrics.calistirilamadi`. Standardizasyon Katmanı ortam hatalarını (bağlantı reddi, DNS, zaman aşımı) "kaldı"dan ayırmalıdır.

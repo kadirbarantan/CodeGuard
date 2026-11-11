@@ -22,7 +22,7 @@ export default function LiveStats({ config, metrics }) {
   const gruplar = []
 
   if ((config.kaynak !== 'url' && birimVar(config.tur)) || arayuzVar(config.tur)) {
-    const { coverage = 0, uiCovered = 0, uiTotal = 0, passed = 0, bugs = 0 } = m
+    const { coverage = 0, uiCovered = 0, uiTotal = 0, passed = 0, bugs = 0, calistirilamadi = 0 } = m
     const kartlar = []
     const birim = config.kaynak !== 'url' && birimVar(config.tur)
     if (birim) {
@@ -53,6 +53,11 @@ export default function LiveStats({ config, metrics }) {
           <span className="text-muted"> / </span>
           <span className="text-bad-text">{bugs}</span>
         </p>
+        {calistirilamadi > 0 && (
+          <p className="mt-1 text-xs text-text-2" title="Ortam yüzünden koşamadı; hata bulgusu sayılmaz">
+            {calistirilamadi} test çalıştırılamadı
+          </p>
+        )}
       </div>,
     )
     gruplar.push({ id: 'kod', ad: [birim && 'Birim', arayuzVar(config.tur) && 'Arayüz'].filter(Boolean).join(' + '), kartlar })

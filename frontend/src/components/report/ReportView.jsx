@@ -13,6 +13,7 @@ import ErisimRaporu from './ErisimRaporu'
 import { arayuzVar, birimVar, denetimVar, erisimVar, turListesi, uxVar } from '../../config/testStratejileri'
 import VurguKart from '../VurguKart'
 import { ayrilma, yonelme } from '../../config/sayiEki'
+import { testToplami } from './TestSonuclari'
 
 // Rapor ekranının üstündeki yumuşak zemin (ana sayfadaki açılışla aynı)
 const Zemin = () => (
@@ -25,7 +26,8 @@ const BACKEND_NOTU = 'Bu özellik backend bağlandığında aktif olacak.'
 
 // Kod testleri raporu (birim ve/veya arayüz): özet kartı ve sekmeler.
 // Seçili sekme / dosya / odak satırı / odak akışı burada tutulur.
-function KodRaporu({ report }) {
+// ust: birden fazla test grubu varsa özet kartının en üstünde duran grup geçişi
+function KodRaporu({ report, ust }) {
   const urlModu = report.kaynak === 'url'
   // Kaynak kod varsa rapor Kod Yorumu ile açılır: önce kodun ne yaptığı, sonra kapsaması
   const [sekme, setSekme] = useState(urlModu ? 'arayuz' : report.kodYorumu ? 'yorum' : 'kod')
@@ -60,9 +62,12 @@ function KodRaporu({ report }) {
 
   // Tek cümlelik sonuç: kaç turda nereden nereye gelindi
   const turlu = report.turSayisi ? `${report.turSayisi} turda ` : ''
-  const ozetCumlesi = urlModu
-    ? `${turlu}etkileşim kapsamı ${report.ilkEtkilesim != null ? `${report.ilkEtkilesim}/${report.etkilesim.toplam} öğeden ` : ''}${report.etkilesim.kapsanan}/${report.etkilesim.toplam} öğeye çıktı; ${report.olasiHatalar.length} olası hata bulundu.`
-    : `${turlu}kod kapsaması ${report.ilkCoverage != null ? `%${ayrilma(report.ilkCoverage)} ` : ''}%${yonelme(report.coverage.testEdilebilir)} çıktı; ${report.olasiHatalar.length} olası hata bulundu.`
+  const calistirilamayan = testToplami(report.testDosyalari).calistirilamadi
+  const engelNotu = calistirilamayan > 0 ? ` ${calistirilamayan} test ortam yüzünden çalıştırılamadı.` : ''
+  const ozetCumlesi =
+    (urlModu
+      ? `${turlu}etkileşim kapsamı ${report.ilkEtkilesim != null ? `${report.ilkEtkilesim}/${report.etkilesim.toplam} öğeden ` : ''}${report.etkilesim.kapsanan}/${report.etkilesim.toplam} öğeye çıktı; ${report.olasiHatalar.length} olası hata bulundu.`
+      : `${turlu}kod kapsaması ${report.ilkCoverage != null ? `%${ayrilma(report.ilkCoverage)} ` : ''}%${yonelme(report.coverage.testEdilebilir)} çıktı; ${report.olasiHatalar.length} olası hata bulundu.`) + engelNotu
 
   const sekmeler = [
     ...(urlModu || !report.kodYorumu ? [] : [{ id: 'yorum', ad: 'Kod Yorumu' }]),
@@ -75,6 +80,7 @@ function KodRaporu({ report }) {
   return (
     <>
       <VurguKart baslik="Test Özeti" govde="space-y-4 p-5 sm:p-6">
+        {ust}
         <p className="rounded-xl bg-ai-bg px-4 py-2.5 text-sm text-ai-text">{ozetCumlesi}</p>
         <div className="flex flex-col items-center gap-5 lg:flex-row">
         {urlModu ? (
@@ -126,47 +132,49 @@ function KodRaporu({ report }) {
 function parcaOzeti(p) {
   const r = p.rapor
   if (p.id === 'ux') return { deger: `UX skoru ${r.ux.skor}`, ek: `${r.bulgular.length} bulgu` }
-  if (p.id === 'erisim') return { deger: `WCAG uyumu %${r.ozet.uyum}`, ek: `${r.ihlaller.length} ihlal` }
+  if (p.id === 'erisim') {
+    // Uyum, raporun halkasındaki gibi denetlenen ölçütlerden hesaplanır
+    const gecen = r.olcutler.filter((o) => o.durum === 'gecti').length
+    const denetlenen = r.olcutler.filter((o) => o.durum !== 'uygulanmaz').length
+    return { deger: `WCAG uyumu %${Math.round((gecen / denetlenen) * 100)}`, ek: `${r.ihlaller.length} ihlal` }
+  }
   const deger = r.coverage ? `Kapsama %${r.coverage.testEdilebilir}` : `Etkileşim ${r.etkilesim.kapsanan}/${r.etkilesim.toplam}`
   return { deger, ek: `${r.olasiHatalar.length} olası hata` }
 }
 
-// Birleşik raporun üstündeki geçiş: her test grubu bir kart; seçilen grubun raporu altta açılır
+// Birleşik raporda gruplar arası geçiş. Ayrı bir kutu değil, seçili grubun "Test Özeti" kutusunun en üstünde durur
+// (tek vurgulu kutu). Her düğme grubun kısa sonucunu da gösterir.
+const KOLON = { 2: 'sm:grid-cols-2', 3: 'sm:grid-cols-3' }
 function ParcaSecici({ parcalar, turSayisi, secili, onSec }) {
   return (
-    <VurguKart baslik="Bu testte çalışanlar" govde="space-y-3 p-5 sm:p-6">
+    <div className="space-y-2 border-b border-border pb-4">
       <p className="text-sm text-text-2">
-        {turSayisi} test türü tek testte çalıştı:{' '}
-        <span className="font-medium text-text">{parcalar.map((p) => parcaOzeti(p).deger).join(' · ')}</span>. Ayrıntısını görmek
-        istediğin raporu seç.
+        {turSayisi} test türü tek testte çalıştı. Raporlar arasında buradan geçebilirsin:
       </p>
-      <div role="tablist" aria-label="Test türü raporları" className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+      <div role="group" aria-label="Test grubu raporları" className={'grid gap-1 rounded-xl bg-soft p-1 ' + (KOLON[parcalar.length] || 'sm:grid-cols-3')}>
         {parcalar.map((p) => {
           const aktif = p.id === secili
           const o = parcaOzeti(p)
           return (
             <button
               key={p.id}
-              id={'parca-' + p.id}
               type="button"
-              role="tab"
-              aria-selected={aktif}
-              aria-controls="parca-panel"
+              aria-pressed={aktif}
               onClick={() => onSec(p.id)}
               className={
-                'min-h-16 rounded-xl border px-4 py-3 text-left transition-colors ' +
-                (aktif ? 'border-accent bg-ai-bg ring-2 ring-accent/20' : 'border-border bg-surface hover:bg-soft')
+                'min-h-14 rounded-lg px-4 py-2 text-left transition-colors ' +
+                (aktif ? 'bg-surface shadow-sm ring-1 ring-accent/40' : 'hover:bg-surface/70')
               }
             >
               <span className={'block text-sm font-semibold ' + (aktif ? 'text-ai-text' : 'text-text')}>{p.ad}</span>
-              <span className="mt-0.5 block text-sm text-text-2">
-                {o.deger} <span className="text-muted">· {o.ek}</span>
+              <span className="block text-xs text-text-2">
+                {o.deger} · {o.ek}
               </span>
             </button>
           )
         })}
       </div>
-    </VurguKart>
+    </div>
   )
 }
 
@@ -179,6 +187,8 @@ export default function ReportView({ report, onNew }) {
   const toastKapat = useCallback(() => setToast(''), [])
   const aktif = parcalar ? parcalar.find((p) => p.id === secili)?.rapor || parcalar[0].rapor : report
   const kodRaporuVar = parcalar ? parcalar.some((p) => p.id === 'kod') : !denetimVar(report.tur)
+  // Birden fazla grup varsa geçiş, seçili raporun özet kutusunun içinde durur
+  const ust = parcalar ? <ParcaSecici parcalar={parcalar} turSayisi={turListesi(report.tur).length} secili={secili} onSec={setSecili} /> : null
 
   return (
     <main className="relative isolate mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6">
@@ -189,14 +199,13 @@ export default function ReportView({ report, onNew }) {
         onZip={kodRaporuVar ? () => setToast(BACKEND_NOTU) : undefined}
         onPdf={() => setToast(BACKEND_NOTU)}
       />
-      {parcalar && <ParcaSecici parcalar={parcalar} turSayisi={turListesi(report.tur).length} secili={secili} onSec={setSecili} />}
-      <div id="parca-panel" role={parcalar ? 'tabpanel' : undefined} aria-labelledby={parcalar ? 'parca-' + secili : undefined} className="space-y-6">
+      <div className="space-y-6">
         {uxVar(aktif.tur) && !birimVar(aktif.tur) && !arayuzVar(aktif.tur) ? (
-          <UxRaporu report={aktif} />
+          <UxRaporu report={aktif} ust={ust} />
         ) : erisimVar(aktif.tur) && !birimVar(aktif.tur) && !arayuzVar(aktif.tur) ? (
-          <ErisimRaporu report={aktif} />
+          <ErisimRaporu report={aktif} ust={ust} />
         ) : (
-          <KodRaporu key={aktif.runId + secili} report={aktif} />
+          <KodRaporu key={aktif.runId + secili} report={aktif} ust={ust} />
         )}
       </div>
       <Toast message={toast} onClose={toastKapat} />

@@ -1,11 +1,13 @@
 import { useState } from 'react'
+import { arayuzVar } from '../../config/testStratejileri'
+import { CALISTIRILAMADI_ACIKLAMA, DurumRozeti, SonucOzeti } from './TestSonuclari'
 
-// "Arayüz Testleri" sekmesi: test edilen akışlar ve sayfa bazında etkileşim kapsamı.
+// "Arayüz Testleri" sekmesi: test edilen akışlar (geçti · kaldı · çalıştırılamadı) ve sayfa bazında etkileşim kapsamı.
 // Sayfaya tıklayınca akışlar o sayfaya göre süzülür.
 export default function UiTestsTab({ report, odakAkis }) {
   const [sayfaFiltre, setSayfaFiltre] = useState(null)
 
-  if (report.tur === 'birim') {
+  if (!arayuzVar(report.tur)) {
     return (
       <div className="rounded-xl border border-dashed border-border-strong p-10 text-center text-muted">
         Bu testte arayüz testi seçilmedi.
@@ -13,12 +15,13 @@ export default function UiTestsTab({ report, odakAkis }) {
     )
   }
 
-  // Kaldı ya da arayüz olası hatası olan sayfalar
+  // Kalan akışı ya da arayüz olası hatası olan sayfalar (çalıştırılamayan akış sorun sayılmaz)
   const sorunlu = new Set([
-    ...report.akislar.filter((a) => !a.gecti).map((a) => a.sayfa),
+    ...report.akislar.filter((a) => a.durum === 'kaldi').map((a) => a.sayfa),
     ...report.olasiHatalar.filter((h) => h.tur === 'arayuz' && h.sayfa).map((h) => h.sayfa),
   ])
   const akislar = sayfaFiltre ? report.akislar.filter((a) => a.sayfa === sayfaFiltre) : report.akislar
+  const sayilar = report.akislar.reduce((t, a) => ({ ...t, [a.durum]: (t[a.durum] || 0) + 1 }), {})
 
   const filtreSinif = (aktif) =>
     'min-h-8 rounded-full px-3 text-xs font-medium ' +
@@ -28,7 +31,12 @@ export default function UiTestsTab({ report, odakAkis }) {
     <div className="grid gap-4 lg:grid-cols-2">
       <section className="rounded-xl border border-border bg-bg p-4">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h3 className="font-semibold text-text">Test edilen akışlar</h3>
+          <div>
+            <h3 className="font-semibold text-text">Test edilen akışlar</h3>
+            <p className="text-xs">
+              <SonucOzeti toplam={sayilar} />
+            </p>
+          </div>
           <div className="flex flex-wrap items-center gap-2">
             {sayfaFiltre && <span className={filtreSinif(true) + ' flex items-center font-mono'}>{sayfaFiltre}</span>}
             <button
@@ -52,21 +60,16 @@ export default function UiTestsTab({ report, odakAkis }) {
                   (odakta ? 'border-accent bg-ai-bg' : 'border-transparent bg-surface')
                 }
               >
-                <span
-                  className={
-                    'rounded-full px-2 py-0.5 text-xs font-medium ' +
-                    (a.gecti ? 'bg-ok-bg text-ok-text' : 'bg-bad-bg text-bad-text')
-                  }
-                >
-                  {a.gecti ? 'Geçti' : 'Kaldı'}
-                </span>
+                <DurumRozeti durum={a.durum} />
                 <span className="text-sm text-text">{a.ad}</span>
                 <span className="ml-auto font-mono text-xs text-muted">{a.sayfa}</span>
+                {a.durum === 'calistirilamadi' && a.neden && <span className="w-full text-xs text-text-2">{a.neden}</span>}
               </li>
             )
           })}
           {akislar.length === 0 && <li className="px-3 py-2 text-sm text-muted">Bu sayfada test edilen akış yok.</li>}
         </ul>
+        {sayilar.calistirilamadi > 0 && <p className="mt-3 text-xs text-muted">{CALISTIRILAMADI_ACIKLAMA}</p>}
       </section>
 
       <section className="rounded-xl border border-border bg-bg p-4">

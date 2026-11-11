@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import Editor from '@monaco-editor/react'
+import { CircleSlash, Info } from 'lucide-react'
+import { CALISTIRILAMADI_ACIKLAMA, SonucOzeti, testToplami } from './TestSonuclari'
 
 const DIL = { py: 'python', cs: 'csharp', js: 'javascript', jsx: 'javascript', ts: 'typescript', tsx: 'typescript' }
 const dilBul = (yol) => DIL[yol.split('.').pop()] || 'plaintext'
 const TUR = { birim: 'Birim', arayuz: 'Arayüz' }
 
-// "Üretilen Testler" sekmesi: seçili test dosyasının kodu ve dosya tablosu.
+// "Üretilen Testler" sekmesi: sonuç özeti, seçili test dosyasının kodu ve dosya tablosu.
+// Her dosyanın sonucu üç durumdan oluşur: geçti · kaldı (olası hata) · çalıştırılamadı.
 export default function TestsTab({ report }) {
   const dosyalar = report.testDosyalari
   const [aktifYol, setAktifYol] = useState(dosyalar[0]?.yol)
@@ -36,9 +39,22 @@ export default function TestsTab({ report }) {
 
   const satirSayisi = dosya.kod.split('\n').length
   const yukseklik = Math.min(360, satirSayisi * 20 + 20)
+  const toplam = testToplami(dosyalar)
+  const testSayisi = dosyalar.reduce((t, d) => t + d.sayi, 0)
 
   return (
     <div className="space-y-4">
+      {/* Sonuç özeti: geçti · kaldı · çalıştırılamadı */}
+      <div className="rounded-xl border border-border bg-bg px-4 py-3">
+        <p className="text-sm text-text">
+          <span className="font-semibold">{testSayisi} test:</span> <SonucOzeti toplam={toplam} className="font-medium" />
+        </p>
+        <p className="mt-1 text-xs text-muted">
+          “Kaldı” durumundaki testleri ajan olası hata olarak işaretledi; gerekçeleri Olası Hatalar sekmesinde.
+          {toplam.calistirilamadi > 0 && ' ' + CALISTIRILAMADI_ACIKLAMA}
+        </p>
+      </div>
+
       <div className="overflow-hidden rounded-xl bg-panel">
         <div className="flex items-center justify-between gap-3 px-4 py-2 text-on-panel">
           <span className="truncate font-mono text-sm">{dosya.yol}</span>
@@ -69,6 +85,27 @@ export default function TestsTab({ report }) {
         />
       </div>
 
+      {/* Seçili dosyada ortam yüzünden koşamayan testler ve nedenleri */}
+      {dosya.calistirilamayanlar?.length > 0 && (
+        <div className="rounded-xl border border-border-strong bg-soft p-4">
+          <p className="flex items-center gap-2 text-sm font-semibold text-text">
+            <CircleSlash size={15} className="text-text-2" aria-hidden="true" />
+            Bu dosyada {dosya.calistirilamayanlar.length} test çalıştırılamadı
+          </p>
+          <ul className="mt-2 space-y-1.5">
+            {dosya.calistirilamayanlar.map((c) => (
+              <li key={c.test} className="text-sm text-text-2">
+                <code className="font-mono text-text">{c.test}</code>: {c.neden}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 flex gap-1.5 text-xs text-muted">
+            <Info size={13} className="mt-0.5 shrink-0" aria-hidden="true" />
+            Bu testler hata bulgusu sayılmaz; ortam hazırlanınca yeniden çalıştırılmalıdır.
+          </p>
+        </div>
+      )}
+
       <div className="overflow-x-auto rounded-xl border border-border">
         <table className="w-full min-w-[560px] text-left text-sm">
           <thead className="bg-soft text-text-2">
@@ -82,7 +119,6 @@ export default function TestsTab({ report }) {
           <tbody>
             {dosyalar.map((d) => {
               const secili = d.yol === dosya.yol
-              const hata = d.sonuc.includes('olası hata')
               return (
                 <tr
                   key={d.yol}
@@ -100,7 +136,9 @@ export default function TestsTab({ report }) {
                   <td className="px-4 py-2 font-mono text-text">{d.yol}</td>
                   <td className="px-4 py-2 text-text-2">{TUR[d.tur] || d.tur}</td>
                   <td className="px-4 py-2 text-text-2">{d.sayi}</td>
-                  <td className={'px-4 py-2 ' + (hata ? 'text-bad-text' : 'text-ok-text')}>{d.sonuc}</td>
+                  <td className="px-4 py-2">
+                    <SonucOzeti toplam={d.sonuclar} />
+                  </td>
                 </tr>
               )
             })}
