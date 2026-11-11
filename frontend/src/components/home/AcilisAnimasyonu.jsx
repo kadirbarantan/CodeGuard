@@ -5,18 +5,19 @@ import { useEffect, useRef, useState } from 'react'
 import { RotateCcw } from 'lucide-react'
 
 const SATIRLAR = [
-  { t: '$ codeguard test ./blog-api --tur ikisi', s: 'komut' },
+  { t: 'Test başladı: blog-api (Python), birim ve arayüz testi', s: 'komut' },
   { t: '✓ Kod Haritası çıkarıldı: 38 birim', s: 'ok' },
-  { t: '✓ 46 test yazıldı, tur 1: kapsama %34', s: 'ok' },
+  { t: '✓ Tur 1: 46 test yazıldı, kapsama %34', s: 'ok' },
   { t: '↻ Kapsanmayan dallar için ajan geri dönüyor…', s: 'geri' },
-  { t: '✓ Tur 2: 9 yeni test, kapsama %71', s: 'ok' },
-  { t: '✓ Tur 3: kapsama %94, 1 olası hata bulundu', s: 'ok' },
-  { t: '→ Rapor hazır: 58 test, 7 olası hata', s: 'son' },
+  { t: '✓ Tur 2: kapsama %71, 3 olası hata', s: 'ok' },
+  { t: '✓ Arayüz: 7 akış test edildi, 1 olası hata', s: 'ok' },
+  { t: '✓ Tur 3: kapsama %94, 3 olası hata daha', s: 'ok' },
+  { t: 'Rapor hazır: 59 test, 7 olası hata', s: 'son' },
 ]
 const RENK = {
   komut: 'text-on-panel',
-  ok: 'text-[#6ee7b7]',
-  geri: 'text-[#c4bdfb]',
+  ok: 'text-panel-ok',
+  geri: 'text-panel-geri',
   son: 'text-on-panel font-bold',
 }
 const HARF_MS = 22
@@ -105,14 +106,14 @@ export default function TerminalBolumu() {
           <div className="min-w-0 lg:col-span-8">
             <div className="overflow-hidden rounded-2xl border border-on-panel/10 bg-black/45 shadow-kart">
               <div className="flex items-center gap-2 border-b border-on-panel/10 px-4 py-2.5">
-                <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" aria-hidden="true" />
-                <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" aria-hidden="true" />
-                <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" aria-hidden="true" />
+                <span className="h-2.5 w-2.5 rounded-full bg-pencere-1" aria-hidden="true" />
+                <span className="h-2.5 w-2.5 rounded-full bg-pencere-2" aria-hidden="true" />
+                <span className="h-2.5 w-2.5 rounded-full bg-pencere-3" aria-hidden="true" />
                 <span className="ml-2 font-mono text-xs text-on-panel/50">codeguard: ajan</span>
               </div>
               {/* Ekran okuyucu tüm metni bir kerede okur; görünen kısım harf harf yazılır */}
               <p className="sr-only">{SATIRLAR.map((s) => s.t).join('. ')}</p>
-              <div aria-hidden="true" className="min-h-64 space-y-1.5 overflow-x-auto p-5 font-mono text-[13px] leading-6 sm:text-sm">
+              <div aria-hidden="true" className="min-h-72 space-y-1.5 overflow-x-auto p-5 font-mono text-[13px] leading-6 sm:text-sm">
                 {SATIRLAR.map((s, i) =>
                   gorunen[i] > 0 || i === aktifSatir ? (
                     <p key={i} className={'whitespace-pre ' + RENK[s.s]}>
@@ -123,7 +124,10 @@ export default function TerminalBolumu() {
                 )}
               </div>
               <div className="h-1 bg-on-panel/10" aria-hidden="true">
-                <div className="h-full bg-gradient-to-r from-accent-2 to-[#6ee7b7] transition-[width] duration-150" style={{ width: ilerleme + '%' }} />
+                <div
+                  className="h-full origin-left bg-gradient-to-r from-accent-2 to-panel-ok transition-transform duration-150 motion-reduce:transition-none"
+                  style={{ transform: `scaleX(${ilerleme / 100})` }}
+                />
               </div>
             </div>
           </div>

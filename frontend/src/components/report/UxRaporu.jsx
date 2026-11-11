@@ -128,7 +128,8 @@ export default function UxRaporu({ report, ust }) {
     { id: 'desen', ad: 'Okuma Deseni' },
     { id: 'renk', ad: 'Renk Uyumu' },
   ]
-  const kutu = 'rounded-xl border border-border bg-bg p-4'
+  // Özet kutusunun içindeki ölçüm alanları: çerçevesiz, hafif renkli zemin (kart içinde kart olmasın)
+  const kutu = 'rounded-xl bg-soft p-4'
   const etiket = 'text-sm text-muted'
 
   return (
@@ -141,7 +142,7 @@ export default function UxRaporu({ report, ust }) {
           <div className={kutu}>
             <p className={etiket}>Okuma deseni uyumu</p>
             <p className="mt-1 text-2xl font-semibold text-text">%{report.ux.desen}</p>
-            <p className="text-xs text-muted">{report.sayfalar.length} sayfa · Z / F</p>
+            <p className="text-xs text-muted">{report.sayfalar.length} sayfada Z ve F deseni</p>
           </div>
           <div className={kutu}>
             <p className={etiket}>Renk uyumu</p>

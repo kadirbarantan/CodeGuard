@@ -2,7 +2,7 @@
 const R = 50
 const CEVRE = 2 * Math.PI * R
 
-export default function CoverageDonut({ yuzde, etiket = 'Kod coverage' }) {
+export default function CoverageDonut({ yuzde, etiket = 'Kod kapsaması' }) {
   const dolu = (Math.max(0, Math.min(100, yuzde)) / 100) * CEVRE
   return (
     <div className="relative h-36 w-36 shrink-0">

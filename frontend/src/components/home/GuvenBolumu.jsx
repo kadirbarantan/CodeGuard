@@ -3,41 +3,37 @@
 // K5 (sandbox), K6 (salt okunur kaynak, hile önleme), K16–K17 (GitHub izinleri, bağlam), K21 (koddaki talimatlar).
 import { FileSearch, KeyRound, Lock, MessageSquareWarning, ServerOff, UserRound } from 'lucide-react'
 
+// Hallmark sadeleştirmesi (K25): her kartta tek kısa cümle; bölüm ~170 kelimeden ~110 kelimeye indi.
 const MADDELER = [
   {
     ikon: ServerOff,
     baslik: 'Kapalı bir ortamda çalışır',
-    metin:
-      'Testler her çalıştırmaya özel, dış ağa kapalı bir kapsayıcıda (Docker) koşar. İşlemci, bellek ve süre sınırlıdır; test ortamı iş bitince silinir.',
+    metin: 'Testler dış ağa kapalı, her çalıştırmaya özel bir Docker kapsayıcısında koşar; iş bitince ortam silinir.',
   },
   {
     ikon: Lock,
     baslik: 'Kodun değiştirilmez',
-    metin:
-      'Kaynak kod salt okunur bağlanır; ajan yalnızca test klasörüne yazabilir. Bulduğu hatayı düzeltmek için kodunu değiştirmez, olası hata olarak raporlar.',
+    metin: 'Kaynak kod salt okunur bağlanır. Ajan bulduğu hatayı düzeltmez, olası hata olarak raporlar.',
   },
   {
     ikon: FileSearch,
     baslik: 'Yapay zekâya yalnızca gereken gider',
-    metin:
-      'Modele projenin tamamı değil, Kod Haritası ve test edilen birimin kaynağı gönderilir. Ajan başka bir dosyaya ihtiyaç duyarsa onu araçla ister.',
+    metin: 'Modele projenin tamamı değil, Kod Haritası ve test edilen birimin kaynağı gönderilir.',
   },
   {
     ikon: KeyRound,
     baslik: "GitHub'a salt okunur erişim",
-    metin:
-      "Yalnızca seçtiğin repolara, yalnızca okuma izniyle erişilir. GitHub'ın verdiği giriş anahtarı saklanmaz; izni istediğin an GitHub ayarlarından kaldırabilirsin.",
+    metin: 'Yalnızca seçtiğin repolar okunur, giriş anahtarı saklanmaz; izni istediğin an kaldırabilirsin.',
   },
   {
     ikon: MessageSquareWarning,
     baslik: 'Koddaki yorumlar talimat sayılmaz',
-    metin:
-      'Kodundaki yorum ve metinler ajana veri olarak verilir. Yazılan testler ayrıca denetlenir: assert içermeyen, hatayı yutan ya da atlanan testler reddedilir.',
+    metin: 'Koddaki metinler ajana veri olarak gider. Assert içermeyen ya da hatayı yutan testler reddedilir.',
   },
   {
     ikon: UserRound,
     baslik: 'Raporun yalnızca sende',
-    metin: 'Raporların ve içlerindeki kod yalnızca senin hesabında görünür; başka kullanıcılarla ya da başka testlerle paylaşılmaz.',
+    metin: 'Raporların ve içindeki kod yalnızca senin hesabında görünür.',
   },
 ]
 
@@ -48,7 +44,7 @@ export default function GuvenBolumu() {
         <h2 id="kod-guvenligi-baslik" className="text-3xl font-extrabold tracking-tight text-text sm:text-4xl">
           Kodun güvende mi?
         </h2>
-        <p className="mt-3 text-text-2">Kodunu yüklemeden önce bilmen gerekenler: nerede çalışır, neye dokunulur, yapay zekâya ne gider.</p>
+        <p className="mt-3 text-text-2">Nerede çalışır, neye dokunulur, yapay zekâya ne gider?</p>
       </div>
 
       <ul className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

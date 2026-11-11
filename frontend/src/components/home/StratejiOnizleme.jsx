@@ -84,7 +84,13 @@ export default function StratejiOnizleme({ config, sade = false, cercevesiz = fa
         </div>
       </div>
 
-      <ol className={(cercevesiz ? '' : 'mt-3 ') + 'overflow-y-auto pr-1 ' + (sade ? 'max-h-[30rem] space-y-1' : 'max-h-[26rem] space-y-2')} aria-live="polite">
+      {/* Kaydırılabilir liste klavyeyle de kaydırılabilsin diye odaklanabilir (axe: scrollable-region-focusable) */}
+      <ol
+        className={(cercevesiz ? '' : 'mt-3 ') + 'overflow-y-auto pr-1 ' + (sade ? 'max-h-[30rem] space-y-1' : 'max-h-[26rem] space-y-2')}
+        aria-live="polite"
+        aria-label="Test planı adımları"
+        tabIndex={0}
+      >
         {plan.adimlar.map((a, i) => {
           const t = TIP[a.tip]
           const Ikon = t.ikon

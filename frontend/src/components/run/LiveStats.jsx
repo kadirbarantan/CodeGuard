@@ -4,13 +4,17 @@ import { arayuzVar, birimVar, erisimVar, uxVar } from '../../config/testStrateji
 function Cubuk({ oran }) {
   const yuzde = Math.max(0, Math.min(100, oran))
   return (
-    <div className="mt-2 h-2 overflow-hidden rounded-full bg-soft">
-      <div className="h-full rounded-full bg-accent transition-all duration-500" style={{ width: yuzde + '%' }} />
+    <div className="mt-2 h-2 overflow-hidden rounded-full bg-surface">
+      <div
+        className="h-full origin-left rounded-full bg-accent transition-transform duration-500 motion-reduce:transition-none"
+        style={{ transform: `scaleX(${yuzde / 100})` }}
+      />
     </div>
   )
 }
 
-const kutu = 'rounded-xl border border-border bg-bg p-4'
+// Özet kutusunun içindeki ölçüm alanları: çerçevesiz, hafif renkli zemin (kart içinde kart olmasın)
+const kutu = 'rounded-xl bg-soft p-4'
 const etiket = 'text-sm text-muted'
 
 const SUTUN = { 1: '', 2: 'sm:grid-cols-2', 3: 'sm:grid-cols-3', 4: 'sm:grid-cols-2 lg:grid-cols-4' }
@@ -28,7 +32,7 @@ export default function LiveStats({ config, metrics }) {
     if (birim) {
       kartlar.push(
         <div key="cov" className={kutu}>
-          <p className={etiket}>Kod coverage</p>
+          <p className={etiket}>Kod kapsaması</p>
           <p className="mt-1 text-2xl font-semibold text-text">%{coverage}</p>
           <Cubuk oran={coverage} />
         </div>,
@@ -126,7 +130,7 @@ export default function LiveStats({ config, metrics }) {
     <div className="space-y-4">
       {gruplar.map((g) => (
         <section key={g.id} aria-label={g.ad + ' ölçümleri'}>
-          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">{g.ad}</h3>
+          <h3 className="mb-2 text-sm font-semibold text-text-2">{g.ad}</h3>
           <div className={'grid gap-3 ' + SUTUN[g.kartlar.length]}>{g.kartlar}</div>
         </section>
       ))}

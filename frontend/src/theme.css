@@ -31,6 +31,28 @@
   --izgara: rgba(118, 118, 132, 0.08);
   --parilti-1: rgba(46, 61, 164, 0.14);
   --parilti-2: rgba(180, 197, 254, 0.35);
+  /* Vurgulu kart gölgesi (VurguKart, test kartı) */
+  --golge-vurgu: 0 50px 100px -30px rgba(46, 61, 164, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.4) inset;
+  /* Pencere başlığı noktaları (kapat · küçült · büyüt) */
+  --pencere-1: #ff5f57;
+  --pencere-2: #febc2e;
+  --pencere-3: #28c840;
+  /* Koyu kod paneli üzerindeki renkler (panel iki temada da koyu) */
+  --panel-ok: #6ee7b7;
+  --panel-bad: #ffb4ab;
+  --panel-geri: #c4bdfb;
+  --panel-satir: #a3a6c8;
+  --panel-ok-bg: rgba(16, 185, 129, 0.15);
+  --panel-bad-bg: rgba(242, 86, 75, 0.2);
+  /* Kod sekmesi satır kapsaması */
+  --kapsama-ok-bg: rgba(16, 185, 129, 0.16);
+  --kapsama-bad-bg: rgba(186, 26, 26, 0.14);
+  --kapsama-gri-bg: rgba(148, 163, 184, 0.2);
+  /* Olası hata "!" işaretinin yazı rengi */
+  --hata-isaret: #ffffff;
+  /* Orta risk rozeti (açık temada AA için koyulaştırılmış turuncu) */
+  --warn-text: #92400e;
+  --warn-bg: #fff7ed;
   /* Google ile giriş butonu: Google'ın marka kurallarındaki açık tema renkleri (değiştirme) */
   --google-bg: #ffffff;
   --google-hover: #f2f2f2;
@@ -70,6 +92,14 @@
   --izgara: rgba(188, 194, 255, 0.05);
   --parilti-1: rgba(72, 86, 189, 0.28);
   --parilti-2: rgba(116, 104, 224, 0.16);
+  --golge-vurgu: 0 50px 100px -30px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(188, 194, 255, 0.08) inset;
+  --kapsama-ok-bg: rgba(16, 185, 129, 0.22);
+  --kapsama-bad-bg: rgba(239, 68, 68, 0.28);
+  --kapsama-gri-bg: rgba(148, 163, 184, 0.24);
+  /* Koyu temada kırmızı daire açık olduğu için "!" koyu yazılır (kontrast) */
+  --hata-isaret: #0e0f1f;
+  --warn-text: #fbbf24;
+  --warn-bg: rgba(245, 158, 11, 0.14);
   /* Google butonu: Google'ın koyu tema renkleri */
   --google-bg: #131314;
   --google-hover: #1f1f20;
@@ -103,6 +133,17 @@
   --color-ai-bg: var(--ai-bg);
   --color-ai-border: var(--ai-border);
   --color-overlay: var(--overlay);
+  --color-pencere-1: var(--pencere-1);
+  --color-pencere-2: var(--pencere-2);
+  --color-pencere-3: var(--pencere-3);
+  --color-panel-ok: var(--panel-ok);
+  --color-panel-bad: var(--panel-bad);
+  --color-panel-geri: var(--panel-geri);
+  --color-panel-satir: var(--panel-satir);
+  --color-panel-ok-bg: var(--panel-ok-bg);
+  --color-panel-bad-bg: var(--panel-bad-bg);
+  --color-warn-text: var(--warn-text);
+  --color-warn-bg: var(--warn-bg);
   --color-google-bg: var(--google-bg);
   --color-google-hover: var(--google-hover);
   --color-google-border: var(--google-border);
@@ -110,11 +151,18 @@
 
   --shadow-kart: var(--golge-kart);
   --shadow-yumusak: var(--golge-yumusak);
+  --shadow-vurgu: var(--golge-vurgu);
 
   --font-sans: 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
   /* Google butonu: marka kuralı Roboto Medium */
   --font-google: 'Roboto', system-ui, sans-serif;
+}
+
+/* Yatay taşma kaydırma çubuğu açmasın (dekor katmanları kenardan taşabilir) */
+html,
+body {
+  overflow-x: clip;
 }
 
 body {
@@ -125,16 +173,13 @@ body {
 }
 
 /* Kod sekmesi: Monaco satır boyama (gece modunda da okunur) */
-.cov-ok { background: rgba(16, 185, 129, 0.16); }
-.cov-bad { background: rgba(186, 26, 26, 0.14); cursor: pointer; }
-.cov-gri { background: rgba(148, 163, 184, 0.2); }
+.cov-ok { background: var(--kapsama-ok-bg); }
+.cov-bad { background: var(--kapsama-bad-bg); cursor: pointer; }
+.cov-gri { background: var(--kapsama-gri-bg); }
 .cov-serit-ok, .cov-serit-bad, .cov-serit-gri { margin-left: 3px; width: 4px !important; }
 .cov-serit-ok { background: var(--ok); }
 .cov-serit-bad { background: var(--bad); cursor: pointer; }
 .cov-serit-gri { background: var(--border-strong); }
-:root[data-theme='dark'] .cov-ok { background: rgba(16, 185, 129, 0.22); }
-:root[data-theme='dark'] .cov-bad { background: rgba(239, 68, 68, 0.28); }
-:root[data-theme='dark'] .cov-gri { background: rgba(148, 163, 184, 0.24); }
 
 /* Olası hata satırı: glyph margin'de kırmızı "!" (kapsama renginden ayrı) */
 .hata-glyph { display: flex; align-items: center; justify-content: center; cursor: help; }
@@ -147,7 +192,7 @@ body {
   height: 16px;
   border-radius: 9999px;
   background: var(--bad);
-  color: #fff;
+  color: var(--hata-isaret);
   font: 700 11px/1 var(--font-sans);
 }
 
@@ -165,7 +210,8 @@ body {
   background-image:
     linear-gradient(to right, var(--izgara) 1px, transparent 1px),
     linear-gradient(to bottom, var(--izgara) 1px, transparent 1px);
-  mask-image: radial-gradient(ellipse at center, #000, transparent 70%);
+  /* Maske yalnızca saydamlığa bakar; renk önemsiz */
+  mask-image: radial-gradient(ellipse at center, var(--text), transparent 70%);
 }
 .baslik-gradyan {
   background-image: linear-gradient(90deg, var(--accent), var(--accent-2) 45%, var(--accent-3));
@@ -192,3 +238,13 @@ body {
 /* Açılış animasyonu: yanıp sönen imleç */
 @keyframes imlec { 50% { opacity: 0; } }
 .imlec { animation: imlec 0.9s steps(1) infinite; }
+
+/* Hareket azaltma tercihi: sürekli dönen / yanıp sönen öğeler durur */
+@media (prefers-reduced-motion: reduce) {
+  .imlec,
+  .animate-pulse,
+  .animate-spin,
+  .animate-ping {
+    animation: none;
+  }
+}

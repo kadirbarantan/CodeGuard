@@ -15,9 +15,9 @@ import VurguKart from '../VurguKart'
 import { ayrilma, yonelme } from '../../config/sayiEki'
 import { testToplami } from './TestSonuclari'
 
-// Rapor ekranının üstündeki yumuşak zemin (ana sayfadaki açılışla aynı)
+// Rapor ekranının üstündeki yumuşak zemin (ana sayfadaki açılışla aynı); tam genişlik, 100vw kullanmadan
 const Zemin = () => (
-  <div aria-hidden="true" className="hero-zemin pointer-events-none absolute left-1/2 top-0 -z-10 h-[34rem] w-screen -translate-x-1/2">
+  <div aria-hidden="true" className="hero-zemin pointer-events-none absolute inset-x-0 top-0 -z-10 h-[34rem]">
     <div className="izgara absolute inset-0 opacity-70" />
   </div>
 )
@@ -191,22 +191,24 @@ export default function ReportView({ report, onNew }) {
   const ust = parcalar ? <ParcaSecici parcalar={parcalar} turSayisi={turListesi(report.tur).length} secili={secili} onSec={setSecili} /> : null
 
   return (
-    <main className="relative isolate mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6">
+    <main className="relative isolate">
       <Zemin />
-      <ReportHeader
-        report={report}
-        onNew={onNew}
-        onZip={kodRaporuVar ? () => setToast(BACKEND_NOTU) : undefined}
-        onPdf={() => setToast(BACKEND_NOTU)}
-      />
-      <div className="space-y-6">
-        {uxVar(aktif.tur) && !birimVar(aktif.tur) && !arayuzVar(aktif.tur) ? (
-          <UxRaporu report={aktif} ust={ust} />
-        ) : erisimVar(aktif.tur) && !birimVar(aktif.tur) && !arayuzVar(aktif.tur) ? (
-          <ErisimRaporu report={aktif} ust={ust} />
-        ) : (
-          <KodRaporu key={aktif.runId + secili} report={aktif} ust={ust} />
-        )}
+      <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6">
+        <ReportHeader
+          report={report}
+          onNew={onNew}
+          onZip={kodRaporuVar ? () => setToast(BACKEND_NOTU) : undefined}
+          onPdf={() => setToast(BACKEND_NOTU)}
+        />
+        <div className="space-y-6">
+          {uxVar(aktif.tur) && !birimVar(aktif.tur) && !arayuzVar(aktif.tur) ? (
+            <UxRaporu report={aktif} ust={ust} />
+          ) : erisimVar(aktif.tur) && !birimVar(aktif.tur) && !arayuzVar(aktif.tur) ? (
+            <ErisimRaporu report={aktif} ust={ust} />
+          ) : (
+            <KodRaporu key={aktif.runId + secili} report={aktif} ust={ust} />
+          )}
+        </div>
       </div>
       <Toast message={toast} onClose={toastKapat} />
     </main>

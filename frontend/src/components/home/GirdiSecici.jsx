@@ -26,11 +26,11 @@ export function GirdiSekmeleri({ kaynak, onKaynak }) {
               aria-controls="girdi-panel"
               onClick={() => onKaynak(deger)}
               className={
-                'flex min-h-10 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-2 text-sm font-semibold transition-colors sm:px-3.5 ' +
+                'flex min-h-10 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-1.5 text-xs font-semibold transition-colors sm:px-3.5 sm:text-sm ' +
                 (secili ? 'bg-surface text-ai-text shadow-sm ring-1 ring-ai-border' : 'text-muted hover:bg-surface/60 hover:text-text')
               }
             >
-              {/* 375 px'te üç sekme sığsın: ikonlar dar ekranda gizli */}
+              {/* 320 px'te üç sekme sığsın: dar ekranda ikonlar gizli, yazı küçük */}
               <Ikon size={15} aria-hidden="true" className="hidden sm:block" /> {ad}
             </button>
           )

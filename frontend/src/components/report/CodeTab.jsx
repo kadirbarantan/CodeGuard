@@ -4,7 +4,7 @@ import { ListTree, Search, Sparkles, TriangleAlert } from 'lucide-react'
 import FileTree, { dosyaCoverage } from './FileTree'
 import { getFileSource } from '../../services/api'
 
-// "Kod" sekmesi: solda dosya ağacı (tümü / yalnızca sorunlular), sağda renkli kod ve AI Insight.
+// "Kod" sekmesi: solda dosya ağacı (tümü / yalnızca sorunlular), sağda renkli kod ve ajan içgörüsü.
 
 const SATIR_YUKSEKLIK = 20
 const MAX_YUKSEKLIK = 500
@@ -93,14 +93,14 @@ export default function CodeTab({ report, aktifYol, odak, onDosyaSec }) {
   const dosyaRef = useRef(dosya)
   dosyaRef.current = dosya
 
-  // Seçili kapsanmayan satır (AI Insight). Başka dosyadaysa o dosyanın ilk kapsanmayan satırı.
+  // Seçili kapsanmayan satır (ajan içgörüsü). Başka dosyadaysa o dosyanın ilk kapsanmayan satırı.
   const [secim, setSecim] = useState(null) // { yol, satir }
   const secili = secim && secim.yol === dosya.yol ? secim.satir : ilkKapsanmayan(dosya)
 
   function editorHazir(ed, mn) {
     setEditor(ed)
     setMonaco(mn)
-    // Kapsanmayan satıra tıklanınca AI Insight aç
+    // Kapsanmayan satıra tıklanınca ajan içgörüsünü aç
     ed.onMouseDown((e) => {
       const satir = e.target.position?.lineNumber
       const d = dosyaRef.current
@@ -151,7 +151,7 @@ export default function CodeTab({ report, aktifYol, odak, onDosyaSec }) {
     <div>
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-text-2">
         <Lejant renk="bg-ok">Kapsandı</Lejant>
-        <Lejant renk="bg-bad">Kapsanmadı · tıkla, AI Insight</Lejant>
+        <Lejant renk="bg-bad">Kapsanmadı, tıklayınca ajan içgörüsü açılır</Lejant>
         <Lejant renk="bg-border-strong">Motor bağımlı</Lejant>
       </div>
       <p className="mb-3 mt-1 text-xs text-muted">
@@ -214,6 +214,7 @@ export default function CodeTab({ report, aktifYol, odak, onDosyaSec }) {
               value={kod ?? ''}
               theme={koyu ? 'vs-dark' : 'vs'}
               onMount={editorHazir}
+              loading={<span className="text-sm text-text-2">Kod düzenleyici yükleniyor…</span>}
               options={{
                 readOnly: true,
                 domReadOnly: true,
@@ -236,7 +237,7 @@ export default function CodeTab({ report, aktifYol, odak, onDosyaSec }) {
           {icgoru && (
             <div role="status" className="mt-3 rounded-xl border border-ai-border bg-ai-bg p-4">
               <p className="flex items-center gap-2 font-semibold text-ai-text">
-                <Sparkles size={16} /> AI Insight · Satır {secili}
+                <Sparkles size={16} /> Ajan içgörüsü, satır {secili}
               </p>
               <p className="mt-1 text-sm text-text-2">{icgoru}</p>
             </div>

@@ -11,3 +11,8 @@ venv/
 # Ortam değişkenleri (API anahtarları vb.)
 .env
 .env.local
+
+# Claude Code yerel ayarları ve Hallmark denetim çıktıları (yalnızca bu makinede)
+.claude/
+.hallmark/
+skills-lock.json

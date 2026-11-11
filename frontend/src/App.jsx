@@ -213,7 +213,7 @@ export default function App() {
             <div aria-hidden="true" className="hero-zemin pointer-events-none absolute inset-0 -z-10">
               <div className="izgara absolute inset-0 opacity-70" />
             </div>
-            <div className="mx-auto grid w-full max-w-7xl items-start gap-12 px-4 pb-16 pt-12 sm:px-6 sm:pt-16 xl:grid-cols-12 xl:gap-10 xl:pt-14">
+            <div className="mx-auto grid w-full max-w-7xl items-start gap-12 px-4 pb-16 pt-12 sm:px-6 sm:pt-16 xl:grid-cols-12 xl:gap-10 xl:pb-12 xl:pt-10">
               <div className="xl:sticky xl:top-28 xl:col-span-4 xl:pt-10">
                 <Hero yan />
               </div>
@@ -246,30 +246,32 @@ export default function App() {
         </main>
       )}
       {screen === 'calisiyor' && (
-        <main className="relative isolate mx-auto max-w-7xl space-y-6 px-4 pb-12 pt-4 sm:px-6">
-          <div aria-hidden="true" className="hero-zemin pointer-events-none absolute left-1/2 top-0 -z-10 h-[34rem] w-screen -translate-x-1/2">
+        <main className="relative isolate">
+          <div aria-hidden="true" className="hero-zemin pointer-events-none absolute inset-x-0 top-0 -z-10 h-[34rem]">
             <div className="izgara absolute inset-0 opacity-70" />
           </div>
-          <RunSummaryBar
-            config={config}
-            round={events.length ? events[events.length - 1].round : 1}
-            maxRounds={events.length ? events[events.length - 1].maxRounds : 4}
-            onStop={durdur}
-          />
-          <VurguKart
-            baslik="Canlı Akış"
-            sag={
-              <span className="flex items-center gap-2 text-sm font-medium text-ai-text">
-                <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-accent" aria-hidden="true" />
-                Ajanlar çalışıyor
-              </span>
-            }
-            govde="space-y-5 p-4 sm:p-6"
-          >
-            <PlanIlerleme config={config} adet={events.length} toplam={toplamOlay} />
-            <LiveStats config={config} metrics={events.length ? events[events.length - 1].metrics : null} />
-            <AgentTimeline events={events} />
-          </VurguKart>
+          <div className="mx-auto max-w-7xl space-y-6 px-4 pb-12 pt-4 sm:px-6">
+            <RunSummaryBar
+              config={config}
+              round={events.length ? events[events.length - 1].round : 1}
+              maxRounds={events.length ? events[events.length - 1].maxRounds : 4}
+              onStop={durdur}
+            />
+            <VurguKart
+              baslik="Canlı Akış"
+              sag={
+                <span className="flex items-center gap-2 text-sm font-medium text-ai-text">
+                  <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-accent" aria-hidden="true" />
+                  Ajanlar çalışıyor
+                </span>
+              }
+              govde="space-y-5 p-4 sm:p-6"
+            >
+              <PlanIlerleme config={config} adet={events.length} toplam={toplamOlay} />
+              <LiveStats config={config} metrics={events.length ? events[events.length - 1].metrics : null} />
+              <AgentTimeline events={events} />
+            </VurguKart>
+          </div>
         </main>
       )}
       {screen === 'rapor' && report && (
