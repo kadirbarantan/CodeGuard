@@ -160,7 +160,7 @@ export const report = {
   ilkEtkilesim: 9, // 1. turda kapsanan etkileşim
   coverage: { testEdilebilir: 94, toplam: 89 },
   etkilesim: { kapsanan: 22, toplam: 24 },
-  testSayisi: { birim: 52, arayuz: 6 },
+  testSayisi: { birim: 52, arayuz: 7 },
   kaliteSkoru: null, // mutasyon testi bitince getQualityScore ile gelir
 
   dosyalar: [
@@ -245,13 +245,21 @@ export const report = {
       'Testlerdeki içeriklerin hepsi 100 karakterden kısaydı; ozet() uzun bir içerikle hiç çağrılmadı.',
   },
 
+  // durum: 'gecti' | 'kaldi' (olası hata) | 'calistirilamadi' (ortam yüzünden koşamadı, neden ile)
   akislar: [
-    { ad: 'Kayıt olma', sayfa: '/register', gecti: true },
-    { ad: 'Giriş yapma', sayfa: '/login', gecti: true },
-    { ad: 'Yazı listesini görüntüleme', sayfa: '/posts', gecti: true },
-    { ad: 'Yeni yazı oluşturma', sayfa: '/posts/new', gecti: false },
-    { ad: 'Yazı detayını açma', sayfa: '/posts/:id', gecti: true },
-    { ad: 'Ana sayfadan yazıya gitme', sayfa: '/', gecti: true },
+    { ad: 'Kayıt olma', sayfa: '/register', durum: 'gecti' },
+    { ad: 'Giriş yapma', sayfa: '/login', durum: 'gecti' },
+    { ad: 'Yazı listesini görüntüleme', sayfa: '/posts', durum: 'gecti' },
+    { ad: 'Yeni yazı oluşturma', sayfa: '/posts/new', durum: 'kaldi' },
+    {
+      ad: 'Yazıya kapak görseli ekleme',
+      sayfa: '/posts/new',
+      durum: 'calistirilamadi',
+      neden:
+        'Görsel dış bir depolama servisine yükleniyor; test ortamında dış ağ kapalı olduğu için istek 30 saniyede zaman aşımına uğradı. Bu akışı test etmek için depolama servisinin taklidi (mock) ya da yerel bir depo gerekir.',
+    },
+    { ad: 'Yazı detayını açma', sayfa: '/posts/:id', durum: 'gecti' },
+    { ad: 'Ana sayfadan yazıya gitme', sayfa: '/', durum: 'gecti' },
   ],
 
   sayfalar: [
@@ -322,12 +330,13 @@ export const report = {
     },
   ],
 
+  // sonuclar: { gecti, kaldi (olası hata), calistirilamadi }; calistirilamayanlar: [{ test, neden }]
   testDosyalari: [
     {
       yol: 'tests/unit/test_posts.py',
       tur: 'birim',
       sayi: 18,
-      sonuc: '17 geçti · 1 olası hata',
+      sonuclar: { gecti: 16, kaldi: 2, calistirilamadi: 0 },
       kod: `from fastapi.testclient import TestClient
 from app.main import app
 
@@ -348,8 +357,8 @@ def test_create_post_bos_baslik():
     {
       yol: 'tests/unit/test_db.py',
       tur: 'birim',
-      sayi: 14,
-      sonuc: '14 geçti',
+      sayi: 13,
+      sonuclar: { gecti: 13, kaldi: 0, calistirilamadi: 0 },
       kod: `from app.db import get_db
 
 
@@ -365,7 +374,7 @@ def test_db_ayni_nesneyi_dondurur():
       yol: 'tests/unit/test_validation.py',
       tur: 'birim',
       sayi: 20,
-      sonuc: '19 geçti · 1 olası hata',
+      sonuclar: { gecti: 17, kaldi: 3, calistirilamadi: 0 },
       kod: `import pytest
 from fastapi import HTTPException
 from app.posts import create_post
@@ -378,10 +387,28 @@ def test_uzun_icerik_reddedilir():
 `,
     },
     {
+      yol: 'frontend/src/components/PostForm.test.js',
+      tur: 'birim',
+      sayi: 1,
+      sonuclar: { gecti: 0, kaldi: 1, calistirilamadi: 0 },
+      kod: `import { onSubmit } from './PostForm'
+
+test('kayıt bitmeden başarı dönülmez', async () => {
+  let kaydedildi = false
+  const api = {
+    createPost: () => new Promise((r) => setTimeout(() => { kaydedildi = true; r() }, 50)),
+  }
+  const sonuc = await onSubmit({ baslik: 'Merhaba', icerik: 'İlk yazı' }, api)
+  expect(sonuc.ok).toBe(true)
+  expect(kaydedildi).toBe(true) // kaldı: onSubmit, createPost'u beklemeden dönüyor
+})
+`,
+    },
+    {
       yol: 'tests/ui/test_register.py',
       tur: 'arayuz',
       sayi: 3,
-      sonuc: '3 geçti',
+      sonuclar: { gecti: 3, kaldi: 0, calistirilamadi: 0 },
       kod: `def test_kayit_formu(page):
     page.goto("/register")
     page.fill("#ad", "Ayse Yilmaz")
@@ -394,14 +421,30 @@ def test_uzun_icerik_reddedilir():
     {
       yol: 'tests/ui/test_posts_flow.py',
       tur: 'arayuz',
-      sayi: 3,
-      sonuc: '2 geçti · 1 olası hata',
-      kod: `def test_yeni_yazi_olustur(page):
+      sayi: 4,
+      sonuclar: { gecti: 2, kaldi: 1, calistirilamadi: 1 },
+      calistirilamayanlar: [
+        {
+          test: 'test_kapak_gorseli_ekle',
+          neden: 'Dış depolama servisine istek 30 saniyede zaman aşımına uğradı (test ortamında dış ağ kapalı).',
+        },
+      ],
+      kod: `from playwright.sync_api import expect
+
+
+def test_yeni_yazi_olustur(page):
     page.goto("/posts/new")
     page.fill("#baslik", "Test yazisi")
     page.fill("#icerik", "Icerik burada")
     page.click("text=Yayınla")
     page.wait_for_url("**/posts", timeout=5000)
+
+
+def test_kapak_gorseli_ekle(page):
+    page.goto("/posts/new")
+    page.set_input_files("#kapak", "tests/ui/ornek-kapak.png")
+    page.click("text=Yayınla")
+    expect(page.locator(".kapak-onizleme")).to_be_visible()
 `,
     },
   ],

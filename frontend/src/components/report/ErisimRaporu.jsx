@@ -354,7 +354,7 @@ function Olcutler({ report }) {
   )
 }
 
-export default function ErisimRaporu({ report }) {
+export default function ErisimRaporu({ report, ust }) {
   const [sekme, setSekme] = useState('ihlaller')
   const olcutBul = (no) => report.olcutler.find((o) => o.no === no)
   const gecen = report.olcutler.filter((o) => o.durum === 'gecti').length
@@ -384,6 +384,7 @@ export default function ErisimRaporu({ report }) {
   return (
     <>
       <VurguKart baslik="Test Özeti" govde="space-y-4 p-5 sm:p-6">
+        {ust}
         <p className="rounded-xl bg-ai-bg px-4 py-2.5 text-sm text-ai-text">
           {report.ozet.sayfa} sayfa {report.wcag} ölçütlerine göre denetlendi; uyum %{uyum} ({gecen} / {denetlenen} ölçüt).{' '}
           {kritik} kritik olmak üzere {report.ihlaller.length} tür ihlal, toplam {ogeSayisi} öğede bulundu.

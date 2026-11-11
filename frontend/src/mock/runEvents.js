@@ -2,7 +2,8 @@
 // Olaylar seçilen test stratejisine göre üretilir: alan, dil ve tür değişince ajan adımları da değişir.
 import { stratejiOlustur, DIL_ARACLARI, ALAN_STRATEJI, ERISIM_STATIK, urlAdi } from '../config/testStratejileri'
 
-const m = (coverage, uiCovered, uiTotal, passed, bugs) => ({ coverage, uiCovered, uiTotal, passed, bugs })
+// calistirilamadi: ortam yüzünden koşamayan test sayısı (hata bulgusu değil)
+const m = (coverage, uiCovered, uiTotal, passed, bugs, calistirilamadi = 0) => ({ coverage, uiCovered, uiTotal, passed, bugs, calistirilamadi })
 
 // Kullanılabilirlik (UX) testi: tek geçişlik değerlendirme (tur döngüsü yok).
 // metrics: { ux: genel skor, desen: okuma deseni uyumu, renk: renk uyumu, bulgu: UX bulgusu sayısı }
@@ -64,7 +65,8 @@ function kodOlaylari(config, st) {
   let ui = 0
   let gecen = 0
   let hata = 0
-  const mm = () => m(cov, ui, uiToplam, gecen, hata)
+  let engel = 0
+  const mm = () => m(cov, ui, uiToplam, gecen, hata, engel)
 
   if (!urlModu) ekle('Planlayıcı Ajan', 'LLM', 'Kod Haritası çıkarıldı, 38 birim bulundu.', 1, mm())
   if (st.motor) {
@@ -86,23 +88,30 @@ function kodOlaylari(config, st) {
   if (st.birim) {
     ekle('Test Yazıcı Ajan', 'LLM · Tur 2', alanS.tur2, 2, mm())
     cov = 71
-    gecen = 48
-    hata = 1
-    ekle('Doğrulayıcı · Standardizasyon Katmanı', 'Sandbox · Tur 2', `Kapsama %${cov}, 1 olası hata bulundu.`, 2, mm())
+    gecen = 44
+    hata = 3
+    ekle('Doğrulayıcı · Standardizasyon Katmanı', 'Sandbox · Tur 2', `Kapsama %${cov}, ${hata} olası hata bulundu.`, 2, mm())
   }
   if (st.arayuz) {
-    ekle('UI Test Yazıcı Ajan', 'LLM', `${urlModu ? 'Playwright' : arac.arayuz} ile 6 kullanıcı akışı için arayüz testi yazıldı.`, st.birim ? 3 : 2, mm())
+    ekle('UI Test Yazıcı Ajan', 'LLM', `${urlModu ? 'Playwright' : arac.arayuz} ile 7 kullanıcı akışı için arayüz testi yazıldı.`, st.birim ? 3 : 2, mm())
     ui = 22
     gecen += 5
     hata += 1
-    ekle('UI Doğrulayıcı · Standardizasyon Katmanı', 'Sandbox', `5/6 akış geçti, ${ui}/${uiToplam} öğe kapsandı.`, st.birim ? 3 : 2, mm())
+    engel += 1
+    ekle(
+      'UI Doğrulayıcı · Standardizasyon Katmanı',
+      'Sandbox',
+      `7 akıştan 5'i geçti, 1'i kaldı, 1'i çalıştırılamadı (dış servise ağ kapalı); ${ui}/${uiToplam} öğe kapsandı.`,
+      st.birim ? 3 : 2,
+      mm(),
+    )
   }
   if (st.birim) {
     ekle('Test Yazıcı Ajan', 'LLM · Tur 3', 'Kalan dallar için yeni testler yazıldı.', 3, mm())
     cov = 94
-    gecen += 5
-    hata += 2
-    ekle('Doğrulayıcı · Standardizasyon Katmanı', 'Sandbox · Tur 3', `Kapsama %${cov}, ilerleme durdu; döngü sonlandı.`, 3, mm())
+    gecen += 2
+    hata += 3
+    ekle('Doğrulayıcı · Standardizasyon Katmanı', 'Sandbox · Tur 3', `Kapsama %${cov}, 3 olası hata daha işaretlendi; ilerleme durdu, döngü sonlandı.`, 3, mm())
   }
   ekle('İçgörü Ajanı', 'LLM', 'Kapsanamayan satırlar açıklanıyor, rapor hazırlanıyor.', 4, mm())
   return olaylar

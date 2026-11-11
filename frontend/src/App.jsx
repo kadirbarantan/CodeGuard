@@ -6,6 +6,7 @@ import ConfigCard from './components/home/ConfigCard'
 import HowItWorks from './components/home/HowItWorks'
 // AgentLoop (Standardizasyon Katmanı görseli) ana sayfadan kaldırıldı; tez sunumunda kullanılmak üzere dosyası duruyor.
 import ReportPreview from './components/home/ReportPreview'
+import GuvenBolumu from './components/home/GuvenBolumu'
 import AuthModal from './components/AuthModal'
 import { startRun, subscribeRun, stopRun, getReport } from './services/api'
 import RunSummaryBar from './components/run/RunSummaryBar'
@@ -233,6 +234,7 @@ export default function App() {
           <HowItWorks />
           <TerminalBolumu />
           <ReportPreview />
+          <GuvenBolumu />
           <footer className="border-t border-border">
             <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-6 text-sm text-muted sm:px-6">
               <span>

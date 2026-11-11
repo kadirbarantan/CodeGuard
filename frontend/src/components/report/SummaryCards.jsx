@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getQualityScore } from '../../services/api'
+import { arayuzVar } from '../../config/testStratejileri'
+import { SonucOzeti, testToplami } from './TestSonuclari'
 
 // Özet kutuları: etkileşim kapsamı, üretilen test, olası hata, kalite skoru.
 export default function SummaryCards({ report, onHatalar }) {
@@ -26,7 +28,7 @@ export default function SummaryCards({ report, onHatalar }) {
 
   return (
     <div className="grid flex-1 gap-3 sm:grid-cols-2">
-      {report.tur !== 'birim' && (
+      {arayuzVar(report.tur) && (
         <div className={kutu}>
           <p className={etiket}>Etkileşim kapsamı</p>
           <p className="mt-1 text-2xl font-semibold text-text">
@@ -39,6 +41,9 @@ export default function SummaryCards({ report, onHatalar }) {
         <p className="mt-1 text-2xl font-semibold text-text">{toplamTest}</p>
         <p className="text-xs text-muted">
           {kaliteVar ? `${report.testSayisi.birim} birim · ${report.testSayisi.arayuz} arayüz` : `${report.testSayisi.arayuz} arayüz`}
+        </p>
+        <p className="mt-0.5 text-xs">
+          <SonucOzeti toplam={testToplami(report.testDosyalari)} />
         </p>
       </div>
       <button

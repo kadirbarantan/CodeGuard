@@ -1,5 +1,5 @@
 // Test konfigürasyonu kartı: girdi (kod ya da URL), alan/dil/tür seçimi ve başlat butonu.
-import { Play } from 'lucide-react'
+import { Play, ShieldCheck } from 'lucide-react'
 import GirdiSecici, { GirdiSekmeleri } from './GirdiSecici'
 import Secici from './Secici'
 import TurSecici from './TurSecici'
@@ -206,6 +206,16 @@ export default function ConfigCard({ config, onChange, user, onStart, onGirisYap
                       : 'Testi başlatmak için giriş yapman istenecek.'}
                 </p>
               )}
+              {/* Güven notu: karar anında kodun nasıl korunduğu (ayrıntı ana sayfadaki bölümde) */}
+              <p className="mt-2 flex items-center justify-center gap-1.5 text-center text-xs text-muted">
+                <ShieldCheck size={13} className="shrink-0 text-ok-text" aria-hidden="true" />
+                <span>
+                  Kodun dış ağa kapalı bir ortamda test edilir, değiştirilmez.{' '}
+                  <a href="#kod-guvenligi" className="font-medium text-ai-text underline-offset-2 hover:underline">
+                    Nasıl korunur?
+                  </a>
+                </span>
+              </p>
             </div>
           </div>
 

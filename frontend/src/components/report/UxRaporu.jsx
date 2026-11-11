@@ -121,7 +121,7 @@ function RenkUyumu({ report }) {
   )
 }
 
-export default function UxRaporu({ report }) {
+export default function UxRaporu({ report, ust }) {
   const [sekme, setSekme] = useState('bulgular')
   const sekmeler = [
     { id: 'bulgular', ad: `UX Bulguları (${report.bulgular.length})` },
@@ -133,7 +133,9 @@ export default function UxRaporu({ report }) {
 
   return (
     <>
-      <VurguKart baslik="Test Özeti" govde="flex flex-col items-center gap-5 p-5 sm:p-6 lg:flex-row">
+      <VurguKart baslik="Test Özeti" govde="space-y-4 p-5 sm:p-6">
+        {ust}
+        <div className="flex flex-col items-center gap-5 lg:flex-row">
         <CoverageDonut yuzde={report.ux.skor} etiket="UX skoru" />
         <div className="grid w-full flex-1 gap-3 sm:grid-cols-2">
           <div className={kutu}>
@@ -158,6 +160,7 @@ export default function UxRaporu({ report }) {
               {report.bulgular.filter((b) => b.onem === 'yuksek').length} yüksek önemli
             </p>
           </div>
+        </div>
         </div>
       </VurguKart>
 
