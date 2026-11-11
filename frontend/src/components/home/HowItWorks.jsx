@@ -96,8 +96,10 @@ export default function HowItWorks() {
               >
                 <Ikon size={22} aria-hidden="true" />
               </span>
-              <p className="mt-5 text-sm font-semibold text-ai-text">Adım {i + 1}</p>
-              <h3 className="mt-1 text-xl font-bold text-text">{baslik}</h3>
+              <h3 className="mt-5 text-xl font-bold text-text">
+                <span className="sr-only">Adım {i + 1}: </span>
+                {baslik}
+              </h3>
               <p className="mt-2 max-w-prose text-sm leading-relaxed text-text-2">{aciklama}</p>
               <ul className="mt-5 flex flex-wrap gap-2">
                 {cipler.map((c) => (

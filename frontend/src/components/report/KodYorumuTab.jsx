@@ -7,7 +7,7 @@ import { birimKapsamasi } from '../../mock/kodYorumu'
 
 const RISK = {
   yuksek: { ad: 'Yüksek risk', kisa: 'Yüksek', sinif: 'bg-bad-bg text-bad-text', kutu: 'border-bad/40 bg-bad-bg text-bad-text' },
-  orta: { ad: 'Orta risk', kisa: 'Orta', sinif: 'bg-warn/10 text-warn', kutu: 'border-warn/40 bg-warn/10 text-warn' },
+  orta: { ad: 'Orta risk', kisa: 'Orta', sinif: 'bg-warn-bg text-warn-text', kutu: 'border-warn/40 bg-warn-bg text-warn-text' },
   dusuk: { ad: 'Düşük risk', kisa: 'Düşük', sinif: 'bg-soft text-text-2', kutu: 'border-border bg-soft text-text-2' },
 }
 
@@ -32,7 +32,7 @@ function BirimKarti({ birim, dosya, onKoddaGoster }) {
         <span className="rounded-md bg-soft px-1.5 py-0.5 text-xs text-text-2">{birim.tur}</span>
         <code className="font-mono text-sm font-semibold text-text">{birim.imza}</code>
         <span className="text-xs text-muted">
-          satır {bas}–{son}
+          satır {bas} ile {son} arası
         </span>
         <span className="ml-auto flex items-center gap-2">
           {kapsama != null && (
@@ -156,7 +156,7 @@ export default function KodYorumuTab({ report, onKoddaGoster }) {
           <ul className="mt-2 space-y-1">
             {y.digerDil.map((d) => (
               <li key={d.yol} className="text-text-2">
-                <span className="font-mono">{d.yol}</span> <span className="text-muted">— {d.neden}</span>
+                <span className="font-mono">{d.yol}</span>: <span className="text-muted">{d.neden}</span>
               </li>
             ))}
           </ul>

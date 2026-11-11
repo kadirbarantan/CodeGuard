@@ -16,6 +16,8 @@ const ONEM = {
 }
 
 const kutu = 'rounded-xl border border-border bg-bg p-4'
+// Özet kutusunun içindeki ölçüm alanları: çerçevesiz, hafif renkli zemin (kart içinde kart olmasın)
+const olcumKutusu = 'rounded-xl bg-soft p-4'
 const etiket = 'text-sm text-muted'
 
 // Hatalı satır ve önerilen düzeltme (yalnızca kod / GitHub ile testte)
@@ -394,27 +396,27 @@ export default function ErisimRaporu({ report, ust }) {
         <div className="flex flex-col items-center gap-5 lg:flex-row">
           <CoverageDonut yuzde={uyum} etiket="WCAG uyumu" />
           <div className="grid w-full flex-1 gap-3 sm:grid-cols-2">
-            <div className={kutu}>
+            <div className={olcumKutusu}>
               <p className={etiket}>Lighthouse erişilebilirlik</p>
               <p className="mt-1 text-2xl font-semibold text-text">{report.ozet.lighthouse} / 100</p>
               <p className="text-xs text-muted">ana sayfa, mobil</p>
             </div>
-            <div className={kutu}>
+            <div className={olcumKutusu}>
               <p className={etiket}>Geçen ölçüt</p>
               <p className="mt-1 text-2xl font-semibold text-text">
                 {gecen} / {denetlenen}
               </p>
               <p className="text-xs text-muted">{report.wcag}</p>
             </div>
-            <button type="button" onClick={ihlallereGit} className={kutu + ' group text-left transition hover:border-bad hover:bg-bad-bg'}>
+            <button type="button" onClick={ihlallereGit} className={olcumKutusu + ' group text-left transition-colors hover:bg-bad-bg'}>
               <p className={etiket}>İhlal</p>
               <p className="mt-1 flex items-baseline justify-between gap-2">
                 <span className="text-2xl font-semibold text-bad-text">{report.ihlaller.length}</span>
-                <span className="text-xs font-medium text-bad-text group-hover:underline">İhlalleri gör →</span>
+                <span className="text-xs font-medium text-bad-text group-hover:underline">İhlalleri incele</span>
               </p>
               <p className="text-xs text-muted">{ogeSayisi} öğede</p>
             </button>
-            <div className={kutu}>
+            <div className={olcumKutusu}>
               <p className={etiket}>Kritik ihlal</p>
               <p className="mt-1 text-2xl font-semibold text-bad-text">{kritik}</p>
               <p className="text-xs text-muted">kullanıcıyı tamamen engelliyor</p>

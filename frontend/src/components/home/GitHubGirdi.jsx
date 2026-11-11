@@ -254,7 +254,7 @@ function RepoSecimi({ github, tur, kullaniciAdi, onGithub }) {
                     <span className="text-text-2">
                       {secilenler.length} dosya · {boyutYaz(hedefBoyut)}
                     </span>
-                    <span className="block text-xs text-muted">Testler bunlara yazılır, coverage bunlarda ölçülür.</span>
+                    <span className="block text-xs text-muted">Testler bunlara yazılır, kapsama bunlarda ölçülür.</span>
                   </p>
                   <p>
                     <span className="font-medium text-text">Otomatik eklenen:</span>{' '}
@@ -274,8 +274,8 @@ function RepoSecimi({ github, tur, kullaniciAdi, onGithub }) {
                     <ul className="mt-2 space-y-1">
                       {baglam.map((b) => (
                         <li key={b.yol} className="flex flex-wrap gap-x-2 text-xs">
-                          <span className="font-mono text-text-2">{b.yol}</span>
-                          <span className="text-muted">— {b.neden}</span>
+                          <span className="font-mono text-text-2">{b.yol}:</span>
+                          <span className="text-muted">{b.neden}</span>
                         </li>
                       ))}
                     </ul>

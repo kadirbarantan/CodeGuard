@@ -82,7 +82,7 @@ export default function AgentLoop() {
 
               <div className="space-y-4 p-4 sm:p-5">
                 <div>
-                  <p className="mb-2 text-xs text-[#ffb4ab]">Sandbox çıktısı (ham)</p>
+                  <p className="mb-2 text-xs text-panel-bad">Sandbox çıktısı (ham)</p>
                   <pre className="overflow-x-auto rounded-xl bg-on-panel/5 p-3 text-xs leading-6 text-on-panel/60">
                     {HAM.join('\n')}
                   </pre>
@@ -95,7 +95,7 @@ export default function AgentLoop() {
                 </div>
 
                 <div>
-                  <p className="mb-2 text-xs text-[#6ee7b7]">Ajana giden JSON (birkaç satır)</p>
+                  <p className="mb-2 text-xs text-panel-ok">Ajana giden JSON (birkaç satır)</p>
                   <pre className="overflow-x-auto rounded-xl border border-ok/30 bg-ok/10 p-3 text-xs leading-6 text-on-panel">
 {`{
   "durum": "eksik_kapsam",

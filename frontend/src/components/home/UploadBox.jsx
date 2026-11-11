@@ -53,18 +53,18 @@ export default function UploadBox({ dosya, onDosya }) {
         </span>
         <p className="mt-4 text-lg font-bold text-text">Kodunu buraya sürükle bırak</p>
         <p className="mt-1 font-mono text-xs text-muted">Klasör, dosya ya da .zip, en fazla 5 MB ve 200 dosya</p>
-        <div className="mt-5 flex flex-wrap justify-center gap-3">
+        <div className="mt-5 flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:justify-center">
           <button
             type="button"
             onClick={() => klasorRef.current.click()}
-            className="flex min-h-11 items-center gap-2 rounded-xl bg-accent px-4 text-sm font-semibold text-white shadow-yumusak transition-colors hover:bg-accent-2"
+            className="flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-accent px-4 text-sm font-semibold text-white shadow-yumusak transition-colors hover:bg-accent-2"
           >
             <FolderOpen size={17} aria-hidden="true" /> Bilgisayarından seç
           </button>
           <button
             type="button"
             onClick={() => dosyaRef.current.click()}
-            className="flex min-h-11 items-center gap-2 rounded-xl border border-border-strong bg-surface px-4 text-sm font-semibold text-text shadow-sm transition-colors hover:bg-soft"
+            className="flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-border-strong bg-surface px-4 text-sm font-semibold text-text shadow-sm transition-colors hover:bg-soft"
           >
             <FileArchive size={17} className="text-muted" aria-hidden="true" /> Tek dosya ya da .zip
           </button>
@@ -72,11 +72,11 @@ export default function UploadBox({ dosya, onDosya }) {
         <button
           type="button"
           onClick={() => kabulEt(ORNEK_PROJE)}
-          className="mt-4 inline-flex min-h-10 items-center gap-1.5 rounded-lg px-2 text-sm font-medium text-ai-text hover:underline"
+          className="mt-4 inline-flex min-h-10 flex-wrap items-center justify-center gap-x-1.5 gap-y-0.5 rounded-lg px-2 text-center text-sm font-medium text-ai-text hover:underline"
         >
           <PlayCircle size={16} aria-hidden="true" />
           Kodun yok mu? Örnek projeyle dene
-          <span className="font-mono text-xs font-normal text-muted">(blog-api · Python)</span>
+          <span className="basis-full font-mono text-xs font-normal text-muted sm:basis-auto">(blog-api, Python)</span>
         </button>
         <input ref={klasorRef} type="file" webkitdirectory="" multiple onChange={inputDegisti} className="hidden" aria-label="Klasör seç" />
         <input ref={dosyaRef} type="file" onChange={inputDegisti} className="hidden" aria-label="Dosya veya zip seç" />
@@ -85,10 +85,11 @@ export default function UploadBox({ dosya, onDosya }) {
       {dosya && (
         <p className="mt-3 flex flex-wrap items-center gap-x-2 text-sm text-ok-text">
           <CircleCheck size={16} />
-          <span className="font-mono font-medium">{dosya.ad}</span>
-          <span>· {dosya.sayi} dosya · {boyutYaz(dosya.boyut)} · Yüklendi</span>
+          <span>
+            <span className="font-mono font-medium">{dosya.ad}</span> yüklendi: {dosya.sayi} dosya, {boyutYaz(dosya.boyut)}
+          </span>
           {dosya.ornek && (
-            <span className="rounded-full bg-ai-bg px-2 py-0.5 text-xs font-medium text-ai-text">Örnek proje · hataları önceden biliniyor</span>
+            <span className="rounded-full bg-ai-bg px-2 py-0.5 text-xs font-medium text-ai-text">Örnek proje: hataları önceden biliniyor</span>
           )}
         </p>
       )}

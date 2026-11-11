@@ -23,7 +23,8 @@ export default function SummaryCards({ report, onHatalar }) {
   }, [report.runId, report.kaliteSkoru, kaliteVar])
 
   const toplamTest = report.testSayisi.birim + report.testSayisi.arayuz
-  const kutu = 'rounded-xl border border-border bg-bg p-4'
+  // Özet kutusunun içindeki ölçüm alanları: çerçevesiz, hafif renkli zemin (kart içinde kart olmasın)
+  const kutu = 'rounded-xl bg-soft p-4'
   const etiket = 'text-sm text-muted'
 
   return (
@@ -40,7 +41,7 @@ export default function SummaryCards({ report, onHatalar }) {
         <p className={etiket}>Üretilen test</p>
         <p className="mt-1 text-2xl font-semibold text-text">{toplamTest}</p>
         <p className="text-xs text-muted">
-          {kaliteVar ? `${report.testSayisi.birim} birim · ${report.testSayisi.arayuz} arayüz` : `${report.testSayisi.arayuz} arayüz`}
+          {kaliteVar ? `${report.testSayisi.birim} birim, ${report.testSayisi.arayuz} arayüz` : `${report.testSayisi.arayuz} arayüz`}
         </p>
         <p className="mt-0.5 text-xs">
           <SonucOzeti toplam={testToplami(report.testDosyalari)} />
@@ -49,12 +50,12 @@ export default function SummaryCards({ report, onHatalar }) {
       <button
         type="button"
         onClick={onHatalar}
-        className={kutu + ' group text-left transition hover:border-bad hover:bg-bad-bg'}
+        className={kutu + ' group text-left transition-colors hover:bg-bad-bg'}
       >
         <p className={etiket}>Olası hata</p>
         <p className="mt-1 flex items-baseline justify-between gap-2">
           <span className="text-2xl font-semibold text-bad-text">{report.olasiHatalar.length}</span>
-          <span className="text-xs font-medium text-bad-text group-hover:underline">Hataları gör →</span>
+          <span className="text-xs font-medium text-bad-text group-hover:underline">Hataları incele</span>
         </p>
       </button>
       {kaliteVar && (

@@ -81,16 +81,16 @@ export default function ConfigCard({ config, onChange, user, onStart, onGirisYap
       <div
         className={
           'rounded-3xl border bg-surface ' +
-          (yanYana ? 'border-accent/40 ring-4 ring-accent/10 shadow-[0_50px_100px_-30px_rgba(46,61,164,0.6),0_0_0_1px_rgba(255,255,255,0.4)_inset]' : 'border-border shadow-kart')
+          (yanYana ? 'border-accent/40 ring-4 ring-accent/10 shadow-vurgu' : 'border-border shadow-kart')
         }
       >
         {/* Pencere başlığı: kart bir geliştirici aracı penceresi gibi; sağda girdi sekmeleri */}
         <div className="flex flex-col gap-3 rounded-t-3xl border-b border-border bg-soft/70 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1.5" aria-hidden="true">
-              <span className="h-3 w-3 rounded-full bg-[#ff5f57]" />
-              <span className="h-3 w-3 rounded-full bg-[#febc2e]" />
-              <span className="h-3 w-3 rounded-full bg-[#28c840]" />
+              <span className="h-3 w-3 rounded-full bg-pencere-1" />
+              <span className="h-3 w-3 rounded-full bg-pencere-2" />
+              <span className="h-3 w-3 rounded-full bg-pencere-3" />
             </span>
             <span className="h-4 w-px bg-border-strong" aria-hidden="true" />
             <h2 className={yanYana ? 'text-lg font-extrabold text-text' : 'text-base font-bold text-text'}>Ajanı Görevlendir</h2>
@@ -101,7 +101,8 @@ export default function ConfigCard({ config, onChange, user, onStart, onGirisYap
         <div className={'grid gap-6 p-4 sm:p-6 ' + (yanYana ? '' : 'lg:grid-cols-12 lg:p-7')}>
           {/* Sol (ana iş): kod girdisi ve test ayarları tek alanda, altında Başlat */}
           <div className={'min-w-0 space-y-5 ' + (yanYana ? '' : 'lg:col-span-8')}>
-            <div className="space-y-5 rounded-2xl border-2 border-ai-border bg-gradient-to-b from-ai-bg/60 to-surface p-4 sm:p-5">
+            {/* Kart içinde ikinci bir çerçeveli kart yok: girdi ve ayarlar ince bir çizgiyle ayrılır */}
+            <div className="space-y-5">
             <GirdiSecici
               kaynak={config.kaynak}
               dosya={config.dosya}
@@ -119,7 +120,7 @@ export default function ConfigCard({ config, onChange, user, onStart, onGirisYap
               }}
             />
 
-            <div className="space-y-4 border-t border-ai-border pt-5">
+            <div className="space-y-4 border-t border-border pt-5">
               <div className="grid gap-4 sm:grid-cols-2">
                 <Secici
                   etiket={<>Test alanı{profil && profil.meslek === alan && <ProfilEtiketi />}</>}
