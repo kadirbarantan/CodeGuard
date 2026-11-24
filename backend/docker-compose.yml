@@ -1,0 +1,23 @@
+# Geliştirme veritabanı (PostgreSQL). backend klasöründe:
+#   docker compose up -d     → başlat (arka planda)
+#   docker compose down      → durdur (veriler "pgveri" biriminde kalır)
+#   docker compose down -v   → durdur ve bütün verileri sil
+# Kullanıcı adı / şifre yalnızca yerel geliştirme içindir; .env'deki DATABASE_URL ile aynı olmalı.
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: codeguard
+      POSTGRES_PASSWORD: codeguard
+      POSTGRES_DB: codeguard
+    ports:
+      - "127.0.0.1:5432:5432"   # yalnızca bu bilgisayardan erişilir
+    volumes:
+      - pgveri:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U codeguard"]
+      interval: 5s
+      retries: 10
+
+volumes:
+  pgveri:

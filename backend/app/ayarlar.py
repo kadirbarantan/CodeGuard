@@ -14,6 +14,9 @@ GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8000/au
 
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
 
+# Veritabanı (PostgreSQL). Yerelde docker-compose.yml ile başlatılır; değerler oradakiyle aynı.
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+psycopg://codeguard:codeguard@localhost:5432/codeguard")
+
 JWT_SECRET = os.getenv("JWT_SECRET", "")
 JWT_SURE_GUN = int(os.getenv("JWT_SURE_GUN", "7"))
 
