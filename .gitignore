@@ -16,3 +16,6 @@ venv/
 .claude/
 .hallmark/
 skills-lock.json
+
+# Backend'e yüklenen kodlar (her test çalıştırmasının kendi klasörü)
+backend/yuklemeler/

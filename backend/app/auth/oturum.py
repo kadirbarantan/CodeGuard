@@ -7,7 +7,8 @@ Başka uçlar giriş isterken `kullanici: dict = Depends(aktif_kullanici)` kulla
 """
 from typing import Literal
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
 
 from app.auth.kullanicilar import disari_ver, id_ile_bul, profil_guncelle
@@ -16,10 +17,14 @@ from app.auth.token import token_coz
 router = APIRouter(prefix="/auth", tags=["oturum"])
 
 
-def aktif_kullanici(authorization: str | None = Header(default=None)) -> dict:
-    if not authorization or not authorization.startswith("Bearer "):
+# Swagger'da (/docs) sağ üstte "Authorize" düğmesi çıkar: token bir kez girilir, bütün uçlarda kullanılır
+_bearer = HTTPBearer(auto_error=False, description="Giriş ya da kayıt yanıtındaki token (başına Bearer yazmadan)")
+
+
+def aktif_kullanici(kimlik: HTTPAuthorizationCredentials | None = Depends(_bearer)) -> dict:
+    if not kimlik:
         raise HTTPException(401, "Giriş gerekli.")
-    kullanici_id = token_coz(authorization.removeprefix("Bearer "))
+    kullanici_id = token_coz(kimlik.credentials)
     kullanici = id_ile_bul(kullanici_id) if kullanici_id else None
     if not kullanici:
         raise HTTPException(401, "Oturum geçersiz ya da süresi doldu.")
