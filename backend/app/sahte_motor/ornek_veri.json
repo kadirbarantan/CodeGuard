@@ -1,0 +1,1920 @@
+{
+ "_aciklama": "OTOMATİK ÜRETİLDİ: node backend/araclar/ornek_veri_uret.mjs. Elle düzenleme; kaynağı frontend/src/mock.",
+ "strateji": {
+  "TURLER": {
+   "birim": "Birim",
+   "arayuz": "Arayüz",
+   "kullanilabilirlik": "Kullanılabilirlik",
+   "erisilebilirlik": "Erişilebilirlik"
+  },
+  "TUR_SIRASI": [
+   "birim",
+   "arayuz",
+   "kullanilabilirlik",
+   "erisilebilirlik"
+  ],
+  "DIL_ARACLARI": {
+   "python": {
+    "birim": "pytest",
+    "mock": "unittest.mock",
+    "api": "FastAPI TestClient",
+    "arayuz": "pytest-playwright",
+    "ozellik": "Hypothesis",
+    "coverage": "coverage.py"
+   },
+   "js": {
+    "birim": "Jest",
+    "mock": "jest.fn",
+    "api": "supertest",
+    "arayuz": "@playwright/test",
+    "ozellik": "fast-check",
+    "coverage": "istanbul"
+   },
+   "csharp": {
+    "birim": "xUnit",
+    "mock": "Moq",
+    "api": "WebApplicationFactory",
+    "arayuz": "Playwright for .NET",
+    "ozellik": "FsCheck",
+    "coverage": "coverlet"
+   },
+   "php": {
+    "birim": "PHPUnit",
+    "mock": "Mockery",
+    "api": "Laravel HTTP Tests",
+    "arayuz": "Playwright",
+    "ozellik": "Eris",
+    "coverage": "Xdebug / PCOV"
+   }
+  },
+  "ALAN_STRATEJI": {
+   "web": {
+    "odak": [
+     "HTTP durum kodları",
+     "form ve girdi doğrulama",
+     "yetkilendirme",
+     "veritabanı taklidi"
+    ],
+    "tur2": "Hatalı istekler ve yetkisiz erişim senaryoları için 9 test eklendi."
+   },
+   "oyun": {
+    "odak": [
+     "oyun kuralları ve durum makineleri",
+     "sabit tohumlu rastgelelik",
+     "sahte zaman (frame/deltaTime)",
+     "ondalık sayı toleransı"
+    ],
+    "tur2": "Sahte zaman ve sabit tohumla 9 deterministik test eklendi."
+   },
+   "mobil": {
+    "odak": [
+     "async akışlar",
+     "ağ kopması ve çevrimdışı durum",
+     "platform API taklidi",
+     "ViewModel / durum yönetimi"
+    ],
+    "tur2": "Ağ kopması ve çevrimdışı senaryoları için 9 test eklendi."
+   },
+   "genel": {
+    "odak": [
+     "sınır değerler",
+     "hata yolları",
+     "girdi doğrulama"
+    ],
+    "tur2": "Sınır değerler ve hata yolları için 9 test eklendi."
+   },
+   "diger": {
+    "odak": [
+     "sınır değerler",
+     "hata yolları",
+     "girdi doğrulama"
+    ],
+    "tur2": "Sınır değerler ve hata yolları için 9 test eklendi."
+   }
+  },
+  "ERISIM_STATIK": {
+   "js": "eslint-plugin-jsx-a11y",
+   "python": "HTML şablon taraması",
+   "csharp": "Razor şablon taraması",
+   "php": "Blade / HTML şablon taraması"
+  },
+  "MOTOR": {
+   "oyun": {
+    "csharp": "Unity (UnityEngine)",
+    "python": "Pygame",
+    "js": "Phaser / Three.js"
+   },
+   "mobil": {
+    "csharp": ".NET MAUI",
+    "js": "React Native"
+   }
+  }
+ },
+ "rapor": {
+  "runId": "run-1",
+  "proje": "blog-api",
+  "alan": "web",
+  "dil": "python",
+  "tur": [
+   "birim",
+   "arayuz"
+  ],
+  "tarih": "26.10.2026",
+  "turSayisi": 4,
+  "ilkCoverage": 34,
+  "ilkEtkilesim": 9,
+  "coverage": {
+   "testEdilebilir": 94,
+   "toplam": 89
+  },
+  "etkilesim": {
+   "kapsanan": 22,
+   "toplam": 24
+  },
+  "testSayisi": {
+   "birim": 52,
+   "arayuz": 7
+  },
+  "kaliteSkoru": null,
+  "dosyalar": [
+   {
+    "yol": "app/posts.py",
+    "kod": "from fastapi import APIRouter, HTTPException\nfrom .db import get_db\n\nrouter = APIRouter()\n\n\n@router.post(\"/posts\")\ndef create_post(baslik: str, icerik: str):\n    if not baslik.strip():\n        raise HTTPException(400, \"Başlık boş olamaz\")\n    if len(icerik) > 5000:\n        raise HTTPException(413, \"İçerik çok uzun\")\n    db = get_db()\n    post = {\"id\": len(db) + 1, \"baslik\": baslik, \"icerik\": icerik}\n    db.append(post)\n    return post\n\n\n@router.get(\"/posts/{post_id}\")\ndef get_post(post_id: int):\n    post = next((p for p in get_db() if p[\"id\"] == post_id), None)\n    if post is None:\n        raise HTTPException(404, \"Yazı bulunamadı\")\n    return post\n",
+    "satirlar": {
+     "kapsanan": [
+      1,
+      2,
+      4,
+      7,
+      8,
+      9,
+      10,
+      13,
+      14,
+      15,
+      16,
+      19,
+      20,
+      21,
+      22,
+      24
+     ],
+     "kapsanmayan": [
+      12,
+      23
+     ],
+     "motorBagimli": []
+    }
+   },
+   {
+    "yol": "app/pagination.py",
+    "kod": "def paginate(items, page, per_page=10):\n    if page < 1:\n        page = 1\n    if per_page <= 0:\n        raise ValueError(\"per_page pozitif olmali\")\n    start = (page - 1) * per_page\n    end = start + per_page\n    chunk = items[start:end]\n    total_pages = -(-len(items) // per_page)\n    return {\"items\": chunk, \"page\": page, \"total_pages\": total_pages}\n\n\ndef has_next(page, total_pages):\n    if total_pages == 0:\n        return False\n    return page < total_pages\n\n\ndef has_prev(page):\n    return page > 1\n",
+    "satirlar": {
+     "kapsanan": [
+      1,
+      2,
+      4,
+      6,
+      7,
+      8,
+      9,
+      10,
+      13,
+      14,
+      16,
+      19,
+      20
+     ],
+     "kapsanmayan": [
+      3,
+      5,
+      15
+     ],
+     "motorBagimli": []
+    }
+   },
+   {
+    "yol": "app/users.py",
+    "kod": "from .db import get_db\n\n\ndef find_user(user_id):\n    for u in get_db():\n        if u[\"id\"] == user_id:\n            return u\n    return None\n\n\ndef user_count():\n    return len(get_db())\n",
+    "satirlar": {
+     "kapsanan": [
+      1,
+      4,
+      5,
+      6,
+      7,
+      8,
+      11,
+      12
+     ],
+     "kapsanmayan": [],
+     "motorBagimli": []
+    }
+   },
+   {
+    "yol": "app/core/config.py",
+    "kod": "import os\n\nDEFAULT_PAGE_SIZE = 10\n\n\ndef get_page_size():\n    value = os.getenv(\"PAGE_SIZE\")\n    if value is None:\n        return DEFAULT_PAGE_SIZE\n    return int(value)\n\n\ndef is_debug():\n    return os.getenv(\"DEBUG\", \"0\") == \"1\"\n",
+    "satirlar": {
+     "kapsanan": [
+      1,
+      3,
+      6,
+      7,
+      8,
+      9,
+      13,
+      14
+     ],
+     "kapsanmayan": [
+      10
+     ],
+     "motorBagimli": []
+    }
+   },
+   {
+    "yol": "app/core/security.py",
+    "kod": "import hashlib\n\n\ndef hash_password(password):\n    if len(password) < 8:\n        raise ValueError(\"Sifre en az 8 karakter olmali\")\n    return hashlib.sha256(password.encode()).hexdigest()\n\n\ndef verify_password(password, hashed):\n    return hash_password(password) == hashed\n",
+    "satirlar": {
+     "kapsanan": [
+      1,
+      4,
+      5,
+      6,
+      7,
+      10,
+      11
+     ],
+     "kapsanmayan": [],
+     "motorBagimli": []
+    }
+   },
+   {
+    "yol": "app/models/post.py",
+    "kod": "from dataclasses import dataclass\n\n\n@dataclass\nclass Post:\n    id: int\n    baslik: str\n    icerik: str\n\n    def ozet(self, uzunluk=100):\n        if len(self.icerik) <= uzunluk:\n            return self.icerik\n        return self.icerik[:uzunluk] + \"...\"\n",
+    "satirlar": {
+     "kapsanan": [
+      1,
+      4,
+      5,
+      6,
+      7,
+      8,
+      10,
+      11,
+      12
+     ],
+     "kapsanmayan": [
+      13
+     ],
+     "motorBagimli": []
+    }
+   },
+   {
+    "yol": "app/utils/slug.py",
+    "kod": "import re\n\n\ndef slugify(metin):\n    metin = metin.lower().strip()\n    metin = re.sub(r\"[^a-z0-9]+\", \"-\", metin)\n    return metin.strip(\"-\")\n",
+    "satirlar": {
+     "kapsanan": [
+      1,
+      4,
+      5,
+      6,
+      7
+     ],
+     "kapsanmayan": [],
+     "motorBagimli": []
+    }
+   },
+   {
+    "yol": "frontend/src/api.js",
+    "kod": "const BASE = \"/api\"\n\nexport async function getPosts(page = 1) {\n  const r = await fetch(BASE + \"/posts?page=\" + page)\n  if (!r.ok) throw new Error(\"Yazilar alinamadi\")\n  return r.json()\n}\n",
+    "satirlar": {
+     "kapsanan": [
+      1,
+      3,
+      4,
+      5,
+      6
+     ],
+     "kapsanmayan": [],
+     "motorBagimli": []
+    }
+   },
+   {
+    "yol": "frontend/src/main.js",
+    "kod": "import { getPosts } from \"./api.js\"\n\nasync function init() {\n  const veri = await getPosts()\n  document.querySelector(\"#liste\").textContent = veri.items.length + \" yazi\"\n}\n\ninit()\n",
+    "satirlar": {
+     "kapsanan": [
+      1,
+      3,
+      4,
+      8
+     ],
+     "kapsanmayan": [],
+     "motorBagimli": [
+      5
+     ]
+    }
+   },
+   {
+    "yol": "frontend/src/components/PostForm.js",
+    "kod": "export function validatePost(baslik, icerik) {\n  const hatalar = []\n  if (!baslik) hatalar.push(\"Baslik gerekli\")\n  if (icerik.length > 5000) hatalar.push(\"Icerik cok uzun\")\n  return hatalar\n}\n\nexport function onSubmit(form, api) {\n  const hatalar = validatePost(form.baslik, form.icerik)\n  if (hatalar.length) return { ok: false, hatalar }\n  api.createPost(form)\n  return { ok: true }\n}\n",
+    "satirlar": {
+     "kapsanan": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      8,
+      9,
+      10,
+      11,
+      12
+     ],
+     "kapsanmayan": [],
+     "motorBagimli": []
+    }
+   }
+  ],
+  "icgoruler": {
+   "app/posts.py:12": "Ajan 4 turda bu satıra ulaşamadı: 5000 karakterden uzun içerik gönderen bir test, istek boyut sınırına takılıyor. Ayrı bir birim testiyle doğrudan fonksiyon çağrılmalı.",
+   "app/posts.py:23": "Bu satır yalnızca var olmayan bir yazı istenirse çalışır. Veritabanı sahte verisi her zaman kayıt döndürdüğü için ajan 404 durumunu tetikleyemedi.",
+   "app/pagination.py:3": "Testlerin hepsi 1 ve üzeri sayfa numarası gönderdi. page=0 ya da negatif bir değerle çağıran bir test bu satırı çalıştırır.",
+   "app/pagination.py:5": "per_page her testte varsayılan 10 kaldı. per_page=0 ile ValueError beklenen bir test eklenmeli.",
+   "app/pagination.py:15": "Boş liste ile has_next çağrılmadı. total_pages=0 durumu için ayrı bir test gerekiyor.",
+   "app/core/config.py:10": "PAGE_SIZE ortam değişkeni hiçbir testte ayarlanmadı, bu yüzden her seferinde varsayılan değer döndü. monkeypatch ile ortam değişkenini ayarlayan bir test bu satırı çalıştırır.",
+   "app/models/post.py:13": "Testlerdeki içeriklerin hepsi 100 karakterden kısaydı; ozet() uzun bir içerikle hiç çağrılmadı."
+  },
+  "akislar": [
+   {
+    "ad": "Kayıt olma",
+    "sayfa": "/register",
+    "durum": "gecti"
+   },
+   {
+    "ad": "Giriş yapma",
+    "sayfa": "/login",
+    "durum": "gecti"
+   },
+   {
+    "ad": "Yazı listesini görüntüleme",
+    "sayfa": "/posts",
+    "durum": "gecti"
+   },
+   {
+    "ad": "Yeni yazı oluşturma",
+    "sayfa": "/posts/new",
+    "durum": "kaldi"
+   },
+   {
+    "ad": "Yazıya kapak görseli ekleme",
+    "sayfa": "/posts/new",
+    "durum": "calistirilamadi",
+    "neden": "Görsel dış bir depolama servisine yükleniyor; test ortamında dış ağ kapalı olduğu için istek 30 saniyede zaman aşımına uğradı. Bu akışı test etmek için depolama servisinin taklidi (mock) ya da yerel bir depo gerekir."
+   },
+   {
+    "ad": "Yazı detayını açma",
+    "sayfa": "/posts/:id",
+    "durum": "gecti"
+   },
+   {
+    "ad": "Ana sayfadan yazıya gitme",
+    "sayfa": "/",
+    "durum": "gecti"
+   }
+  ],
+  "sayfalar": [
+   {
+    "yol": "/",
+    "kapsanan": 5,
+    "toplam": 5,
+    "eksik": []
+   },
+   {
+    "yol": "/register",
+    "kapsanan": 4,
+    "toplam": 4,
+    "eksik": []
+   },
+   {
+    "yol": "/login",
+    "kapsanan": 3,
+    "toplam": 3,
+    "eksik": []
+   },
+   {
+    "yol": "/posts",
+    "kapsanan": 4,
+    "toplam": 4,
+    "eksik": []
+   },
+   {
+    "yol": "/posts/new",
+    "kapsanan": 5,
+    "toplam": 6,
+    "eksik": [
+     "\"Taslak kaydet\" butonu"
+    ]
+   },
+   {
+    "yol": "/posts/:id",
+    "kapsanan": 1,
+    "toplam": 2,
+    "eksik": [
+     "\"Yazıyı sil\" butonu"
+    ]
+   }
+  ],
+  "olasiHatalar": [
+   {
+    "tur": "birim",
+    "baslik": "Boşluktan oluşan başlık kabul ediliyor mu?",
+    "konum": "app/posts.py:9",
+    "dosya": "app/posts.py",
+    "satir": 9,
+    "gerekce": "Başlık sadece boşluktan oluşunca beklenen 400 yerine 200 döndü. strip() sonrası kontrol bazı durumlarda atlanıyor gibi görünüyor."
+   },
+   {
+    "tur": "birim",
+    "baslik": "Yazı kimliği çakışabilir",
+    "konum": "app/posts.py:14",
+    "dosya": "app/posts.py",
+    "satir": 14,
+    "gerekce": "Kimlik len(db) + 1 ile üretiliyor. Bir kayıt silinirse aynı kimlik ikinci kez verilebilir."
+   },
+   {
+    "tur": "birim",
+    "baslik": "Son sayfadan sonrası sessizce boş dönüyor",
+    "konum": "app/pagination.py:8",
+    "dosya": "app/pagination.py",
+    "satir": 8,
+    "gerekce": "page, total_pages değerinden büyük verildiğinde hata yerine boş liste döndü. İstemci geçersiz sayfayı fark edemiyor."
+   },
+   {
+    "tur": "birim",
+    "baslik": "Kısa şifreyle giriş denemesi hata fırlatıyor",
+    "konum": "app/core/security.py:11",
+    "dosya": "app/core/security.py",
+    "satir": 11,
+    "gerekce": "verify_password, 8 karakterden kısa bir şifreyle çağrılınca False döndürmek yerine ValueError fırlattı. Giriş ekranında 500 hatasına dönüşebilir."
+   },
+   {
+    "tur": "birim",
+    "baslik": "Türkçe karakterler adres metninden siliniyor",
+    "konum": "app/utils/slug.py:6",
+    "dosya": "app/utils/slug.py",
+    "satir": 6,
+    "gerekce": "slugify(\"Çay Saati\") sonucu \"ay-saati\" oldu. Ç, ş, ğ gibi harfler adresten tamamen düşüyor."
+   },
+   {
+    "tur": "birim",
+    "baslik": "Yazı kaydı beklenmeden başarılı dönülüyor",
+    "konum": "frontend/src/components/PostForm.js:11",
+    "dosya": "frontend/src/components/PostForm.js",
+    "satir": 11,
+    "gerekce": "api.createPost await edilmiyor; istek bitmeden { ok: true } dönüyor. /posts/new sayfasındaki yönlendirme hatasının olası kaynağı bu."
+   },
+   {
+    "tur": "arayuz",
+    "baslik": "Yeni yazı formu kaydedildikten sonra yönlendirmiyor",
+    "konum": "/posts/new",
+    "sayfa": "/posts/new",
+    "akis": "Yeni yazı oluşturma",
+    "gerekce": "\"Yayınla\" butonuna basıldıktan sonra sayfa 5 saniye içinde yazı listesine geçmedi. Kullanıcı yazının kaydedildiğini anlamıyor."
+   }
+  ],
+  "testDosyalari": [
+   {
+    "yol": "tests/unit/test_posts.py",
+    "tur": "birim",
+    "sayi": 18,
+    "sonuclar": {
+     "gecti": 16,
+     "kaldi": 2,
+     "calistirilamadi": 0
+    },
+    "kod": "from fastapi.testclient import TestClient\nfrom app.main import app\n\nclient = TestClient(app)\n\n\ndef test_create_post_basarili():\n    r = client.post(\"/posts\", params={\"baslik\": \"Merhaba\", \"icerik\": \"Ilk yazi\"})\n    assert r.status_code == 200\n    assert r.json()[\"baslik\"] == \"Merhaba\"\n\n\ndef test_create_post_bos_baslik():\n    r = client.post(\"/posts\", params={\"baslik\": \"   \", \"icerik\": \"x\"})\n    assert r.status_code == 400\n"
+   },
+   {
+    "yol": "tests/unit/test_db.py",
+    "tur": "birim",
+    "sayi": 13,
+    "sonuclar": {
+     "gecti": 13,
+     "kaldi": 0,
+     "calistirilamadi": 0
+    },
+    "kod": "from app.db import get_db\n\n\ndef test_db_baslangicta_bos():\n    assert get_db() == []\n\n\ndef test_db_ayni_nesneyi_dondurur():\n    assert get_db() is get_db()\n"
+   },
+   {
+    "yol": "tests/unit/test_validation.py",
+    "tur": "birim",
+    "sayi": 20,
+    "sonuclar": {
+     "gecti": 17,
+     "kaldi": 3,
+     "calistirilamadi": 0
+    },
+    "kod": "import pytest\nfrom fastapi import HTTPException\nfrom app.posts import create_post\n\n\ndef test_uzun_icerik_reddedilir():\n    with pytest.raises(HTTPException) as e:\n        create_post(\"Baslik\", \"a\" * 5001)\n    assert e.value.status_code == 413\n"
+   },
+   {
+    "yol": "frontend/src/components/PostForm.test.js",
+    "tur": "birim",
+    "sayi": 1,
+    "sonuclar": {
+     "gecti": 0,
+     "kaldi": 1,
+     "calistirilamadi": 0
+    },
+    "kod": "import { onSubmit } from './PostForm'\n\ntest('kayıt bitmeden başarı dönülmez', async () => {\n  let kaydedildi = false\n  const api = {\n    createPost: () => new Promise((r) => setTimeout(() => { kaydedildi = true; r() }, 50)),\n  }\n  const sonuc = await onSubmit({ baslik: 'Merhaba', icerik: 'İlk yazı' }, api)\n  expect(sonuc.ok).toBe(true)\n  expect(kaydedildi).toBe(true) // kaldı: onSubmit, createPost'u beklemeden dönüyor\n})\n"
+   },
+   {
+    "yol": "tests/ui/test_register.py",
+    "tur": "arayuz",
+    "sayi": 3,
+    "sonuclar": {
+     "gecti": 3,
+     "kaldi": 0,
+     "calistirilamadi": 0
+    },
+    "kod": "def test_kayit_formu(page):\n    page.goto(\"/register\")\n    page.fill(\"#ad\", \"Ayse Yilmaz\")\n    page.fill(\"#eposta\", \"ayse@ornek.com\")\n    page.fill(\"#sifre\", \"gizli1234\")\n    page.click(\"text=Hesap Oluştur\")\n    assert page.url.endswith(\"/posts\")\n"
+   },
+   {
+    "yol": "tests/ui/test_posts_flow.py",
+    "tur": "arayuz",
+    "sayi": 4,
+    "sonuclar": {
+     "gecti": 2,
+     "kaldi": 1,
+     "calistirilamadi": 1
+    },
+    "calistirilamayanlar": [
+     {
+      "test": "test_kapak_gorseli_ekle",
+      "neden": "Dış depolama servisine istek 30 saniyede zaman aşımına uğradı (test ortamında dış ağ kapalı)."
+     }
+    ],
+    "kod": "from playwright.sync_api import expect\n\n\ndef test_yeni_yazi_olustur(page):\n    page.goto(\"/posts/new\")\n    page.fill(\"#baslik\", \"Test yazisi\")\n    page.fill(\"#icerik\", \"Icerik burada\")\n    page.click(\"text=Yayınla\")\n    page.wait_for_url(\"**/posts\", timeout=5000)\n\n\ndef test_kapak_gorseli_ekle(page):\n    page.goto(\"/posts/new\")\n    page.set_input_files(\"#kapak\", \"tests/ui/ornek-kapak.png\")\n    page.click(\"text=Yayınla\")\n    expect(page.locator(\".kapak-onizleme\")).to_be_visible()\n"
+   }
+  ]
+ },
+ "uxRapor": {
+  "proje": "ornek-site.com",
+  "alan": "web",
+  "tur": "kullanilabilirlik",
+  "tarih": "02.11.2026",
+  "turSayisi": null,
+  "ux": {
+   "skor": 72,
+   "desen": 74,
+   "renk": 81
+  },
+  "sayfalar": [
+   {
+    "yol": "/",
+    "desen": "Z",
+    "uyum": 78,
+    "not": "Logo ve menü doğru yerde; \"Kayıt ol\" butonu Z deseninin bitiş noktasının (sağ alt) dışında kalıyor."
+   },
+   {
+    "yol": "/blog",
+    "desen": "F",
+    "uyum": 86,
+    "not": "Başlıklar sola yaslı, ilk kelimeler kolay taranıyor."
+   },
+   {
+    "yol": "/blog/:id",
+    "desen": "F",
+    "uyum": 82,
+    "not": "Ara başlıklar F desenini destekliyor; uzun paragraflar taramayı zorlaştırıyor."
+   },
+   {
+    "yol": "/pricing",
+    "desen": "Z",
+    "uyum": 58,
+    "not": "Plan başlıkları sağa yaslı; göz önce fiyatı değil açıklamayı görüyor."
+   },
+   {
+    "yol": "/login",
+    "desen": "Z",
+    "uyum": 80,
+    "not": "Form ortada, ana buton ilk bakışta görünüyor."
+   },
+   {
+    "yol": "/register",
+    "desen": "Z",
+    "uyum": 62,
+    "not": "Mobilde gönder butonu ilk ekranın altında kalıyor."
+   }
+  ],
+  "palet": [
+   {
+    "hex": "#7C3AED",
+    "ad": "Ana renk",
+    "oran": 18
+   },
+   {
+    "hex": "#111827",
+    "ad": "Metin",
+    "oran": 34
+   },
+   {
+    "hex": "#F9FAFB",
+    "ad": "Arka plan",
+    "oran": 38
+   },
+   {
+    "hex": "#F59E0B",
+    "ad": "Vurgu",
+    "oran": 6
+   },
+   {
+    "hex": "#9CA3AF",
+    "ad": "İkincil metin",
+    "oran": 4
+   }
+  ],
+  "renkNotu": "Palet genel olarak uyumlu: mor ana renk ile turuncu vurgu birbirini tamamlıyor. Ancak turuncu hem uyarı, hem indirim hem de \"Yakında\" rozeti için kullanılıyor; anlamı tutarsız.",
+  "bulgular": [
+   {
+    "onem": "yuksek",
+    "baslik": "Ana eylem butonu okuma deseninin dışında",
+    "sayfa": "/",
+    "aciklama": "Kullanıcının gözü Z deseninin sonunda sağ altta duruyor; \"Kayıt ol\" butonu ise solda, görselin altında.",
+    "oneri": "Butonu başlığın sağ altına, Z deseninin bitiş noktasına taşı."
+   },
+   {
+    "onem": "yuksek",
+    "baslik": "Kayıt formunun gönder butonu mobilde görünmüyor",
+    "sayfa": "/register",
+    "aciklama": "390 px genişlikte buton ilk ekranın 220 px altında kalıyor; kullanıcı formun bittiğini anlamıyor.",
+    "oneri": "Formu kısalt ya da butonu ekranın altına sabitle."
+   },
+   {
+    "onem": "orta",
+    "baslik": "Ana içerik ile kenar çubuğu yarışıyor",
+    "sayfa": "/blog",
+    "aciklama": "Kenar çubuğundaki renkli kampanya kutusu yazı listesinden daha çok dikkat çekiyor; göz önce reklama gidiyor.",
+    "oneri": "Kampanya kutusunu sadeleştir ya da listenin altına taşı; yazı başlıklarını büyüt."
+   },
+   {
+    "onem": "orta",
+    "baslik": "Fiyat başlıkları sağa yaslı",
+    "sayfa": "/pricing",
+    "aciklama": "Sağa yaslı başlıklar Z desenini bozuyor; kullanıcı planları karşılaştırmakta zorlanıyor.",
+    "oneri": "Başlıkları sola yasla, fiyatı başlığın hemen altına al."
+   },
+   {
+    "onem": "dusuk",
+    "baslik": "Vurgu rengi farklı anlamlarda kullanılıyor",
+    "sayfa": "Genel",
+    "aciklama": "Turuncu hem uyarı hem indirim hem de bilgi rozeti için kullanılıyor.",
+    "oneri": "Turuncuyu yalnızca uyarılar için kullan; bilgi rozetlerini ana renge çek."
+   },
+   {
+    "onem": "dusuk",
+    "baslik": "Uzun paragraflar taramayı zorlaştırıyor",
+    "sayfa": "/blog/:id",
+    "aciklama": "Bazı paragraflar 9 satırı geçiyor; F deseninde göz sol kenardan aşağı kayıp gidiyor.",
+    "oneri": "Paragrafları 3–4 satırla sınırla, ara başlık ekle."
+   }
+  ]
+ },
+ "erisimRapor": {
+  "proje": "ornek-magaza.com",
+  "alan": "web",
+  "tur": "erisilebilirlik",
+  "tarih": "09.11.2026",
+  "turSayisi": null,
+  "wcag": "WCAG 2.2 AA",
+  "ozet": {
+   "uyum": 46,
+   "lighthouse": 74,
+   "sayfa": 6
+  },
+  "olcutler": [
+   {
+    "no": "1.1.1",
+    "ad": "Metin dışı içerik",
+    "duzey": "A",
+    "durum": "kaldi"
+   },
+   {
+    "no": "1.2.2",
+    "ad": "Altyazılar (kayıtlı)",
+    "duzey": "A",
+    "durum": "kaldi"
+   },
+   {
+    "no": "1.3.1",
+    "ad": "Bilgi ve ilişkiler",
+    "duzey": "A",
+    "durum": "kaldi"
+   },
+   {
+    "no": "1.3.4",
+    "ad": "Ekran yönü",
+    "duzey": "AA",
+    "durum": "gecti"
+   },
+   {
+    "no": "1.4.1",
+    "ad": "Rengin kullanımı",
+    "duzey": "A",
+    "durum": "kaldi"
+   },
+   {
+    "no": "1.4.3",
+    "ad": "Kontrast (asgari)",
+    "duzey": "AA",
+    "durum": "kaldi"
+   },
+   {
+    "no": "1.4.4",
+    "ad": "Metni yeniden boyutlandırma",
+    "duzey": "AA",
+    "durum": "gecti"
+   },
+   {
+    "no": "1.4.10",
+    "ad": "Yeniden akış",
+    "duzey": "AA",
+    "durum": "kaldi"
+   },
+   {
+    "no": "1.4.11",
+    "ad": "Metin dışı kontrast",
+    "duzey": "AA",
+    "durum": "gecti"
+   },
+   {
+    "no": "1.4.12",
+    "ad": "Metin aralığı",
+    "duzey": "AA",
+    "durum": "gecti"
+   },
+   {
+    "no": "2.1.1",
+    "ad": "Klavye",
+    "duzey": "A",
+    "durum": "kaldi"
+   },
+   {
+    "no": "2.1.2",
+    "ad": "Klavye tuzağı olmaması",
+    "duzey": "A",
+    "durum": "kaldi"
+   },
+   {
+    "no": "2.2.2",
+    "ad": "Duraklat, durdur, gizle",
+    "duzey": "A",
+    "durum": "kaldi"
+   },
+   {
+    "no": "2.4.1",
+    "ad": "Blokları atlama",
+    "duzey": "A",
+    "durum": "gecti"
+   },
+   {
+    "no": "2.4.2",
+    "ad": "Sayfa başlığı",
+    "duzey": "A",
+    "durum": "gecti"
+   },
+   {
+    "no": "2.4.3",
+    "ad": "Odak sırası",
+    "duzey": "A",
+    "durum": "gecti"
+   },
+   {
+    "no": "2.4.4",
+    "ad": "Bağlantı amacı (bağlam içinde)",
+    "duzey": "A",
+    "durum": "gecti"
+   },
+   {
+    "no": "2.4.6",
+    "ad": "Başlıklar ve etiketler",
+    "duzey": "AA",
+    "durum": "gecti"
+   },
+   {
+    "no": "2.4.7",
+    "ad": "Odak görünürlüğü",
+    "duzey": "AA",
+    "durum": "kaldi"
+   },
+   {
+    "no": "2.5.8",
+    "ad": "Hedef boyutu (asgari)",
+    "duzey": "AA",
+    "durum": "kaldi"
+   },
+   {
+    "no": "3.1.1",
+    "ad": "Sayfanın dili",
+    "duzey": "A",
+    "durum": "gecti"
+   },
+   {
+    "no": "3.2.2",
+    "ad": "Girdi sırasında",
+    "duzey": "A",
+    "durum": "gecti"
+   },
+   {
+    "no": "3.3.1",
+    "ad": "Hatanın belirtilmesi",
+    "duzey": "A",
+    "durum": "kaldi"
+   },
+   {
+    "no": "3.3.2",
+    "ad": "Etiketler veya talimatlar",
+    "duzey": "A",
+    "durum": "kaldi"
+   },
+   {
+    "no": "3.3.3",
+    "ad": "Hata önerisi",
+    "duzey": "AA",
+    "durum": "gecti"
+   },
+   {
+    "no": "3.3.8",
+    "ad": "Erişilebilir kimlik doğrulama (asgari)",
+    "duzey": "AA",
+    "durum": "gecti"
+   },
+   {
+    "no": "4.1.2",
+    "ad": "Ad, rol, değer",
+    "duzey": "A",
+    "durum": "kaldi"
+   },
+   {
+    "no": "4.1.3",
+    "ad": "Durum mesajları",
+    "duzey": "AA",
+    "durum": "kaldi"
+   }
+  ],
+  "ihlaller": [
+   {
+    "onem": "kritik",
+    "wcag": "2.1.1",
+    "baslik": "Mobil menü klavyeyle açılamıyor",
+    "grup": "hareket",
+    "yontem": "Klavye testi",
+    "sayfa": "Tüm sayfalar",
+    "adet": 6,
+    "oge": "div.menu-toggle",
+    "aciklama": "Menü düğmesi <div> ile yapılmış: Tab ile odaklanılamıyor, Enter ile açılmıyor. Klavye ve ekran okuyucu kullanıcıları menüye hiç ulaşamıyor.",
+    "oneri": "Gerçek bir <button> kullan; açık/kapalı durumunu aria-expanded ile bildir."
+   },
+   {
+    "onem": "kritik",
+    "wcag": "2.1.2",
+    "baslik": "Tarih seçicide klavye tuzağı",
+    "grup": "hareket",
+    "yontem": "Klavye testi",
+    "sayfa": "/register",
+    "adet": 1,
+    "oge": "#dogum + .takvim",
+    "aciklama": "Doğum tarihi alanında takvim açılınca odak takvimin içinde dönüyor; Tab ile dışarı çıkılamıyor, Esc de kapatmıyor.",
+    "oneri": "Tarayıcının kendi tarih alanını kullan ya da Esc ile kapatıp odağı alana geri döndür."
+   },
+   {
+    "onem": "ciddi",
+    "wcag": "1.1.1",
+    "baslik": "Alternatif metni olmayan görseller",
+    "grup": "gorme",
+    "yontem": "axe-core",
+    "sayfa": "/blog, /blog/:id",
+    "adet": 14,
+    "oge": "img.kapak",
+    "aciklama": "Yazı kapak görsellerinde alt özniteliği yok; ekran okuyucu dosya adını okuyor (\"kapak-3.jpg\").",
+    "oneri": "Bilgi veren görsellere içeriği anlatan alt metni yaz; yalnızca süs olan görsellere alt=\"\" ver."
+   },
+   {
+    "onem": "ciddi",
+    "wcag": "1.4.3",
+    "baslik": "Yetersiz renk kontrastı",
+    "grup": "azgorme",
+    "yontem": "axe-core",
+    "sayfa": "3 sayfa",
+    "adet": 7,
+    "oge": ".ikincil, .ipucu, .rozet-yakinda",
+    "aciklama": "Yedi metin, normal metin için gereken 4.5:1 oranının altında; düşük parlaklıkta ve güneş altında okunmuyor. Ayrıntı Kontrast sekmesinde.",
+    "oneri": "İkincil metin rengini #6B7280 yap (4.8:1); \"Yakında\" rozetinde koyu turuncu (#B45309) kullan."
+   },
+   {
+    "onem": "ciddi",
+    "wcag": "3.3.2",
+    "baslik": "Form alanlarının görünür etiketi yok",
+    "grup": "gorme",
+    "yontem": "axe-core",
+    "sayfa": "/login, /register",
+    "adet": 5,
+    "oge": "input[placeholder]",
+    "aciklama": "Alanlar yalnızca yer tutucu metinle tanıtılıyor; yazmaya başlayınca kayboluyor ve ekran okuyucu alanın adını okuyamıyor.",
+    "oneri": "Her alana <label for> ile görünür bir etiket ekle; yer tutucuyu yalnızca örnek için kullan."
+   },
+   {
+    "onem": "ciddi",
+    "wcag": "4.1.2",
+    "baslik": "Adı olmayan ikon düğmeleri",
+    "grup": "gorme",
+    "yontem": "Erişilebilirlik ağacı",
+    "sayfa": "/, /blog/:id",
+    "adet": 4,
+    "oge": "button.ara, button.paylas",
+    "aciklama": "Arama ve paylaşım düğmeleri yalnızca ikondan oluşuyor; ekran okuyucu \"düğme\" diyor ama ne işe yaradığını söylemiyor.",
+    "oneri": "Düğmeye aria-label ver, ikonu aria-hidden ile gizle."
+   },
+   {
+    "onem": "ciddi",
+    "wcag": "1.4.1",
+    "baslik": "Bilgi yalnızca renkle veriliyor",
+    "grup": "azgorme",
+    "yontem": "Görme simülasyonu + Gemini",
+    "sayfa": "/pricing",
+    "adet": 18,
+    "oge": "td .durum-nokta",
+    "aciklama": "Plan karşılaştırma tablosunda bir özelliğin planda olup olmadığı yalnızca yeşil ve kırmızı noktayla gösteriliyor. Döteranopi ve protanopi simülasyonunda iki nokta aynı görünüyor; ekran okuyucu da hiçbir şey okumuyor.",
+    "oneri": "Rengin yanına \"Var\" / \"Yok\" metni ya da farklı biçimde iki ikon (✓ / ✕) ekle."
+   },
+   {
+    "onem": "ciddi",
+    "wcag": "4.1.3",
+    "baslik": "Form hatası ekran okuyucuya duyurulmuyor",
+    "grup": "gorme",
+    "yontem": "Form senaryosu",
+    "sayfa": "/register",
+    "adet": 1,
+    "oge": "p.hata",
+    "aciklama": "Form bilerek geçersiz e-postayla gönderildi. Kırmızı hata yazısı ekranda çıkıyor ama alanla ilişkilendirilmemiş ve ekran okuyucu bunu hiç okumuyor; görme engelli kullanıcı formun neden gönderilmediğini anlamıyor.",
+    "oneri": "Hata metnini role=\"alert\" ile duyur, aria-describedby ile alana bağla ve alana aria-invalid=\"true\" ver."
+   },
+   {
+    "onem": "ciddi",
+    "wcag": "1.2.2",
+    "baslik": "Tanıtım videosunda altyazı yok",
+    "grup": "isitme",
+    "yontem": "Medya denetimi",
+    "sayfa": "/",
+    "adet": 1,
+    "oge": "video.tanitim",
+    "aciklama": "Ana sayfadaki tanıtım videosunda altyazı izi (<track kind=\"captions\">) yok. Videoda konuşma varsa işitme engelli kullanıcılar içeriği takip edemez; konuşma olup olmadığını otomatik araç bilemez, elle kontrol edilmeli.",
+    "oneri": "Konuşmanın altyazı dosyasını (WebVTT) hazırla ve <track> ile videoya ekle."
+   },
+   {
+    "onem": "orta",
+    "wcag": "2.4.7",
+    "baslik": "Odak göstergesi kaldırılmış",
+    "grup": "hareket",
+    "yontem": "Klavye testi",
+    "sayfa": "Tüm sayfalar",
+    "adet": 23,
+    "oge": "a, button",
+    "aciklama": "CSS'te outline: none tanımlı; klavyeyle gezinen kullanıcı hangi öğede olduğunu göremiyor.",
+    "oneri": ":focus-visible için belirgin bir çerçeve tanımla."
+   },
+   {
+    "onem": "orta",
+    "wcag": "2.5.8",
+    "baslik": "Küçük dokunma hedefleri",
+    "grup": "hareket",
+    "yontem": "axe-core",
+    "sayfa": "/ (alt bilgi)",
+    "adet": 4,
+    "oge": ".sosyal a",
+    "aciklama": "Sosyal medya bağlantıları 18×18 px ve birbirine çok yakın; en az 24×24 px olmalı.",
+    "oneri": "Bağlantılara iç boşluk vererek en az 24×24 px yap."
+   },
+   {
+    "onem": "orta",
+    "wcag": "1.4.10",
+    "baslik": "Dar ekranda yazı sayfadan taşıyor",
+    "grup": "azgorme",
+    "yontem": "Yakınlaştırma testi (320 px)",
+    "sayfa": "/blog/:id",
+    "adet": 1,
+    "oge": "main.icerik",
+    "aciklama": "Sayfa 320 px genişlikte (%400 yakınlaştırmaya eşdeğer) açıldığında yazı alanı sabit 1100 px kalıyor; her satırı okumak için sağa sola kaydırmak gerekiyor. Az gören ve ekranı büyüterek okuyan kullanıcılar etkileniyor.",
+    "oneri": "Sabit genişlik yerine max-width kullan; içerik dar ekranda alt satıra geçsin."
+   },
+   {
+    "onem": "orta",
+    "wcag": "2.2.2",
+    "baslik": "Kendiliğinden dönen kaydırıcı durdurulamıyor",
+    "grup": "bilissel",
+    "yontem": "Hareket testi",
+    "sayfa": "/",
+    "adet": 1,
+    "oge": ".kaydirici",
+    "aciklama": "Ana sayfadaki kaydırıcı her 4 saniyede bir kendiliğinden ilerliyor ve durdurma düğmesi yok. İşletim sisteminde \"hareketi azalt\" açıkken de dönmeye devam ediyor; dikkat dağınıklığı ya da baş dönmesi yaşayan kullanıcıları zorlar.",
+    "oneri": "Durdur / oynat düğmesi ekle; prefers-reduced-motion açıkken otomatik geçişi kapat."
+   },
+   {
+    "onem": "orta",
+    "wcag": "1.1.1",
+    "baslik": "Alternatif metin görseli anlatmıyor",
+    "grup": "gorme",
+    "yontem": "Gemini anlam kontrolü",
+    "sayfa": "/pricing, /blog",
+    "adet": 9,
+    "oge": "img[alt]",
+    "aciklama": "Alternatif metni olan görsellerin 9'unda metin görseli anlatmıyor: \"banner-final.png\", \"resim\", \"gorsel1\". Otomatik araçlar alt metnin var olup olmadığına bakar, anlamına bakamaz; Gemini her görseli metniyle karşılaştırdı.",
+    "oneri": "Görselin verdiği bilgiyi kısa bir cümleyle yaz; örneğin \"Pro plan: 3 ekip üyesi, 10 proje, öncelikli destek\"."
+   },
+   {
+    "onem": "orta",
+    "wcag": "3.3.1",
+    "baslik": "Hata mesajı neyin yanlış olduğunu söylemiyor",
+    "grup": "bilissel",
+    "yontem": "Gemini anlam kontrolü",
+    "sayfa": "/register",
+    "adet": 1,
+    "oge": "p.hata",
+    "aciklama": "Geçersiz e-postayla gönderilen formda yalnızca \"Hata oluştu\" yazıyor; hangi alanın yanlış olduğu ve nasıl düzeltileceği söylenmiyor. Mesaj sunucudan geldiği için şablonda değil, uygulama kodunda düzeltilmeli.",
+    "oneri": "Mesajı alana özel yaz: \"E-posta adresi geçerli değil. Örnek: ad@ornek.com\"."
+   },
+   {
+    "onem": "dusuk",
+    "wcag": "1.3.1",
+    "baslik": "Başlık seviyesi atlanıyor",
+    "grup": "gorme",
+    "yontem": "Erişilebilirlik ağacı",
+    "sayfa": "/pricing",
+    "adet": 3,
+    "oge": "h4.plan-adi",
+    "aciklama": "Sayfa h1'den h4'e geçiyor; ekran okuyucu kullanıcıları başlıklarla gezinirken sayfanın yapısını kaybediyor.",
+    "oneri": "Plan adlarını h2 yap, görünümünü CSS ile ayarla."
+   }
+  ],
+  "klavye": [
+   {
+    "sayfa": "/",
+    "odaklanabilir": 21,
+    "ulasilamayan": 1,
+    "odakGorunmuyor": 21,
+    "tuzak": false
+   },
+   {
+    "sayfa": "/blog",
+    "odaklanabilir": 34,
+    "ulasilamayan": 1,
+    "odakGorunmuyor": 34,
+    "tuzak": false
+   },
+   {
+    "sayfa": "/blog/:id",
+    "odaklanabilir": 16,
+    "ulasilamayan": 1,
+    "odakGorunmuyor": 16,
+    "tuzak": false
+   },
+   {
+    "sayfa": "/pricing",
+    "odaklanabilir": 12,
+    "ulasilamayan": 1,
+    "odakGorunmuyor": 12,
+    "tuzak": false
+   },
+   {
+    "sayfa": "/login",
+    "odaklanabilir": 7,
+    "ulasilamayan": 1,
+    "odakGorunmuyor": 7,
+    "tuzak": false
+   },
+   {
+    "sayfa": "/register",
+    "odaklanabilir": 11,
+    "ulasilamayan": 1,
+    "odakGorunmuyor": 11,
+    "tuzak": true
+   }
+  ],
+  "sekmeSirasi": [
+   {
+    "ad": "Logo",
+    "sorun": null
+   },
+   {
+    "ad": "Ana sayfa",
+    "sorun": null
+   },
+   {
+    "ad": "Blog",
+    "sorun": null
+   },
+   {
+    "ad": "Fiyatlar",
+    "sorun": null
+   },
+   {
+    "ad": "☰ Menü",
+    "sorun": "ulasilamiyor"
+   },
+   {
+    "ad": "Düğme (ara)",
+    "sorun": "adsiz"
+   },
+   {
+    "ad": "Giriş yap",
+    "sorun": null
+   },
+   {
+    "ad": "Kayıt ol",
+    "sorun": null
+   },
+   {
+    "ad": "Son yazılar",
+    "sorun": null
+   }
+  ],
+  "simulasyon": [
+   {
+    "ad": "Döteranopi",
+    "aciklama": "Yeşil körlüğü (en yaygın)",
+    "sonuc": "sorun",
+    "bulgu": "/pricing'de var / yok noktaları aynı görünüyor."
+   },
+   {
+    "ad": "Protanopi",
+    "aciklama": "Kırmızı körlüğü",
+    "sonuc": "sorun",
+    "bulgu": "/pricing'de var / yok noktaları aynı görünüyor; kırmızı hata yazısı koyulaşıyor."
+   },
+   {
+    "ad": "Tritanopi",
+    "aciklama": "Mavi-sarı körlüğü",
+    "sonuc": "temiz",
+    "bulgu": "Anlam kaybı bulunmadı."
+   },
+   {
+    "ad": "Akromatopsi",
+    "aciklama": "Renk görmeme",
+    "sonuc": "sorun",
+    "bulgu": "\"Yakında\" rozeti ile etkin düğmeler ayırt edilemiyor."
+   },
+   {
+    "ad": "Bulanık görme",
+    "aciklama": "Az görme",
+    "sonuc": "sorun",
+    "bulgu": "Alt bilgi bağlantıları ve form ipuçları okunmuyor (düşük kontrast)."
+   },
+   {
+    "ad": "320 px / %400",
+    "aciklama": "Yakınlaştırma ve dar ekran",
+    "sonuc": "sorun",
+    "bulgu": "/blog/:id yatay kaydırma istiyor; diğer 5 sayfa düzgün."
+   }
+  ],
+  "kontrast": [
+   {
+    "oge": "Alt bilgi bağlantıları",
+    "sayfa": "/",
+    "on": "#9CA3AF",
+    "arka": "#F9FAFB",
+    "oran": 2.4,
+    "gereken": 4.5
+   },
+   {
+    "oge": "Yazı tarihi ve okuma süresi",
+    "sayfa": "/blog",
+    "on": "#9CA3AF",
+    "arka": "#FFFFFF",
+    "oran": 2.5,
+    "gereken": 4.5
+   },
+   {
+    "oge": "Form ipucu metni",
+    "sayfa": "/register",
+    "on": "#A1A1AA",
+    "arka": "#FFFFFF",
+    "oran": 2.6,
+    "gereken": 4.5
+   },
+   {
+    "oge": "\"Yakında\" rozeti",
+    "sayfa": "/pricing",
+    "on": "#F59E0B",
+    "arka": "#FFFFFF",
+    "oran": 2.1,
+    "gereken": 4.5
+   },
+   {
+    "oge": "Pasif düğme metni",
+    "sayfa": "/register",
+    "on": "#D1D5DB",
+    "arka": "#7C3AED",
+    "oran": 3.2,
+    "gereken": 4.5
+   },
+   {
+    "oge": "Çerez bildirimi bağlantısı",
+    "sayfa": "/",
+    "on": "#C4B5FD",
+    "arka": "#111827",
+    "oran": 3.9,
+    "gereken": 4.5
+   },
+   {
+    "oge": "Büyük başlık üzerindeki alt yazı",
+    "sayfa": "/",
+    "on": "#A78BFA",
+    "arka": "#F9FAFB",
+    "oran": 2.8,
+    "gereken": 3
+   }
+  ]
+ },
+ "erisimKaynaklari": {
+  "python": [
+   {
+    "dosya": "templates/base.html",
+    "satir": 18,
+    "kod": "<div class=\"menu-toggle\" onclick=\"menuAc()\">☰</div>",
+    "duzeltme": "<button type=\"button\" class=\"menu-toggle\" aria-expanded=\"false\"\n        aria-controls=\"ana-menu\" onclick=\"menuAc()\">\n  <span class=\"sr-only\">Menüyü aç</span>☰\n</button>"
+   },
+   {
+    "dosya": "templates/register.html",
+    "satir": 41,
+    "kod": "<input id=\"dogum\" class=\"tarih-secici\" readonly>",
+    "duzeltme": "<label for=\"dogum\">Doğum tarihi</label>\n<input id=\"dogum\" type=\"date\" autocomplete=\"bday\">"
+   },
+   {
+    "dosya": "templates/blog/liste.html",
+    "satir": 12,
+    "kod": "<img class=\"kapak\" src=\"{{ yazi.kapak }}\">",
+    "duzeltme": "<img class=\"kapak\" src=\"{{ yazi.kapak }}\" alt=\"{{ yazi.kapak_aciklama }}\">"
+   },
+   {
+    "dosya": "static/css/site.css",
+    "satir": 27,
+    "kod": ".ikincil { color: #9CA3AF; }",
+    "duzeltme": ".ikincil { color: #6B7280; }"
+   },
+   {
+    "dosya": "templates/login.html",
+    "satir": 9,
+    "kod": "<input type=\"email\" name=\"eposta\" placeholder=\"E-posta\">",
+    "duzeltme": "<label for=\"eposta\">E-posta</label>\n<input id=\"eposta\" type=\"email\" name=\"eposta\" autocomplete=\"email\">"
+   },
+   {
+    "dosya": "templates/base.html",
+    "satir": 24,
+    "kod": "<button class=\"ara\"><svg>…</svg></button>",
+    "duzeltme": "<button class=\"ara\" aria-label=\"Sitede ara\">\n  <svg aria-hidden=\"true\">…</svg>\n</button>"
+   },
+   {
+    "dosya": "templates/pricing.html",
+    "satir": 31,
+    "kod": "<td><span class=\"durum-nokta yesil\"></span></td>",
+    "duzeltme": "<td>\n  <span class=\"durum-nokta yesil\" aria-hidden=\"true\"></span>\n  <span>Var</span>\n</td>"
+   },
+   {
+    "dosya": "templates/register.html",
+    "satir": 57,
+    "kod": "<input id=\"eposta\" type=\"email\">\n<p class=\"hata\">{{ hata }}</p>",
+    "duzeltme": "<input id=\"eposta\" type=\"email\" aria-invalid=\"true\"\n       aria-describedby=\"eposta-hata\">\n<p id=\"eposta-hata\" class=\"hata\" role=\"alert\">{{ hata }}</p>"
+   },
+   {
+    "dosya": "templates/index.html",
+    "satir": 14,
+    "kod": "<video class=\"tanitim\" src=\"/media/tanitim.mp4\" controls></video>",
+    "duzeltme": "<video class=\"tanitim\" src=\"/media/tanitim.mp4\" controls>\n  <track kind=\"captions\" src=\"/media/tanitim.tr.vtt\"\n         srclang=\"tr\" label=\"Türkçe\" default>\n</video>"
+   },
+   {
+    "dosya": "static/css/site.css",
+    "satir": 4,
+    "kod": "a, button { outline: none; }",
+    "duzeltme": "a:focus-visible, button:focus-visible {\n  outline: 3px solid #2563EB;\n  outline-offset: 2px;\n}"
+   },
+   {
+    "dosya": "static/css/site.css",
+    "satir": 88,
+    "kod": ".sosyal a { width: 18px; height: 18px; }",
+    "duzeltme": ".sosyal a { min-width: 24px; min-height: 24px; padding: 4px; }"
+   },
+   {
+    "dosya": "static/css/site.css",
+    "satir": 52,
+    "kod": ".icerik { width: 1100px; }",
+    "duzeltme": ".icerik { max-width: 1100px; width: 100%; }"
+   },
+   {
+    "dosya": "templates/index.html",
+    "satir": 22,
+    "kod": "<div class=\"kaydirici\" data-otomatik=\"4000\">",
+    "duzeltme": "<div class=\"kaydirici\" data-otomatik=\"4000\">\n  <button type=\"button\" class=\"kaydirici-durdur\"\n          aria-pressed=\"false\">Durdur</button>"
+   },
+   {
+    "dosya": "templates/pricing.html",
+    "satir": 8,
+    "kod": "<img src=\"/img/banner-final.png\" alt=\"banner-final.png\">",
+    "duzeltme": "<img src=\"/img/banner-final.png\"\n     alt=\"Pro plan: 3 ekip üyesi, 10 proje, öncelikli destek\">"
+   },
+   null,
+   {
+    "dosya": "templates/pricing.html",
+    "satir": 15,
+    "kod": "<h4 class=\"plan-adi\">Pro</h4>",
+    "duzeltme": "<h2 class=\"plan-adi\">Pro</h2>"
+   }
+  ],
+  "js": [
+   {
+    "dosya": "src/components/Layout.jsx",
+    "satir": 18,
+    "kod": "<div className=\"menu-toggle\" onClick={menuAc}>☰</div>",
+    "duzeltme": "<button type=\"button\" className=\"menu-toggle\" aria-expanded=\"false\"\n        aria-controls=\"ana-menu\" onClick={menuAc}>\n  <span className=\"sr-only\">Menüyü aç</span>☰\n</button>"
+   },
+   {
+    "dosya": "src/pages/Register.jsx",
+    "satir": 41,
+    "kod": "<input id=\"dogum\" className=\"tarih-secici\" readonly>",
+    "duzeltme": "<label htmlFor=\"dogum\">Doğum tarihi</label>\n<input id=\"dogum\" type=\"date\" autocomplete=\"bday\">"
+   },
+   {
+    "dosya": "src/pages/BlogList.jsx",
+    "satir": 12,
+    "kod": "<img className=\"kapak\" src=\"{yazi.kapak}\">",
+    "duzeltme": "<img className=\"kapak\" src=\"{yazi.kapak}\" alt=\"{yazi.kapak_aciklama}\">"
+   },
+   {
+    "dosya": "src/styles/site.css",
+    "satir": 27,
+    "kod": ".ikincil { color: #9CA3AF; }",
+    "duzeltme": ".ikincil { color: #6B7280; }"
+   },
+   {
+    "dosya": "src/pages/Login.jsx",
+    "satir": 9,
+    "kod": "<input type=\"email\" name=\"eposta\" placeholder=\"E-posta\">",
+    "duzeltme": "<label htmlFor=\"eposta\">E-posta</label>\n<input id=\"eposta\" type=\"email\" name=\"eposta\" autocomplete=\"email\">"
+   },
+   {
+    "dosya": "src/components/Layout.jsx",
+    "satir": 24,
+    "kod": "<button className=\"ara\"><svg>…</svg></button>",
+    "duzeltme": "<button className=\"ara\" aria-label=\"Sitede ara\">\n  <svg aria-hidden=\"true\">…</svg>\n</button>"
+   },
+   {
+    "dosya": "src/pages/Pricing.jsx",
+    "satir": 31,
+    "kod": "<td><span className=\"durum-nokta yesil\"></span></td>",
+    "duzeltme": "<td>\n  <span className=\"durum-nokta yesil\" aria-hidden=\"true\"></span>\n  <span>Var</span>\n</td>"
+   },
+   {
+    "dosya": "src/pages/Register.jsx",
+    "satir": 57,
+    "kod": "<input id=\"eposta\" type=\"email\">\n<p className=\"hata\">{hata}</p>",
+    "duzeltme": "<input id=\"eposta\" type=\"email\" aria-invalid=\"true\"\n       aria-describedby=\"eposta-hata\">\n<p id=\"eposta-hata\" className=\"hata\" role=\"alert\">{hata}</p>"
+   },
+   {
+    "dosya": "src/pages/Home.jsx",
+    "satir": 14,
+    "kod": "<video className=\"tanitim\" src=\"/media/tanitim.mp4\" controls></video>",
+    "duzeltme": "<video className=\"tanitim\" src=\"/media/tanitim.mp4\" controls>\n  <track kind=\"captions\" src=\"/media/tanitim.tr.vtt\"\n         srclang=\"tr\" label=\"Türkçe\" default>\n</video>"
+   },
+   {
+    "dosya": "src/styles/site.css",
+    "satir": 4,
+    "kod": "a, button { outline: none; }",
+    "duzeltme": "a:focus-visible, button:focus-visible {\n  outline: 3px solid #2563EB;\n  outline-offset: 2px;\n}"
+   },
+   {
+    "dosya": "src/styles/site.css",
+    "satir": 88,
+    "kod": ".sosyal a { width: 18px; height: 18px; }",
+    "duzeltme": ".sosyal a { min-width: 24px; min-height: 24px; padding: 4px; }"
+   },
+   {
+    "dosya": "src/styles/site.css",
+    "satir": 52,
+    "kod": ".icerik { width: 1100px; }",
+    "duzeltme": ".icerik { max-width: 1100px; width: 100%; }"
+   },
+   {
+    "dosya": "src/pages/Home.jsx",
+    "satir": 22,
+    "kod": "<div className=\"kaydirici\" data-otomatik=\"4000\">",
+    "duzeltme": "<div className=\"kaydirici\" data-otomatik=\"4000\">\n  <button type=\"button\" className=\"kaydirici-durdur\"\n          aria-pressed=\"false\">Durdur</button>"
+   },
+   {
+    "dosya": "src/pages/Pricing.jsx",
+    "satir": 8,
+    "kod": "<img src=\"/img/banner-final.png\" alt=\"banner-final.png\">",
+    "duzeltme": "<img src=\"/img/banner-final.png\"\n     alt=\"Pro plan: 3 ekip üyesi, 10 proje, öncelikli destek\">"
+   },
+   null,
+   {
+    "dosya": "src/pages/Pricing.jsx",
+    "satir": 15,
+    "kod": "<h4 className=\"plan-adi\">Pro</h4>",
+    "duzeltme": "<h2 className=\"plan-adi\">Pro</h2>"
+   }
+  ],
+  "csharp": [
+   {
+    "dosya": "Pages/Shared/_Layout.cshtml",
+    "satir": 18,
+    "kod": "<div class=\"menu-toggle\" onclick=\"menuAc()\">☰</div>",
+    "duzeltme": "<button type=\"button\" class=\"menu-toggle\" aria-expanded=\"false\"\n        aria-controls=\"ana-menu\" onclick=\"menuAc()\">\n  <span class=\"sr-only\">Menüyü aç</span>☰\n</button>"
+   },
+   {
+    "dosya": "Pages/Register.cshtml",
+    "satir": 41,
+    "kod": "<input id=\"dogum\" class=\"tarih-secici\" readonly>",
+    "duzeltme": "<label for=\"dogum\">Doğum tarihi</label>\n<input id=\"dogum\" type=\"date\" autocomplete=\"bday\">"
+   },
+   {
+    "dosya": "Pages/Blog/Index.cshtml",
+    "satir": 12,
+    "kod": "<img class=\"kapak\" src=\"{{ yazi.kapak }}\">",
+    "duzeltme": "<img class=\"kapak\" src=\"{{ yazi.kapak }}\" alt=\"{{ yazi.kapak_aciklama }}\">"
+   },
+   {
+    "dosya": "wwwroot/css/site.css",
+    "satir": 27,
+    "kod": ".ikincil { color: #9CA3AF; }",
+    "duzeltme": ".ikincil { color: #6B7280; }"
+   },
+   {
+    "dosya": "Pages/Login.cshtml",
+    "satir": 9,
+    "kod": "<input type=\"email\" name=\"eposta\" placeholder=\"E-posta\">",
+    "duzeltme": "<label for=\"eposta\">E-posta</label>\n<input id=\"eposta\" type=\"email\" name=\"eposta\" autocomplete=\"email\">"
+   },
+   {
+    "dosya": "Pages/Shared/_Layout.cshtml",
+    "satir": 24,
+    "kod": "<button class=\"ara\"><svg>…</svg></button>",
+    "duzeltme": "<button class=\"ara\" aria-label=\"Sitede ara\">\n  <svg aria-hidden=\"true\">…</svg>\n</button>"
+   },
+   {
+    "dosya": "Pages/Pricing.cshtml",
+    "satir": 31,
+    "kod": "<td><span class=\"durum-nokta yesil\"></span></td>",
+    "duzeltme": "<td>\n  <span class=\"durum-nokta yesil\" aria-hidden=\"true\"></span>\n  <span>Var</span>\n</td>"
+   },
+   {
+    "dosya": "Pages/Register.cshtml",
+    "satir": 57,
+    "kod": "<input id=\"eposta\" type=\"email\">\n<p class=\"hata\">{{ hata }}</p>",
+    "duzeltme": "<input id=\"eposta\" type=\"email\" aria-invalid=\"true\"\n       aria-describedby=\"eposta-hata\">\n<p id=\"eposta-hata\" class=\"hata\" role=\"alert\">{{ hata }}</p>"
+   },
+   {
+    "dosya": "Pages/Index.cshtml",
+    "satir": 14,
+    "kod": "<video class=\"tanitim\" src=\"/media/tanitim.mp4\" controls></video>",
+    "duzeltme": "<video class=\"tanitim\" src=\"/media/tanitim.mp4\" controls>\n  <track kind=\"captions\" src=\"/media/tanitim.tr.vtt\"\n         srclang=\"tr\" label=\"Türkçe\" default>\n</video>"
+   },
+   {
+    "dosya": "wwwroot/css/site.css",
+    "satir": 4,
+    "kod": "a, button { outline: none; }",
+    "duzeltme": "a:focus-visible, button:focus-visible {\n  outline: 3px solid #2563EB;\n  outline-offset: 2px;\n}"
+   },
+   {
+    "dosya": "wwwroot/css/site.css",
+    "satir": 88,
+    "kod": ".sosyal a { width: 18px; height: 18px; }",
+    "duzeltme": ".sosyal a { min-width: 24px; min-height: 24px; padding: 4px; }"
+   },
+   {
+    "dosya": "wwwroot/css/site.css",
+    "satir": 52,
+    "kod": ".icerik { width: 1100px; }",
+    "duzeltme": ".icerik { max-width: 1100px; width: 100%; }"
+   },
+   {
+    "dosya": "Pages/Index.cshtml",
+    "satir": 22,
+    "kod": "<div class=\"kaydirici\" data-otomatik=\"4000\">",
+    "duzeltme": "<div class=\"kaydirici\" data-otomatik=\"4000\">\n  <button type=\"button\" class=\"kaydirici-durdur\"\n          aria-pressed=\"false\">Durdur</button>"
+   },
+   {
+    "dosya": "Pages/Pricing.cshtml",
+    "satir": 8,
+    "kod": "<img src=\"/img/banner-final.png\" alt=\"banner-final.png\">",
+    "duzeltme": "<img src=\"/img/banner-final.png\"\n     alt=\"Pro plan: 3 ekip üyesi, 10 proje, öncelikli destek\">"
+   },
+   null,
+   {
+    "dosya": "Pages/Pricing.cshtml",
+    "satir": 15,
+    "kod": "<h4 class=\"plan-adi\">Pro</h4>",
+    "duzeltme": "<h2 class=\"plan-adi\">Pro</h2>"
+   }
+  ],
+  "php": [
+   {
+    "dosya": "resources/views/layouts/app.blade.php",
+    "satir": 18,
+    "kod": "<div class=\"menu-toggle\" onclick=\"menuAc()\">☰</div>",
+    "duzeltme": "<button type=\"button\" class=\"menu-toggle\" aria-expanded=\"false\"\n        aria-controls=\"ana-menu\" onclick=\"menuAc()\">\n  <span class=\"sr-only\">Menüyü aç</span>☰\n</button>"
+   },
+   {
+    "dosya": "resources/views/auth/register.blade.php",
+    "satir": 41,
+    "kod": "<input id=\"dogum\" class=\"tarih-secici\" readonly>",
+    "duzeltme": "<label for=\"dogum\">Doğum tarihi</label>\n<input id=\"dogum\" type=\"date\" autocomplete=\"bday\">"
+   },
+   {
+    "dosya": "resources/views/blog/index.blade.php",
+    "satir": 12,
+    "kod": "<img class=\"kapak\" src=\"{{ yazi.kapak }}\">",
+    "duzeltme": "<img class=\"kapak\" src=\"{{ yazi.kapak }}\" alt=\"{{ yazi.kapak_aciklama }}\">"
+   },
+   {
+    "dosya": "public/css/site.css",
+    "satir": 27,
+    "kod": ".ikincil { color: #9CA3AF; }",
+    "duzeltme": ".ikincil { color: #6B7280; }"
+   },
+   {
+    "dosya": "resources/views/auth/login.blade.php",
+    "satir": 9,
+    "kod": "<input type=\"email\" name=\"eposta\" placeholder=\"E-posta\">",
+    "duzeltme": "<label for=\"eposta\">E-posta</label>\n<input id=\"eposta\" type=\"email\" name=\"eposta\" autocomplete=\"email\">"
+   },
+   {
+    "dosya": "resources/views/layouts/app.blade.php",
+    "satir": 24,
+    "kod": "<button class=\"ara\"><svg>…</svg></button>",
+    "duzeltme": "<button class=\"ara\" aria-label=\"Sitede ara\">\n  <svg aria-hidden=\"true\">…</svg>\n</button>"
+   },
+   {
+    "dosya": "resources/views/pricing.blade.php",
+    "satir": 31,
+    "kod": "<td><span class=\"durum-nokta yesil\"></span></td>",
+    "duzeltme": "<td>\n  <span class=\"durum-nokta yesil\" aria-hidden=\"true\"></span>\n  <span>Var</span>\n</td>"
+   },
+   {
+    "dosya": "resources/views/auth/register.blade.php",
+    "satir": 57,
+    "kod": "<input id=\"eposta\" type=\"email\">\n<p class=\"hata\">{{ hata }}</p>",
+    "duzeltme": "<input id=\"eposta\" type=\"email\" aria-invalid=\"true\"\n       aria-describedby=\"eposta-hata\">\n<p id=\"eposta-hata\" class=\"hata\" role=\"alert\">{{ hata }}</p>"
+   },
+   {
+    "dosya": "resources/views/home.blade.php",
+    "satir": 14,
+    "kod": "<video class=\"tanitim\" src=\"/media/tanitim.mp4\" controls></video>",
+    "duzeltme": "<video class=\"tanitim\" src=\"/media/tanitim.mp4\" controls>\n  <track kind=\"captions\" src=\"/media/tanitim.tr.vtt\"\n         srclang=\"tr\" label=\"Türkçe\" default>\n</video>"
+   },
+   {
+    "dosya": "public/css/site.css",
+    "satir": 4,
+    "kod": "a, button { outline: none; }",
+    "duzeltme": "a:focus-visible, button:focus-visible {\n  outline: 3px solid #2563EB;\n  outline-offset: 2px;\n}"
+   },
+   {
+    "dosya": "public/css/site.css",
+    "satir": 88,
+    "kod": ".sosyal a { width: 18px; height: 18px; }",
+    "duzeltme": ".sosyal a { min-width: 24px; min-height: 24px; padding: 4px; }"
+   },
+   {
+    "dosya": "public/css/site.css",
+    "satir": 52,
+    "kod": ".icerik { width: 1100px; }",
+    "duzeltme": ".icerik { max-width: 1100px; width: 100%; }"
+   },
+   {
+    "dosya": "resources/views/home.blade.php",
+    "satir": 22,
+    "kod": "<div class=\"kaydirici\" data-otomatik=\"4000\">",
+    "duzeltme": "<div class=\"kaydirici\" data-otomatik=\"4000\">\n  <button type=\"button\" class=\"kaydirici-durdur\"\n          aria-pressed=\"false\">Durdur</button>"
+   },
+   {
+    "dosya": "resources/views/pricing.blade.php",
+    "satir": 8,
+    "kod": "<img src=\"/img/banner-final.png\" alt=\"banner-final.png\">",
+    "duzeltme": "<img src=\"/img/banner-final.png\"\n     alt=\"Pro plan: 3 ekip üyesi, 10 proje, öncelikli destek\">"
+   },
+   null,
+   {
+    "dosya": "resources/views/pricing.blade.php",
+    "satir": 15,
+    "kod": "<h4 class=\"plan-adi\">Pro</h4>",
+    "duzeltme": "<h2 class=\"plan-adi\">Pro</h2>"
+   }
+  ]
+ },
+ "kodYorumu": {
+  "ozet": "blog-api, FastAPI ile yazılmış küçük bir blog servisi. Yazılar bellekteki bir listede tutuluyor (app/db.py); posts.py oluşturma ve okuma uçlarını, pagination.py sayfalamayı, core/ klasörü ayar ve şifre işlemlerini içeriyor. Kalıcı veritabanı ve kimlik doğrulama ucu yok.",
+  "testSirasi": "Planlayıcı ajan önce yüksek riskli birimlerden başladı: hash_password, create_post, get_page_size.",
+  "digerDil": [
+   {
+    "yol": "frontend/src/api.js",
+    "neden": "JavaScript; seçilen dil Python olduğu için birim analizine girmedi, arayüz testinde kullanıldı."
+   },
+   {
+    "yol": "frontend/src/main.js",
+    "neden": "JavaScript; arayüz testinde kullanıldı."
+   },
+   {
+    "yol": "frontend/src/components/PostForm.js",
+    "neden": "JavaScript; arayüz testinde kullanıldı."
+   }
+  ],
+  "dosyalar": [
+   {
+    "yol": "app/posts.py",
+    "ozet": "Yazı oluşturma (POST /posts) ve tek yazıyı getirme (GET /posts/{id}) uçları. Girdi doğrulaması burada yapılıyor.",
+    "birimler": [
+     {
+      "ad": "create_post",
+      "tur": "fonksiyon",
+      "imza": "create_post(baslik: str, icerik: str)",
+      "satir": [
+       7,
+       16
+      ],
+      "aciklama": "Başlığı ve içeriği doğrular, yeni yazıya sıradaki kimliği verip listeye ekler.",
+      "dallar": 2,
+      "hataYollari": [
+       "400 boş başlık",
+       "413 uzun içerik"
+      ],
+      "bagimliliklar": [
+       "get_db"
+      ],
+      "risk": "yuksek",
+      "riskNedeni": "Kimlik len(db) + 1 ile veriliyor: bir yazı silinirse yeni yazı var olan bir kimlikle çakışır. Ayrıca 413 dalı yalnızca 5000 karakterden uzun içerikle çalışıyor.",
+      "testSayisi": 9
+     },
+     {
+      "ad": "get_post",
+      "tur": "fonksiyon",
+      "imza": "get_post(post_id: int)",
+      "satir": [
+       19,
+       24
+      ],
+      "aciklama": "Kimliğe göre yazıyı arar; bulamazsa 404 döner.",
+      "dallar": 1,
+      "hataYollari": [
+       "404 yazı yok"
+      ],
+      "bagimliliklar": [
+       "get_db"
+      ],
+      "risk": "orta",
+      "riskNedeni": "Liste her istekte baştan sona taranıyor; yazı sayısı artınca yavaşlar.",
+      "testSayisi": 5
+     }
+    ]
+   },
+   {
+    "yol": "app/pagination.py",
+    "ozet": "Liste için sayfalama yardımcıları; saf fonksiyonlar, dış bağımlılık yok.",
+    "birimler": [
+     {
+      "ad": "paginate",
+      "tur": "fonksiyon",
+      "imza": "paginate(items, page, per_page=10)",
+      "satir": [
+       1,
+       10
+      ],
+      "aciklama": "İstenen sayfanın öğelerini ve toplam sayfa sayısını döner; geçersiz sayfa numarasını 1'e çeker.",
+      "dallar": 2,
+      "hataYollari": [
+       "ValueError per_page ≤ 0"
+      ],
+      "bagimliliklar": [],
+      "risk": "orta",
+      "riskNedeni": "Sayfa numarası toplam sayfadan büyükse boş liste dönüyor ama hata vermiyor; arayan taraf bunu ayırt edemez.",
+      "testSayisi": 8
+     },
+     {
+      "ad": "has_next",
+      "tur": "fonksiyon",
+      "imza": "has_next(page, total_pages)",
+      "satir": [
+       13,
+       16
+      ],
+      "aciklama": "Sonraki sayfa olup olmadığını söyler; hiç sayfa yoksa False.",
+      "dallar": 1,
+      "hataYollari": [],
+      "bagimliliklar": [],
+      "risk": "dusuk",
+      "testSayisi": 3
+     },
+     {
+      "ad": "has_prev",
+      "tur": "fonksiyon",
+      "imza": "has_prev(page)",
+      "satir": [
+       19,
+       20
+      ],
+      "aciklama": "Önceki sayfa olup olmadığını söyler.",
+      "dallar": 0,
+      "hataYollari": [],
+      "bagimliliklar": [],
+      "risk": "dusuk",
+      "testSayisi": 2
+     }
+    ]
+   },
+   {
+    "yol": "app/users.py",
+    "ozet": "Kullanıcı arama ve sayma yardımcıları.",
+    "birimler": [
+     {
+      "ad": "find_user",
+      "tur": "fonksiyon",
+      "imza": "find_user(user_id)",
+      "satir": [
+       4,
+       8
+      ],
+      "aciklama": "Kimliğe göre kullanıcıyı döner; yoksa None.",
+      "dallar": 1,
+      "hataYollari": [],
+      "bagimliliklar": [
+       "get_db"
+      ],
+      "risk": "dusuk",
+      "testSayisi": 4
+     },
+     {
+      "ad": "user_count",
+      "tur": "fonksiyon",
+      "imza": "user_count()",
+      "satir": [
+       11,
+       12
+      ],
+      "aciklama": "Kayıtlı kullanıcı sayısını döner.",
+      "dallar": 0,
+      "hataYollari": [],
+      "bagimliliklar": [
+       "get_db"
+      ],
+      "risk": "dusuk",
+      "testSayisi": 1
+     }
+    ]
+   },
+   {
+    "yol": "app/core/config.py",
+    "ozet": "Ortam değişkenlerinden ayar okur.",
+    "birimler": [
+     {
+      "ad": "get_page_size",
+      "tur": "fonksiyon",
+      "imza": "get_page_size()",
+      "satir": [
+       6,
+       10
+      ],
+      "aciklama": "PAGE_SIZE ortam değişkenini okur; tanımlı değilse varsayılan 10 değerini döner.",
+      "dallar": 1,
+      "hataYollari": [
+       "ValueError (sayı olmayan değer)"
+      ],
+      "bagimliliklar": [
+       "os.getenv"
+      ],
+      "risk": "yuksek",
+      "riskNedeni": "PAGE_SIZE=\"abc\" gibi sayı olmayan bir değer int() içinde yakalanmayan bir hataya yol açar ve uygulama açılışta çöker.",
+      "testSayisi": 3
+     },
+     {
+      "ad": "is_debug",
+      "tur": "fonksiyon",
+      "imza": "is_debug()",
+      "satir": [
+       13,
+       14
+      ],
+      "aciklama": "DEBUG ortam değişkeni \"1\" ise True döner.",
+      "dallar": 0,
+      "hataYollari": [],
+      "bagimliliklar": [
+       "os.getenv"
+      ],
+      "risk": "dusuk",
+      "testSayisi": 2
+     }
+    ]
+   },
+   {
+    "yol": "app/core/security.py",
+    "ozet": "Şifre özetleme ve doğrulama.",
+    "birimler": [
+     {
+      "ad": "hash_password",
+      "tur": "fonksiyon",
+      "imza": "hash_password(password)",
+      "satir": [
+       4,
+       7
+      ],
+      "aciklama": "En az 8 karakterlik şifreyi SHA-256 ile özetler.",
+      "dallar": 1,
+      "hataYollari": [
+       "ValueError kısa şifre"
+      ],
+      "bagimliliklar": [
+       "hashlib"
+      ],
+      "risk": "yuksek",
+      "riskNedeni": "Şifre tuzsuz SHA-256 ile özetleniyor; aynı şifreler aynı özete sahip olur ve hazır tablolarla kırılabilir. bcrypt ya da argon2 gibi yavaş, tuzlu bir yöntem kullanılmalı. (Testler bunu düzeltmez; güvenlik önerisidir.)",
+      "testSayisi": 4
+     },
+     {
+      "ad": "verify_password",
+      "tur": "fonksiyon",
+      "imza": "verify_password(password, hashed)",
+      "satir": [
+       10,
+       11
+      ],
+      "aciklama": "Girilen şifrenin özetini kayıtlı özetle karşılaştırır.",
+      "dallar": 0,
+      "hataYollari": [],
+      "bagimliliklar": [
+       "hash_password"
+      ],
+      "risk": "orta",
+      "riskNedeni": "Karşılaştırma == ile yapılıyor; sabit süreli karşılaştırma (hmac.compare_digest) daha güvenli.",
+      "testSayisi": 2
+     }
+    ]
+   },
+   {
+    "yol": "app/models/post.py",
+    "ozet": "Yazı veri modeli.",
+    "birimler": [
+     {
+      "ad": "Post",
+      "tur": "sınıf",
+      "imza": "class Post (dataclass)",
+      "satir": [
+       4,
+       13
+      ],
+      "aciklama": "Kimlik, başlık ve içerikten oluşan yazı modeli.",
+      "dallar": 0,
+      "hataYollari": [],
+      "bagimliliklar": [],
+      "risk": "dusuk",
+      "testSayisi": 1
+     },
+     {
+      "ad": "Post.ozet",
+      "tur": "metot",
+      "imza": "ozet(self, uzunluk=100)",
+      "satir": [
+       10,
+       13
+      ],
+      "aciklama": "İçerik uzunsa ilk 100 karakteri ve \"...\" döner.",
+      "dallar": 1,
+      "hataYollari": [],
+      "bagimliliklar": [],
+      "risk": "dusuk",
+      "testSayisi": 2
+     }
+    ]
+   },
+   {
+    "yol": "app/utils/slug.py",
+    "ozet": "Başlıktan adres dostu kısa ad (slug) üretir.",
+    "birimler": [
+     {
+      "ad": "slugify",
+      "tur": "fonksiyon",
+      "imza": "slugify(metin)",
+      "satir": [
+       4,
+       7
+      ],
+      "aciklama": "Metni küçük harfe çevirir, harf ve rakam dışındakileri tireyle değiştirir.",
+      "dallar": 0,
+      "hataYollari": [],
+      "bagimliliklar": [
+       "re"
+      ],
+      "risk": "orta",
+      "riskNedeni": "Türkçe karakterler siliniyor: \"Çiçek Bahçesi\" → \"i-ek-bah-esi\". ç, ğ, ı, ö, ş, ü önce Latin karşılıklarına çevrilmeli.",
+      "testSayisi": 4
+     }
+    ]
+   }
+  ]
+ }
+}
