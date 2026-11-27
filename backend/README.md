@@ -7,12 +7,12 @@ FastAPI uygulaması. Şu an olanlar:
 - Test çalıştırma: kod yükleme (klasör / .zip / tek dosya, örnek proje ya da URL), canlı akış (WebSocket), durdurma, rapor, Geçmiş Testlerim.
 - **Sahte motor (geçici):** gerçek test ajanı yazılana kadar canlı akış adımlarını ve raporu sitenin mock verileriyle üretir. Gerçek motor (Faz 3–4) geldiğinde yalnızca `app/sahte_motor` değişir; uçlar aynı kalır.
 
-Uçların ve verilerin biçimi: `../docs/api-sozlesmesi.md`. Sıradaki adım: sitenin bu uçlara bağlanması, sonra sandbox, Kod Haritası ve ajanlar (bkz. Claude projesi belge 18).
+Uçların ve verilerin biçimi: `../docs/api-sozlesmesi.md`. Gerçek motor (Faz 3) başladı: sandbox (`sandbox/`, `app/motor/sandbox.py`) ve örnek proje (`ornekler/`). Sıradaki: Kod Haritası ve ajanlar (bkz. Claude projesi belge 18).
 
 ## Gerekenler
 
 - Python 3.11 ya da üstü
-- Docker Desktop (veritabanı için; açık olmalı)
+- Docker Desktop (veritabanı ve sandbox için; açık olmalı)
 
 ## İlk kurulum (bir kez)
 
@@ -52,6 +52,18 @@ uvicorn app.main:app --reload --reload-dir app --port 8000
 
 Frontend'i gerçek backend'le çalıştırmak için `frontend/.env` dosyasına `VITE_API_URL=http://localhost:8000` yaz. Yazmazsan frontend mock veriyle çalışır.
 
+## Sandbox (test motoru, Faz 3)
+
+Kullanıcının kodu ve testler bu makinede değil, ağı kapalı ve sınırlı Docker kapsayıcılarında çalışır. Kurallar ve ayrıntı: `sandbox/README.md`.
+
+```bash
+docker build -t codeguard-sandbox-python:1 sandbox/python      # imajı kur (bir kez)
+python araclar/sandbox_dene.py ornekler/blog-api ornekler/blog-api-referans-testler
+python araclar/sandbox_dene.py ornekler/blog-api sandbox/python/guvenlik-testleri
+```
+
+İlki 31 test çalıştırır, bilinen 6 hata yüzünden 6'sı kalır (`ornekler/README.md`). İkincisinde 8 testin hepsi geçmelidir.
+
 ## Tabloyu değiştirince
 
 `app/modeller.py`'yi değiştirdikten sonra:
@@ -70,7 +82,10 @@ docker-compose.yml     geliştirme veritabanı (PostgreSQL 17)
 alembic.ini, alembic/  veritabanı göçleri
 araclar/
 ├── canli_izle.py      bir testin canlı akışını terminalde izler
-└── ornek_veri_uret.mjs  sahte motorun örnek verisini frontend mock'larından üretir
+├── ornek_veri_uret.mjs  sahte motorun örnek verisini frontend mock'larından üretir
+└── sandbox_dene.py    bir projeyi ve testleri sandbox'ta çalıştırıp sonucu yazar
+ornekler/              hataları önceden bilinen örnek projeler (blog-api) ve referans testleri
+sandbox/               sandbox imajları (python/: Dockerfile, araçlar, kapsayıcı içi betik)
 app/
 ├── main.py            FastAPI uygulaması, CORS, /saglik; açılışta yarım kalan testleri kapatır
 ├── ayarlar.py         .env okuma
@@ -87,6 +102,10 @@ app/
 │   ├── olaylar.py     canlı akış adımları (frontend runEvents.js ile aynı)
 │   ├── rapor.py       rapor (frontend api.js getReport ile aynı)
 │   └── ornek_veri.json  frontend mock'larından üretilir, elle düzenlenmez
+├── motor/             gerçek test motoru (Faz 3–4)
+│   └── sandbox.py     testleri Docker kapsayıcısında K5 kurallarıyla çalıştırır
+├── analiz/            Kod Haritası ve Standardizasyon Katmanı (Faz 3)
+│   └── standart.py    JUnit / Cobertura çıktılarını kısa özete çevirir
 └── auth/
     ├── eposta.py      /auth/kayit, /auth/giris
     ├── sifre.py       şifre özetleme (Argon2id)
