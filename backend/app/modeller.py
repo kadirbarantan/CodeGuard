@@ -36,6 +36,8 @@ class Kullanici(Base):
     sifre_hash: Mapped[str | None] = mapped_column(String(255))
     github_id: Mapped[int | None] = mapped_column(BigInteger, unique=True)
     github_kullanici_adi: Mapped[str | None] = mapped_column(String(100))
+    # GitHub App kurulumu (repo erişimi). Boşsa kullanıcı repolarına erişim vermemiştir (belge 22).
+    github_kurulum_id: Mapped[int | None] = mapped_column(BigInteger)
     google_id: Mapped[str | None] = mapped_column(String(255), unique=True)
     google_eposta: Mapped[str | None] = mapped_column(String(254))
     # { ad, meslek, digerMeslek, diller } — ilk girişte doldurulur

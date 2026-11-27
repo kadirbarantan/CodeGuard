@@ -13,12 +13,14 @@ from sqlalchemy import text
 from app import ayarlar
 from app.auth.eposta import router as eposta_router
 from app.auth.github import router as github_router
+from app.auth.github_app import router as github_app_router
 from app.auth.google import router as google_router
 from app.auth.oturum import router as oturum_router
 from app.calistirma import kayit
 from app.calistirma.canli import router as canli_router
 from app.calistirma.router import router as calistirma_router
 from app.db import motor
+from app.github.router import router as github_repo_router
 
 
 @asynccontextmanager
@@ -43,6 +45,8 @@ app.add_middleware(
 
 app.include_router(eposta_router)
 app.include_router(github_router)
+app.include_router(github_app_router)
+app.include_router(github_repo_router)
 app.include_router(google_router)
 app.include_router(oturum_router)
 app.include_router(calistirma_router)

@@ -11,7 +11,7 @@ import { erisimReport, ihlalKaynagi } from '../mock/erisimReport'
 import { KOD_TURLERI, VARSAYILAN_TURLER, arayuzVar, erisimVar, turAdi, turListesi, uxVar, urlAdi } from '../config/testStratejileri'
 import { githubRepolari } from '../mock/githubRepos'
 import { baglamCozumle } from '../mock/baglamCozumleyici'
-import { githubPencereIleGiris } from './githubOAuth'
+import { githubAppPencere } from './githubOAuth'
 import { googlePencereIleGiris } from './googleOAuth'
 
 // Gerçek backend adresi (.env.local: VITE_API_URL=http://localhost:8000). Tanımlı değilse mock çalışır.
@@ -112,10 +112,10 @@ export async function updateProfile(eposta, profil) {
   return { eposta, ...profil, profilTamam: true }
 }
 
-// GitHub ile giriş/kayıt: hesap yoksa GitHub bilgileriyle oluşturulur.
-// Dönen kullanıcı nesnesinde ek alan: github: { kullaniciAdi }
+// GitHub ile giriş/kayıt (GitHub App, yalnızca kimlik): hesap yoksa GitHub bilgileriyle oluşturulur.
+// Dönen kullanıcı nesnesinde ek alan: github: { kullaniciAdi, repoErisimi }
 export async function githubIleGiris() {
-  if (API_URL) return githubPencereIleGiris(API_URL)
+  if (API_URL) return githubAppPencere(API_URL, { giris: true })
   // Mock: GitHub'a gitmeden örnek bir hesapla giriş yapılmış sayılır
   await bekle(900)
   const kullanici = kullaniciOlustur('GitHub Kullanıcısı', 'github-demo@codeguard.dev')
@@ -132,53 +132,64 @@ export async function googleIleGiris() {
   return { ...kullaniciOlustur('Google Kullanıcısı', eposta), google: { eposta } }
 }
 
-// ── GitHub sekmesi (K17): bağlanma, repo erişimi, repo · dal · ağaç · bağlam ──
-// Repo erişimi (GitHub App kurulumu) ve repo uçları henüz backend'de yok (Faz 2).
-// O zamana kadar gerçek backend modunda giriş çalışır, repo adımları açık bir hata verir.
-const REPO_HENUZ_YOK = 'GitHub repo erişimi henüz hazır değil (Faz 2). Şimdilik kodu yükleyerek dene.'
+// ── GitHub sekmesi (K17, belge 22): bağlanma, repo erişimi, repo · dal · ağaç · bağlam ──
+// Gerçek backend'de bağlanma GitHub App ile olur: kimlik + kullanıcının seçtiği repolara salt okunur erişim.
+// Erişim GitHub'da kaldırılmışsa repo uçları 410 döner (GitHubGirdi "Repolarına erişim ver"e döner).
 const mockRepo = (ad) => githubRepolari.find((r) => r.ad === ad)
+const sorgu = (p) => new URLSearchParams(p).toString()
+
+// Girişli kullanıcı: pencereye verilecek kısa ömürlü bilet → GitHub hesabı bu hesaba bağlanır
+async function hesabaBagla() {
+  const { bilet } = await istek('/auth/github-app/bilet', { method: 'POST' })
+  const kullanici = await githubAppPencere(API_URL, { bilet })
+  return { github: kullanici.github, token: kullanici.token }
+}
 
 // Giriş yokken: GitHub ile giriş + repo erişimi tek adımda. Dönen: kullanıcı nesnesi
 export async function githubBaglan() {
-  if (API_URL) return githubPencereIleGiris(API_URL) // giriş olur; repo erişimi adımı sonra istenir
+  if (API_URL) return githubAppPencere(API_URL)
   const kullanici = await githubIleGiris()
   return { ...kullanici, github: { ...kullanici.github, repoErisimi: true } }
 }
 
 // E-postayla giriş yapmış kullanıcı: hesaba GitHub bağlanır. Dönen: kullanıcıya eklenecek alanlar
 export async function githubHesabiBagla() {
-  if (API_URL) throw new Error(REPO_HENUZ_YOK)
+  if (API_URL) return hesabaBagla()
   await bekle(900)
   return { github: { kullaniciAdi: 'codeguard-demo', repoErisimi: true } }
 }
 
 // GitHub bağlı ama repolara erişim verilmemiş. Dönen: kullanıcıya eklenecek alanlar
 export async function githubRepoErisimiVer(github) {
-  if (API_URL) throw new Error(REPO_HENUZ_YOK)
+  if (API_URL) return hesabaBagla()
   await bekle(900)
   return { github: { ...github, repoErisimi: true } }
 }
 
 // → [{ ad: 'sahip/repo', gizli, dil }]
 export async function getGithubRepolari() {
+  if (API_URL) return istek('/github/repolar')
   await bekle()
   return githubRepolari.map(({ ad, gizli, dil }) => ({ ad, gizli, dil }))
 }
 
 // → [{ ad, commit }] (varsayılan dal ilk sırada)
 export async function getGithubDallari(repo) {
+  if (API_URL) return istek('/github/dallar?' + sorgu({ repo }))
   await bekle(300)
   return mockRepo(repo)?.dallar || []
 }
 
 // → [{ yol, boyut }] (yalnızca yollar ve boyutlar; içerik indirilmez)
 export async function getGithubAgaci(repo, dal) {
+  if (API_URL) return istek('/github/agac?' + sorgu({ repo, dal }))
   await bekle(500)
   return mockRepo(repo)?.agac || []
 }
 
 // Bağlam Çözümleyici: seçilen dosyaların çalışması için gereken dosyalar → { baglam: [{ yol, neden }], tumRepo }
 export async function getGithubBaglami(repo, dal, secilenler, tur) {
+  if (API_URL) return istek('/github/baglam', { method: 'POST', json: { repo, dal, secilenler, tur: turListesi(tur) } })
   await bekle(300)
   const r = mockRepo(repo)
   return r ? baglamCozumle(r, secilenler, tur) : { baglam: [], tumRepo: false }
@@ -201,6 +212,7 @@ const calistirmalar = new Map()
 // Gerçek backend'de gönderilen seçim (docs/api-sozlesmesi.md 2.1)
 function secimOlustur(config) {
   const urlModu = config.kaynak === 'url'
+  const g = config.github
   return {
     kaynak: config.kaynak || 'kod',
     alan: config.alan,
@@ -210,7 +222,9 @@ function secimOlustur(config) {
     url: urlModu ? config.url.trim() : '',
     baslatmaKomutu: config.baslatmaKomutu || '',
     // "Örnek projeyle dene": dosya yerine sunucudaki örnek proje
-    ornek: !urlModu && config.dosya?.ornek ? config.dosya.ad : null,
+    ornek: config.kaynak === 'kod' && config.dosya?.ornek ? config.dosya.ad : null,
+    // GitHub: backend dalın son commit'ini indirir, bağlamı kendisi yeniden hesaplar (belge 22)
+    github: config.kaynak === 'github' && g ? { repo: g.repo, dal: g.dal, commit: g.commit, secilenler: g.secilenler || [] } : null,
   }
 }
 

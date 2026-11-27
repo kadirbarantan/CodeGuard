@@ -20,6 +20,17 @@ class SecimHatasi(ValueError):
     """Kullanıcıya gösterilecek Türkçe mesajla 400 döner."""
 
 
+class GithubSecim(BaseModel):
+    """GitHub sekmesi: repo, dal ve kullanıcının seçtiği (hedef) dosyalar.
+    commit ve baglam test başlatılırken backend tarafından doldurulur (sitenin gönderdiğine güvenilmez)."""
+
+    repo: str = Field(max_length=201)
+    dal: str = Field(max_length=255)
+    secilenler: list[str] = Field(min_length=1, max_length=200)
+    commit: str | None = None
+    baglam: list[str] = []
+
+
 class Secim(BaseModel):
     kaynak: Literal["kod", "url", "github"] = "kod"
     alan: Literal["oyun", "web", "mobil", "genel", "diger"]
@@ -30,6 +41,8 @@ class Secim(BaseModel):
     baslatmaKomutu: str = Field(default="", max_length=300)
     # Dosya yüklemek yerine sunucudaki örnek projeyi kullan: "blog-api"
     ornek: str | None = None
+    # Yalnızca kaynak "github" iken dolu
+    github: GithubSecim | None = None
 
     @field_validator("tur")
     @classmethod
@@ -48,7 +61,12 @@ def secimi_coz(metin: str) -> Secim:
     if s.alan not in AKTIF_ALANLAR:
         raise SecimHatasi("Şimdilik yalnızca Web alanı test edilebiliyor.")
     if s.kaynak == "github":
-        raise SecimHatasi("GitHub repo erişimi henüz hazır değil. Şimdilik kodu yükleyerek dene.")
+        if not s.github:
+            raise SecimHatasi("Test için bir repo ve dosya seç.")
+        s.ornek = None
+        s.github.commit, s.github.baglam = None, []
+    else:
+        s.github = None
     if s.alan in ("oyun", "mobil") and s.tur != ["birim"]:
         raise SecimHatasi("Oyun ve Mobil alanlarında yalnızca birim testi yapılır.")
     if s.alan == "mobil" and s.dil == "python":

@@ -18,6 +18,7 @@ def _sozluk(k: Kullanici) -> dict:
         "sifre_hash": k.sifre_hash,
         "github_id": k.github_id,
         "github_kullanici_adi": k.github_kullanici_adi,
+        "github_kurulum_id": k.github_kurulum_id,
         "google_id": k.google_id,
         "google_eposta": k.google_eposta,
         "profil": k.profil,
@@ -54,10 +55,13 @@ def eposta_ile_olustur(ad: str, eposta: str, sifre_hash: str) -> dict | None:
         return _sozluk(k)
 
 
-def github_ile_bul_veya_olustur(github_id: int, kullanici_adi: str, ad: str, eposta: str | None) -> dict:
+def github_ile_bul_veya_olustur(
+    github_id: int, kullanici_adi: str, ad: str, eposta: str | None, kurulum_id: int | None = None, github_app: bool = False
+) -> dict:
     """1) Bu GitHub hesabı daha önce bağlandıysa o kullanıcı.
     2) Değilse, GitHub'ın DOĞRULANMIŞ e-postası mevcut bir hesapla eşleşiyorsa o hesaba bağlanır.
-    3) Hiçbiri yoksa yeni hesap açılır (şifresiz; yalnızca GitHub ile giriş yapar)."""
+    3) Hiçbiri yoksa yeni hesap açılır (şifresiz; yalnızca GitHub ile giriş yapar).
+    github_app: GitHub App ile gelindi; kurulum_id GitHub'ın o anki bilgisidir (None: kurulum yok) ve kaydedilir."""
     with oturum_ac() as db:
         k = db.scalar(select(Kullanici).where(Kullanici.github_id == github_id))
         if not k and eposta:
@@ -65,6 +69,8 @@ def github_ile_bul_veya_olustur(github_id: int, kullanici_adi: str, ad: str, epo
         if k:
             k.github_id = github_id
             k.github_kullanici_adi = kullanici_adi
+            if github_app:
+                k.github_kurulum_id = kurulum_id
         else:
             k = Kullanici(
                 ad=ad or kullanici_adi,
@@ -72,10 +78,44 @@ def github_ile_bul_veya_olustur(github_id: int, kullanici_adi: str, ad: str, epo
                 eposta=(eposta or f"{github_id}+{kullanici_adi}@users.noreply.github.com").lower(),
                 github_id=github_id,
                 github_kullanici_adi=kullanici_adi,
+                github_kurulum_id=kurulum_id,
             )
             db.add(k)
         db.commit()
         return _sozluk(k)
+
+
+class BaglamaHatasi(ValueError):
+    """GitHub hesabı bu kullanıcıya bağlanamıyor; mesaj kullanıcıya gösterilir."""
+
+
+def github_bagla(kullanici_id: str, github_id: int, kullanici_adi: str, kurulum_id: int) -> dict:
+    """Giriş yapmış kullanıcının hesabına GitHub hesabını ve App kurulumunu bağlar (GitHub sekmesi, durum 2–3)."""
+    with oturum_ac() as db:
+        k = db.get(Kullanici, kullanici_id)
+        if not k:
+            raise BaglamaHatasi("Oturum bulunamadı. Lütfen tekrar giriş yap.")
+        if k.github_id and k.github_id != github_id:
+            raise BaglamaHatasi(
+                f"Hesabına başka bir GitHub hesabı bağlı (@{k.github_kullanici_adi}). GitHub'da o hesapla giriş yapıp tekrar dene."
+            )
+        baska = db.scalar(select(Kullanici).where(Kullanici.github_id == github_id, Kullanici.id != kullanici_id))
+        if baska:
+            raise BaglamaHatasi("Bu GitHub hesabı başka bir CodeGuard hesabına bağlı. O hesapla GitHub ile giriş yap.")
+        k.github_id = github_id
+        k.github_kullanici_adi = kullanici_adi
+        k.github_kurulum_id = kurulum_id
+        db.commit()
+        return _sozluk(k)
+
+
+def github_kurulumu_sil(kullanici_id: str) -> None:
+    """Kullanıcı App'i GitHub'da kaldırdıysa: repo erişimi yok sayılır (GitHub hesabı bağlı kalır)."""
+    with oturum_ac() as db:
+        k = db.get(Kullanici, kullanici_id)
+        if k and k.github_kurulum_id:
+            k.github_kurulum_id = None
+            db.commit()
 
 
 def google_ile_bul_veya_olustur(google_id: str, ad: str, eposta: str) -> dict:
@@ -120,6 +160,9 @@ def disari_ver(k: dict) -> dict:
         "eposta": k["eposta"],
         **profil,
         "profilTamam": bool(profil),
-        "github": {"kullaniciAdi": k["github_kullanici_adi"]} if k.get("github_id") else None,
+        # repoErisimi: GitHub App kurulumu var mı (GitHub sekmesinin durum 3 / 4 ayrımı)
+        "github": {"kullaniciAdi": k["github_kullanici_adi"], "repoErisimi": bool(k.get("github_kurulum_id"))}
+        if k.get("github_id")
+        else None,
         "google": {"eposta": k["google_eposta"]} if k.get("google_id") else None,
     }

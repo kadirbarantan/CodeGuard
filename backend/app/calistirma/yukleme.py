@@ -43,7 +43,7 @@ def _haric_mi(parcalar: tuple[str, ...]) -> bool:
     return any(p in HARIC for p in parcalar[:-1])
 
 
-class _Sayac:
+class Sayac:
     def __init__(self):
         self.boyut = 0
         self.sayi = 0
@@ -90,7 +90,7 @@ def _dosyalari_yaz(dosyalar, hedef: Path) -> str:
     if not gecerli:
         raise YuklemeHatasi("Yüklenecek dosya bulunamadı.")
     kok = _ortak_kok([y for y, _ in gecerli])
-    sayac = _Sayac()
+    sayac = Sayac()
     for yol, kaynak in gecerli:
         sayac.kopyala(kaynak, hedef.joinpath(*(yol[1:] if kok else yol)))
     return kok or (gecerli[0][0][0] if len(gecerli) == 1 else "proje")
@@ -124,7 +124,7 @@ def _zip_ac(ad: str, kaynak: BinaryIO, hedef: Path) -> str:
         if len(uyeler) > MAX_DOSYA:
             raise YuklemeHatasi(SINIR_MESAJI, 413)
         kok = _ortak_kok([y for y, _ in uyeler])
-        sayac = _Sayac()
+        sayac = Sayac()
         for yol, bilgi in uyeler:
             with zf.open(bilgi) as icerik:
                 sayac.kopyala(icerik, hedef.joinpath(*(yol[1:] if kok else yol)))

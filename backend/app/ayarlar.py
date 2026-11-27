@@ -9,6 +9,18 @@ load_dotenv()
 GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID", "")
 GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET", "")
 GITHUB_REDIRECT_URI = os.getenv("GITHUB_REDIRECT_URI", "http://localhost:8000/auth/github/callback")
+# GitHub App (repo erişimi; belge: docs/github-app.md). OAuth App'ten (yukarısı, yalnızca giriş) ayrıdır.
+GITHUB_APP_ID = os.getenv("GITHUB_APP_ID", "")
+GITHUB_APP_SLUG = os.getenv("GITHUB_APP_SLUG", "")
+GITHUB_APP_CLIENT_ID = os.getenv("GITHUB_APP_CLIENT_ID", "")
+GITHUB_APP_CLIENT_SECRET = os.getenv("GITHUB_APP_CLIENT_SECRET", "")
+# Özel anahtar (.pem) repo klasörünün DIŞINDA durur; burada yalnızca yolu var
+GITHUB_APP_PRIVATE_KEY_PATH = os.getenv("GITHUB_APP_PRIVATE_KEY_PATH", "")
+GITHUB_APP_REDIRECT_URI = os.getenv("GITHUB_APP_REDIRECT_URI", "http://localhost:8000/auth/github-app/callback")
+# Gerçek GitHub dışında bir sunucuyla denemek için (testlerde sahte GitHub). Normalde boş bırakılır.
+GITHUB_API_URL = (os.getenv("GITHUB_API_URL") or "https://api.github.com").rstrip("/")
+GITHUB_WEB_URL = (os.getenv("GITHUB_WEB_URL") or "https://github.com").rstrip("/")
+
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
 GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8000/auth/google/callback")
@@ -28,4 +40,4 @@ JWT_SECRET = os.getenv("JWT_SECRET", "")
 JWT_SURE_GUN = int(os.getenv("JWT_SURE_GUN", "7"))
 
 # Yerelde http, canlıda https: çerezin Secure bayrağı buna göre
-CANLI = GITHUB_REDIRECT_URI.startswith("https://") or GOOGLE_REDIRECT_URI.startswith("https://")
+CANLI = any(u.startswith("https://") for u in (GITHUB_REDIRECT_URI, GOOGLE_REDIRECT_URI, GITHUB_APP_REDIRECT_URI))
