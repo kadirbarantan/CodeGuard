@@ -1,0 +1,13 @@
+# Python sandbox imajındaki test araçları. Sürümler sabittir: imaj her bilgisayarda aynı kurulur.
+# Değiştirince imajın etiketini de artır (codeguard-sandbox-python:2) ve app/motor/sandbox.py'deki IMAJ'ı güncelle.
+
+# Test koşucusu ve tek test için süre sınırı
+pytest==9.2.0
+pytest-timeout==2.4.0
+# Satır ve dal kapsaması (Cobertura XML üretir)
+coverage==7.17.5
+# Onaylı test yardımcıları (K5): FastAPI/Starlette TestClient bunlardan birini ister
+httpx2==2.16.2
+httpx==0.29.0
+# Mutasyon testi (kalite skoru, Faz 6'da kullanılacak)
+mutmut==3.8.1

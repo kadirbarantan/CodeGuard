@@ -12,3 +12,5 @@ argon2-cffi>=23.1
 email-validator>=2.2
 # Kod yükleme (multipart/form-data)
 python-multipart>=0.0.18
+# Test motoru (Faz 3): sandbox kapsayıcılarını yönetir
+docker>=7.1
