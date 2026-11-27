@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Header from './components/Header'
 import Hero from './components/home/Hero'
 import TerminalBolumu from './components/home/AcilisAnimasyonu'
@@ -8,7 +8,8 @@ import HowItWorks from './components/home/HowItWorks'
 import ReportPreview from './components/home/ReportPreview'
 import GuvenBolumu from './components/home/GuvenBolumu'
 import AuthModal from './components/AuthModal'
-import { startRun, subscribeRun, stopRun, getReport } from './services/api'
+import Toast from './components/Toast'
+import { OTURUM_DUSTU, getReport, oturumuDogrula, startRun, stopRun, subscribeRun } from './services/api'
 import RunSummaryBar from './components/run/RunSummaryBar'
 import LiveStats from './components/run/LiveStats'
 import AgentTimeline from './components/run/AgentTimeline'
@@ -19,7 +20,7 @@ import ReportView from './components/report/ReportView'
 import HistoryDrawer from './components/HistoryDrawer'
 import { alanAktif, pythonDesteklenir, turDuzelt } from './config/testStratejileri'
 
-// Mock oturum: localStorage'da 'kullanici' anahtarıyla saklanır
+// Oturum: localStorage'da 'kullanici' anahtarıyla saklanır (gerçek backend modunda token da içinde)
 function kayitliKullanici() {
   try {
     return JSON.parse(localStorage.getItem('kullanici')) || null
@@ -62,6 +63,9 @@ export default function App() {
   // Plan ilerlemesi için beklenen toplam olay (Faz 2'de backend toplam adımı kendisi gönderebilir)
   const toplamOlay = screen === 'calisiyor' ? olaylariOlustur(config).length : 0
   const [report, setReport] = useState(null)
+  // Sağ altta kısa bildirim (hata mesajları vb.)
+  const [bildirim, setBildirim] = useState('')
+  const bildirimKapat = useCallback(() => setBildirim(''), [])
 
   // Aktif aboneliğin durdurma fonksiyonu ve geçerli çalıştırma kimliği (eski olayları yok saymak için)
   const durdurRef = useRef(null)
@@ -78,6 +82,30 @@ export default function App() {
   // Bileşen kaldırılırken abonelik kapansın
   useEffect(() => abonelikKapat, [])
 
+  // Gerçek backend: sayfa açılınca kayıtlı oturumu doğrula (süresi dolduysa aşağıdaki olay çıkış yaptırır)
+  useEffect(() => {
+    if (!kayitliKullanici()) return
+    oturumuDogrula()
+      .then((guncel) => {
+        if (!guncel) return
+        const kullanici = { ...kayitliKullanici(), ...guncel }
+        localStorage.setItem('kullanici', JSON.stringify(kullanici))
+        setUser(kullanici)
+      })
+      .catch(() => {})
+  }, [])
+
+  // Oturum düştü (token geçersiz ya da süresi doldu): çıkış yap, giriş penceresini aç
+  useEffect(() => {
+    function dustu() {
+      cikis()
+      setModal('giris')
+      setBildirim('Oturumun sona erdi. Devam etmek için tekrar giriş yap.')
+    }
+    window.addEventListener(OTURUM_DUSTU, dustu)
+    return () => window.removeEventListener(OTURUM_DUSTU, dustu)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   function cikis() {
     abonelikKapat()
     aktifRunRef.current = null
@@ -92,7 +120,15 @@ export default function App() {
   // Testi başlat: runId'yi sakla, olayları dinle, çalışıyor ekranına geç
   async function testiBaslat(cfg) {
     abonelikKapat()
-    const { runId: id } = await startRun(cfg)
+    let id
+    try {
+      ;({ runId: id } = await startRun(cfg))
+    } catch (h) {
+      // 401: oturum düştü (giriş penceresi açıldı); girişten sonra test kendiliğinden başlasın
+      if (h.durum === 401) setPendingStart(true)
+      else setBildirim(h.message)
+      return
+    }
     abonelikKapat() // startRun beklenirken başka bir abonelik açılmış olabilir (çift tıklama)
     aktifRunRef.current = id
     setEvents([])
@@ -103,6 +139,13 @@ export default function App() {
       if (olay.type === 'done') {
         abonelikKapat()
         raporaGec(id)
+      } else if (olay.type === 'hata') {
+        // Kurulum hatası, sunucu yeniden başladı ya da bağlantı koptu: ana ekrana dön, nedenini göster
+        abonelikKapat()
+        aktifRunRef.current = null
+        setEvents([])
+        setScreen('yukle')
+        setBildirim(olay.mesaj)
       } else {
         setEvents((onceki) => [...onceki, olay])
       }
@@ -110,7 +153,16 @@ export default function App() {
   }
 
   async function raporaGec(id) {
-    const sonuc = await getReport(id)
+    let sonuc
+    try {
+      sonuc = await getReport(id)
+    } catch (h) {
+      if (aktifRunRef.current !== id) return
+      aktifRunRef.current = null
+      setScreen('yukle')
+      setBildirim(h.message)
+      return
+    }
     if (aktifRunRef.current !== id) return // bu arada durduruldu / çıkış yapıldı
     setReport(sonuc)
     setScreen('rapor')
@@ -123,7 +175,7 @@ export default function App() {
     aktifRunRef.current = null
     setEvents([])
     setScreen('yukle')
-    if (id) stopRun(id)
+    if (id) stopRun(id).catch(() => {})
   }
 
   // Logo ile ana ekrana dönüş: çalışan test varsa önce durdur
@@ -138,9 +190,15 @@ export default function App() {
     abonelikKapat()
     aktifRunRef.current = null
     setEvents([])
-    if (id && screen === 'calisiyor') stopRun(id)
+    if (id && screen === 'calisiyor') stopRun(id).catch(() => {})
     setDrawerOpen(false)
-    const sonuc = await getReport(kayit.runId)
+    let sonuc
+    try {
+      sonuc = await getReport(kayit.runId)
+    } catch (h) {
+      setBildirim(h.message)
+      return
+    }
     setReport(sonuc)
     setScreen('rapor')
   }
@@ -285,6 +343,7 @@ export default function App() {
           }}
         />
       )}
+      <Toast message={bildirim} onClose={bildirimKapat} sure={6000} />
       <HistoryDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onSelect={gecmistenAc} />
       {modal && (
         <AuthModal

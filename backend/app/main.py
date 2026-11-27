@@ -1,6 +1,7 @@
 """CodeGuard backend giriş noktası.
 
-Çalıştırma (backend klasöründe):  uvicorn app.main:app --reload --port 8000
+Çalıştırma (backend klasöründe):  uvicorn app.main:app --reload --reload-dir app --port 8000
+(--reload-dir app: yüklenen kodlar backend/yuklemeler altında; izlenirse her yüklemede sunucu yeniden başlar)
 """
 from contextlib import asynccontextmanager
 

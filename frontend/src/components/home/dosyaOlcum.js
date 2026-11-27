@@ -1,4 +1,5 @@
 // Yükleme ölçümü: klasör/zip için dosya sayısı ve boyut hesabı, gereksiz klasörler hariç.
+// Sonuç: { ad, sayi, boyut, dosyalar: [{ yol, dosya }] }. dosyalar gerçek backend'e gönderilir (yol: göreli yol, ör. blog-api/app/posts.py).
 export const MAX_BOYUT = 5 * 1024 * 1024 // 5 MB
 export const MAX_DOSYA = 200
 const HARIC = ['node_modules', 'bin', 'obj', 'venv', '.git']
@@ -8,16 +9,17 @@ export function haricMi(yol) {
   return yol.split('/').slice(0, -1).some((p) => HARIC.includes(p))
 }
 
-// <input type="file"> ile seçilenleri ölç → { ad, sayi, boyut }
+// <input type="file"> ile seçilenleri ölç → { ad, sayi, boyut, dosyalar }
 export function inputtanOlc(liste) {
   const dosyalar = Array.from(liste)
-  if (dosyalar.length === 0) return { ad: '', sayi: 0, boyut: 0 }
+  if (dosyalar.length === 0) return { ad: '', sayi: 0, boyut: 0, dosyalar: [] }
   const yol = dosyalar[0].webkitRelativePath
   const gecerli = yol ? dosyalar.filter((f) => !haricMi(f.webkitRelativePath)) : dosyalar
   return {
     ad: yol ? yol.split('/')[0] : dosyalar[0].name,
     sayi: gecerli.length,
     boyut: gecerli.reduce((t, f) => t + f.size, 0),
+    dosyalar: gecerli.map((f) => ({ yol: f.webkitRelativePath || f.name, dosya: f })),
   }
 }
 
@@ -27,6 +29,7 @@ async function gez(entry, sonuc, kok) {
     const f = await new Promise((res, rej) => entry.file(res, rej))
     sonuc.sayi++
     sonuc.boyut += f.size
+    sonuc.dosyalar.push({ yol: entry.fullPath.replace(/^\/+/, ''), dosya: f })
   } else if (kok || !HARIC.includes(entry.name)) {
     const okuyucu = entry.createReader()
     for (;;) {
@@ -42,7 +45,7 @@ export async function birakmadanOlc(dataTransfer) {
   const girdiler = Array.from(dataTransfer.items)
     .map((i) => i.webkitGetAsEntry && i.webkitGetAsEntry())
     .filter(Boolean)
-  const sonuc = { ad: girdiler.length === 1 ? girdiler[0].name : `${girdiler.length} öğe`, sayi: 0, boyut: 0 }
+  const sonuc = { ad: girdiler.length === 1 ? girdiler[0].name : `${girdiler.length} öğe`, sayi: 0, boyut: 0, dosyalar: [] }
   for (const g of girdiler) await gez(g, sonuc, true)
   return sonuc
 }

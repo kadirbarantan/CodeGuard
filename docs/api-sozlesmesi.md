@@ -130,9 +130,14 @@ Biçim mock dosyalarıyla birebir aynı. Alanların tam listesi oradadır:
 | `olaylar` | canlı akış olayları, `sira` ile (sayfa yenilenince tekrar oynatmak için) |
 | `raporlar` | getReport'un döndürdüğü nesnenin tamamı (JSON), `kalite_skoru` |
 
-## 5. Frontend'e kalanlar (api.js'yi gerçek uca bağlarken)
-- **Örnek proje:** "Örnek projeyle dene" seçildiyse dosya yerine `secim.ornek = "blog-api"` gönderilir.
-- **Canlı akış mesajları:** `done` dışında `durduruldu` ve `hata` da gelebilir; `hata`'da `mesaj` kullanıcıya gösterilir.
-- **Yükleme kutusu dosyaların kendisini tutmalı.** `UploadBox` / `dosyaOlcum.js` şu an yalnızca `{ ad, sayi, boyut }` ölçüyor, dosyaları saklamıyor. Gönderebilmek için seçilen `File` listesi (göreli yollarıyla) de tutulmalı.
-- **Token saklanmalı.** Giriş yanıtındaki `token`, `localStorage`'daki `kullanici` ile birlikte saklanır ve her isteğe `Authorization` başlığı olarak eklenir. 401 gelirse oturum kapatılıp giriş penceresi açılır.
-- **Hata mesajları.** `detail` metni kullanıcıya gösterilir (ör. 409'daki "Bu e-postayla bir hesap zaten var").
+## 5. Frontend bağlantısı (✅ 26.11.2026)
+`frontend/src/services/api.js` iki modda çalışır: `VITE_API_URL` tanımlıysa (ör. `frontend/.env.local`) yukarıdaki uçlara gider, değilse mock veriyle çalışır.
+- **Yükleme:** `dosyaOlcum.js` seçilen dosyaları göreli yollarıyla tutar (`dosya.dosyalar: [{ yol, dosya }]`); `startRun` bunları `dosyalar` olarak gönderir. "Örnek projeyle dene"de dosya yerine `secim.ornek = "blog-api"`.
+- **Token:** giriş/kayıt yanıtındaki `token`, kullanıcıyla birlikte `localStorage`'daki `kullanici`'ya yazılır; her istekte `Authorization: Bearer` olarak eklenir. Sayfa açılınca `GET /auth/me` ile doğrulanır.
+- **Oturum düşmesi:** herhangi bir uçtan 401 (giriş/kayıt hariç) ya da WebSocket 4401 gelirse `codeguard:oturum-dustu` olayı yayılır; App çıkış yapar, giriş penceresini açar ve "Oturumun sona erdi" bildirimi gösterir. Test başlatırken düştüyse girişten sonra test kendiliğinden başlar.
+- **Canlı akış:** WebSocket; bağlantı koparsa `sonSira` ile en fazla 3 kez yeniden bağlanır. `hata` ya da beklenmedik `durduruldu` gelirse ana ekrana dönülür ve mesaj bildirim olarak gösterilir.
+- **Hata mesajları:** backend'in `detail` metni gösterilir: giriş penceresinde (ör. "E-posta ya da şifre hatalı."), profil formunda, test başlatmada ve raporu açarken sağ alttaki bildirimde.
+- **Kalite skoru:** `GET /runs/{id}/kalite` 2 sn'de bir sorulur (en fazla ~1 dk).
+- **Geçmiş:** `durduruldu`, `hata`, `calisiyor` durumları ayrı rozetle gösterilir; tamamlanmamış teste tıklanınca rapor yerine açıklaması (`hata` alanı) çıkar.
+- **CORS:** backend yalnızca `.env`'deki `FRONTEND_URL`'den (varsayılan `http://localhost:5173`) gelen tarayıcı isteklerini kabul eder; siteyi `127.0.0.1` değil `localhost` adresinden aç.
+- Henüz yok: şifre sıfırlama (gerçek modda "henüz hazır değil" mesajı), GitHub repo seçimi (bölüm 3).

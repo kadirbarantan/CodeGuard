@@ -125,8 +125,9 @@ export default function AuthModal({ view, pendingStart, kullanici, onViewChange,
         setBekliyor(false)
         onViewChange('sifreGonderildi')
       }
-    } catch {
-      setHatalar({ genel: 'Bir hata oluştu. Lütfen tekrar dene.' })
+    } catch (err) {
+      // Gerçek backend'in mesajı (ör. "E-posta ya da şifre hatalı.") gösterilir
+      setHatalar({ genel: err?.message || 'Bir hata oluştu. Lütfen tekrar dene.' })
       setBekliyor(false)
     }
   }
