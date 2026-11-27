@@ -39,8 +39,8 @@ export default function ProfileForm({ kullanici, onKaydet }) {
     try {
       const profil = { ad: ad.trim(), meslek, digerMeslek: meslek === 'diger' ? digerMeslek.trim() : '', diller }
       onKaydet(await updateProfile(kullanici.eposta, profil))
-    } catch {
-      setHatalar({ genel: 'Profil kaydedilemedi. Lütfen tekrar dene.' })
+    } catch (err) {
+      setHatalar({ genel: err?.message || 'Profil kaydedilemedi. Lütfen tekrar dene.' })
       setBekliyor(false)
     }
   }

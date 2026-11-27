@@ -61,6 +61,13 @@ async def canli_akis(ws: WebSocket, run_id: str):
                     await ws.send_json({"type": "hata", "durum": durum, "mesaj": hata or "Test tamamlanamadı."})
                 await ws.close()
                 return
-            await asyncio.sleep(YOKLAMA_SN)
-    except WebSocketDisconnect:
+            # Beklerken istemciyi de dinle: sekme kapandıysa ya da sunucu kapanıyorsa döngüden hemen çık
+            # (yoksa sunucu kapanırken bu bağlantıyı bekleyip takılabilir)
+            try:
+                mesaj = await asyncio.wait_for(ws.receive(), timeout=YOKLAMA_SN)
+                if mesaj.get("type") == "websocket.disconnect":
+                    return
+            except asyncio.TimeoutError:
+                pass
+    except (WebSocketDisconnect, RuntimeError):
         return

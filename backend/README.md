@@ -34,7 +34,7 @@ alembic upgrade head            # tabloları kur
 ```bash
 .venv\Scripts\activate
 docker compose up -d            # Docker Desktop açıksa veritabanı birkaç saniyede kalkar
-uvicorn app.main:app --reload --port 8000
+uvicorn app.main:app --reload --reload-dir app --port 8000
 ```
 
 - API belgesi (uçları tarayıcıdan denemek için): http://localhost:8000/docs
@@ -99,6 +99,8 @@ app/
 ```
 
 ## Sorun çıkarsa
+
+- **Test "Ajanlar çalışıyor"da takılıyorsa ya da backend kendi kendine yeniden başlıyorsa:** uvicorn'u `--reload-dir app` ile başlattığından emin ol. Bu olmadan `--reload`, yüklenen kodlardaki `.py` dosyalarını (backend/yuklemeler) da izler; Python projesi yüklenince backend yeniden başlar ve test yarıda kalır.
 
 - `/saglik` "bağlanamadı" diyorsa: Docker Desktop açık mı, `docker compose ps` ile `db` çalışıyor mu?
 - 5432 portu doluysa (bilgisayarda ayrıca PostgreSQL kuruluysa): `docker-compose.yml`'de `127.0.0.1:5433:5432` yap, `.env`'deki adreste de portu `5433` yap.

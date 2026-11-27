@@ -1,11 +1,21 @@
 import { useEffect, useRef, useState } from 'react'
-import { AlertTriangle, CheckCircle2, X } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, CircleDot, X } from 'lucide-react'
 import { getHistory } from '../services/api'
 
 import { TURLER as TUR, turListesi } from '../config/testStratejileri'
 
 const ALAN = { web: 'Web', oyun: 'Oyun', mobil: 'Mobil', genel: 'Genel', diger: 'Diğer' }
 const DIL = { python: 'Python', csharp: 'C#', js: 'JS/TS', php: 'PHP' }
+
+// Test durumunun rozeti ve tıklanınca gösterilecek açıklama (tamamlanmayan testlerin raporu yoktur)
+const DURUM = {
+  tamamlandi: { ad: 'Tamamlandı', sinif: 'bg-ok-bg text-ok-text', Ikon: CheckCircle2 },
+  kurulumHatasi: { ad: 'Kurulum hatası', sinif: 'bg-bad-bg text-bad-text', Ikon: AlertTriangle, aciklama: 'Bağımlılıklar kurulamadı; requirements.txt dosyasını kontrol et.' },
+  hata: { ad: 'Tamamlanamadı', sinif: 'bg-bad-bg text-bad-text', Ikon: AlertTriangle, aciklama: 'Test tamamlanamadı. Yeniden başlatabilirsin.' },
+  durduruldu: { ad: 'Durduruldu', sinif: 'bg-soft text-text-2', Ikon: CircleDot, aciklama: 'Bu test durduruldu; raporu yok.' },
+  calisiyor: { ad: 'Sürüyor', sinif: 'bg-ai-bg text-ai-text', Ikon: CircleDot, aciklama: 'Bu test hâlâ sürüyor; bitince raporu açılır.' },
+  bekliyor: { ad: 'Sürüyor', sinif: 'bg-ai-bg text-ai-text', Ikon: CircleDot, aciklama: 'Bu test hâlâ sürüyor; bitince raporu açılır.' },
+}
 
 // Skor çubuğu rengi: yüksek yeşil, orta mavi, düşük kırmızı
 function cubukRengi(d) {
@@ -25,9 +35,15 @@ export default function HistoryDrawer({ open, onClose, onSelect }) {
     setListe(null)
     setUyari('')
     kapatRef.current?.focus()
-    getHistory().then((l) => {
-      if (!iptal) setListe(l)
-    })
+    getHistory()
+      .then((l) => {
+        if (!iptal) setListe(l)
+      })
+      .catch((h) => {
+        if (iptal) return
+        setListe([])
+        setUyari(h.message)
+      })
     return () => {
       iptal = true
     }
@@ -44,8 +60,8 @@ export default function HistoryDrawer({ open, onClose, onSelect }) {
   }, [open, onClose])
 
   function sec(k) {
-    if (k.durum === 'kurulumHatasi') {
-      setUyari('Bağımlılıklar kurulamadı; requirements.txt dosyasını kontrol et.')
+    if (k.durum !== 'tamamlandi') {
+      setUyari(k.hata || (DURUM[k.durum] || DURUM.hata).aciklama)
       return
     }
     onSelect(k)
@@ -89,10 +105,12 @@ export default function HistoryDrawer({ open, onClose, onSelect }) {
           )}
           {liste === null ? (
             <p className="text-sm text-muted">Yükleniyor…</p>
+          ) : liste.length === 0 ? (
+            !uyari && <p className="text-sm text-muted">Henüz test yok. İlk testini başlattığında burada görünecek.</p>
           ) : (
             <ul className="space-y-2">
               {liste.map((k) => {
-                const basarili = k.durum === 'tamamlandi'
+                const d = DURUM[k.durum] || DURUM.hata
                 // Seçilen her test grubunun skoru ayrı çubukta (birden fazla tür seçildiyse birden fazla çubuk)
                 const skorlar = [
                   ['Kod kapsaması', k.coverage],
@@ -108,14 +126,9 @@ export default function HistoryDrawer({ open, onClose, onSelect }) {
                     >
                       <span className="flex items-center justify-between gap-2">
                         <span className="min-w-0 truncate font-semibold text-text">{k.proje}</span>
-                        <span
-                          className={
-                            'flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ' +
-                            (basarili ? 'bg-ok-bg text-ok-text' : 'bg-bad-bg text-bad-text')
-                          }
-                        >
-                          {basarili ? <CheckCircle2 size={12} aria-hidden="true" /> : <AlertTriangle size={12} aria-hidden="true" />}
-                          {basarili ? 'Tamamlandı' : 'Kurulum hatası'}
+                        <span className={'flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ' + d.sinif}>
+                          <d.Ikon size={12} aria-hidden="true" />
+                          {d.ad}
                         </span>
                       </span>
                       <span className="mt-2 flex flex-wrap gap-1.5">
@@ -141,7 +154,9 @@ export default function HistoryDrawer({ open, onClose, onSelect }) {
                           </span>
                         ))
                       ) : (
-                        !basarili && <span className="mt-3 block text-xs text-bad-text">Test çalıştırılamadı; ayrıntı için tıkla.</span>
+                        (k.durum === 'kurulumHatasi' || k.durum === 'hata') && (
+                          <span className="mt-3 block text-xs text-bad-text">Test çalıştırılamadı; ayrıntı için tıkla.</span>
+                        )
                       )}
                     </button>
                   </li>
