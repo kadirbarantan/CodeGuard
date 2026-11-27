@@ -2,12 +2,13 @@
 
 FastAPI uygulaması. Şu an olanlar:
 
-- E-posta + şifreyle kayıt ve giriş, profil kaydı; GitHub ve Google ile giriş (bkz. `../docs/github-oauth.md`, `../docs/google-oauth.md`).
+- E-posta + şifreyle kayıt ve giriş, profil kaydı; GitHub (GitHub App, `../docs/github-app.md`) ve Google ile giriş (`../docs/google-oauth.md`).
 - PostgreSQL veritabanı.
 - Test çalıştırma: kod yükleme (klasör / .zip / tek dosya, örnek proje ya da URL), canlı akış (WebSocket), durdurma, rapor, Geçmiş Testlerim.
+- GitHub repo erişimi (GitHub App): repo · dal · dosya seçimi, Bağlam Çözümleyici, seçilen dosyaları indirip test etme. Kurulum: `../docs/github-app.md`.
 - **Sahte motor (geçici):** gerçek test ajanı yazılana kadar canlı akış adımlarını ve raporu sitenin mock verileriyle üretir. Gerçek motor (Faz 3–4) geldiğinde yalnızca `app/sahte_motor` değişir; uçlar aynı kalır.
 
-Uçların ve verilerin biçimi: `../docs/api-sozlesmesi.md`. Sıradaki adım: sitenin bu uçlara bağlanması, sonra sandbox, Kod Haritası ve ajanlar (bkz. Claude projesi belge 18).
+Uçların ve verilerin biçimi: `../docs/api-sozlesmesi.md`. Sıradaki adımlar: sandbox, Kod Haritası ve ajanlar (bkz. Claude projesi belge 18).
 
 ## Gerekenler
 
@@ -28,6 +29,8 @@ alembic upgrade head            # tabloları kur
 ```
 
 `JWT_SECRET` üretmek için: `python -c "import secrets; print(secrets.token_urlsafe(48))"`
+
+GitHub sekmesini gerçek GitHub'la denemek için ayrıca kendi GitHub App'ini oluştur ve `GITHUB_APP_*` satırlarını doldur: `../docs/github-app.md`. Doldurmazsan diğer her şey çalışır; yalnızca GitHub sekmesi "ayarlar eksik" der.
 
 ## Her çalışmada
 
@@ -82,6 +85,11 @@ app/
 │   ├── secim.py       test seçiminin kuralları
 │   ├── yukleme.py     güvenli yükleme ve zip açma (5 MB / 200 dosya)
 │   └── kayit.py       çalıştırma, olay ve rapor kayıtları
+├── github/            GitHub repo erişimi (GitHub App)
+│   ├── router.py      GET /github/repolar, /dallar, /agac · POST /github/baglam
+│   ├── uygulama.py    App JWT'si (.pem) → kurulum token'ı
+│   ├── repo.py        repo, dal, ağaç, dosya içeriği; test için zip arşivini indirip açma
+│   └── baglam.py      Bağlam Çözümleyici (manifestler + import grafiği)
 ├── sahte_motor/       GEÇİCİ: adımları ve raporu mock verilerle üretir
 │   ├── motor.py       çalıştırma döngüsü
 │   ├── olaylar.py     canlı akış adımları (frontend runEvents.js ile aynı)
@@ -90,7 +98,8 @@ app/
 └── auth/
     ├── eposta.py      /auth/kayit, /auth/giris
     ├── sifre.py       şifre özetleme (Argon2id)
-    ├── github.py      /auth/github/login, /auth/github/callback
+    ├── github.py      ESKİ OAuth App girişi; 27.11.2026'dan beri siteden çağrılmıyor (github_app.py kullanılıyor)
+    ├── github_app.py  /auth/github-app/kur, /callback, /bilet (GitHub ile giriş + GitHub sekmesi: repo erişimi)
     ├── google.py      /auth/google/login, /auth/google/callback (OpenID Connect + PKCE)
     ├── pencere.py     açılır pencerenin son sayfası (sonucu FRONTEND_URL'e iletir)
     ├── oturum.py      /auth/me, /auth/me/profil
@@ -107,6 +116,6 @@ app/
 
 ## Notlar
 
-- Yüklenen kodlar `backend/yuklemeler/<runId>/kaynak` altında durur (GitHub'a gönderilmez).
+- Yüklenen kodlar `backend/yuklemeler/<runId>/kaynak` altında durur (GitHub'a gönderilmez). GitHub'dan seçilen dosyalar da aynı yere, repodaki yollarıyla açılır.
 - Sunucu yeniden başlarsa (`--reload` dahil) yarıda kalan testler "hata" olarak kapatılır; testi yeniden başlatmak gerekir.
 - Frontend mock'ları (`frontend/src/mock`) değişirse sahte motorun verisini yenile (repo kökünde, frontend'de `npm install` yapılmışken): `node backend/araclar/ornek_veri_uret.mjs`

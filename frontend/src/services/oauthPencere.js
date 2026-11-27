@@ -44,9 +44,10 @@ function tokenBekle(pencere, apiOrigin, mesajTipi, etiket) {
   })
 }
 
-// saglayici: 'github' | 'google' (backend yolu ve mesaj tipi), etiket: kullanıcıya görünen ad
-export async function pencereIleGiris(apiUrl, saglayici, etiket) {
-  const pencere = pencereAc(`${apiUrl}/auth/${saglayici}/login`, `codeguard-${saglayici}`)
+// saglayici: 'github' | 'google' | 'github-app' (mesaj tipi), etiket: kullanıcıya görünen ad
+// yol: pencerenin açacağı backend adresi (varsayılan /auth/<saglayici>/login)
+export async function pencereIleGiris(apiUrl, saglayici, etiket, yol = `/auth/${saglayici}/login`) {
+  const pencere = pencereAc(apiUrl + yol, `codeguard-${saglayici}`)
   if (!pencere) {
     throw new Error('Açılır pencere engellendi. Tarayıcında bu site için açılır pencerelere izin ver.')
   }

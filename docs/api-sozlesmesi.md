@@ -19,7 +19,9 @@ Frontend'in `frontend/src/services/api.js` dosyasındaki her fonksiyonun backend
 | `login(eposta, sifre)` | `POST /auth/giris` `{ eposta, sifre }` → 200 kullanıcı + `token` · 401 | ✅ |
 | (sayfa yenilenince) | `GET /auth/me` → kullanıcı | ✅ |
 | `updateProfile(eposta, profil)` | `PUT /auth/me/profil` `{ ad, meslek, digerMeslek, diller }` → kullanıcı | ✅ |
-| `githubIleGiris()` | `GET /auth/github/login` (açılır pencere) → token → `/auth/me` | ✅ |
+| `githubIleGiris()` (giriş penceresi) | `GET /auth/github-app/kur?giris=1` (açılır pencere, GitHub App, yalnızca kimlik) → token → `/auth/me` | ✅ (27.11'den beri GitHub App; eski `/auth/github/login` kullanılmıyor) |
+| `githubBaglan()` (GitHub sekmesi, giriş yok) | `GET /auth/github-app/kur` (açılır pencere, GitHub App) → token → `/auth/me` | ✅ |
+| `githubHesabiBagla()`, `githubRepoErisimiVer()` (girişli) | `POST /auth/github-app/bilet` → `{ bilet }` (5 dk) → `GET /auth/github-app/kur?bilet=` (açılır pencere) → token → `/auth/me` | ✅ |
 | `googleIleGiris()` | `GET /auth/google/login` (açılır pencere) → token → `/auth/me` | ✅ |
 | `forgotPassword(eposta)` | `POST /auth/sifre-sifirla` `{ eposta }` → her durumda `{ ok: true }` (kayıtlı olup olmadığı sezdirilmez) | ⏳ (e-posta servisi gerekir) |
 
@@ -32,12 +34,13 @@ Frontend'in `frontend/src/services/api.js` dosyasındaki her fonksiyonun backend
   "eposta": "humeyra@ornek.com",
   "meslek": "web", "digerMeslek": "", "diller": ["python", "js"],
   "profilTamam": true,
-  "github": { "kullaniciAdi": "humeyra-gh" },
+  "github": { "kullaniciAdi": "humeyra-gh", "repoErisimi": true },
   "google": null,
   "token": "…"
 }
 ```
 - `token` yalnızca kayıt/giriş yanıtında var.
+- `github.repoErisimi`: GitHub App kurulu mu (kullanıcı repolarına erişim verdi mi). GitHub sekmesinin durum 3 / 4 ayrımı.
 - `meslek`, `digerMeslek` ve `diller` profil doldurulunca gelir. `meslek`: `oyun | web | mobil | genel | diger`. `diller`: `csharp | python | js | php`. `digerMeslek` yalnızca meslek `diger` ise dolu (en fazla 100 karakter).
 
 ## 2. Test çalıştırma
@@ -76,7 +79,7 @@ Frontend'in `frontend/src/services/api.js` dosyasındaki her fonksiyonun backend
   - **Sınırlar (K5):** toplam 5 MB, 200 dosya (zip açılmış hâliyle). `node_modules`, `bin`, `obj`, `venv`, `.venv`, `.git`, `__pycache__` atlanır. Aşılırsa 413.
   - Bütün dosyalar tek bir üst klasördeyse (`blog-api/...`) proje adı o klasörün adı olur; zipte üst klasör yoksa zip'in adı.
   - **Güvenlik:** `../`, mutlak yol ve sürücü harfi içeren yollar 400 ile reddedilir; zipteki sembolik bağlantılar atlanır; şifreli zip kabul edilmez. Dosyalar yalnızca çalıştırmanın kendi klasörüne (`backend/yuklemeler/<runId>/kaynak`) yazılır.
-- `kaynak = github` için `secim` içinde ek alan: `github: { repo, dal, secilenler: [yol…] }`. ⏳ GitHub App kurulduktan sonra (belge 08); şimdilik 400 "henüz hazır değil".
+- `kaynak = github` için `secim` içinde ek alan: `github: { repo, dal, commit, secilenler: [yol…] }` ve `dosyalar` gönderilmez (bölüm 3). ✅
 
 ### 2.2 `WS /runs/{runId}/olaylar`: canlı akış
 - Tarayıcı WebSocket'e başlık ekleyemediği için bağlandıktan sonraki **ilk mesaj** `{ "token": "…" }` olur (10 sn içinde).
@@ -119,13 +122,30 @@ Biçim mock dosyalarıyla birebir aynı. Alanların tam listesi oradadır:
 ```
 `durum`: `bekliyor | calisiyor | tamamlandi | durduruldu | kurulumHatasi | hata`. Frontend şimdilik `tamamlandi` ve `kurulumHatasi`'nı gösteriyor. `hata` ve `kurulumHatasi`'nda ek alan `hata` (açıklama) gelir. Sunucu yeniden başlarsa yarıda kalan testler `hata` olur.
 
-## 3. GitHub repo erişimi (⏳, belge 08)
-`githubHesabiBagla`, `githubRepoErisimiVer`, `getGithubRepolari`, `getGithubDallari`, `getGithubAgaci` ve `getGithubBaglami` GitHub App kurulumundan sonra yazılacak. Biçimleri api.js'teki yorumlarda tanımlı. O zamana kadar gerçek backend modunda bu adımlar "henüz hazır değil" hatası verir.
+## 3. GitHub repo erişimi (✅ 27.11.2026, GitHub App; kurulum: `docs/github-app.md`)
+Hepsi giriş ister. Biçimler api.js'teki mock'la aynı.
+
+| api.js | Uç | Yanıt |
+|---|---|---|
+| `getGithubRepolari()` | `GET /github/repolar` | `[{ ad: "sahip/repo", gizli, dil }]` (`dil`: `python \| js \| csharp \| php \| null`) |
+| `getGithubDallari(repo)` | `GET /github/dallar?repo=` | `[{ ad, commit }]` (varsayılan dal ilk; `commit` kısa SHA) |
+| `getGithubAgaci(repo, dal)` | `GET /github/agac?repo=&dal=` | `[{ yol, boyut }]` (yalnızca dosyalar; içerik indirilmez) |
+| `getGithubBaglami(repo, dal, secilenler, tur)` | `POST /github/baglam` `{ repo, dal, secilenler, tur }` | `{ baglam: [{ yol, neden }], tumRepo }` |
+
+- **410:** kullanıcı repolarına erişim vermemiş ya da App'i GitHub'da kaldırmış. Site "Repolarına erişim ver" adımına döner. Backend kurulum kaydını siler.
+- **404:** repo/dal yok ya da erişim verilmemiş. **502:** GitHub'a ulaşılamadı. **429:** GitHub istek sınırı.
+- **Test başlatma (`POST /runs`, `kaynak: "github"`):** backend dalın son commit'ini zip arşivi olarak indirir (git clone değil). Hedef dosyalar + bağlam `yuklemeler/<runId>/kaynak/` altına, repodaki yollarıyla açılır. 5 MB / 200 dosya sınırı aynıdır. Bağlam backend'de yeniden hesaplanır; sitenin gönderdiği listeye güvenilmez. Kaydedilen `secim.github`:
+  - `commit`: indirilen commit'in tam SHA'sı;
+  - `secilenler`: **hedef dosyalar** (repoda bulunanlar). Testler bunlara yazılır, kapsama bunlarda ölçülür;
+  - `baglam`: otomatik eklenen dosyalar. Çalışması için gerekir, test edilmez.
+
+  **Motor için (Kadir):** kod yüklemede klasördeki her dosya hedeftir; GitHub'da yalnızca `secim.github.secilenler` hedeftir.
+- Seçilen dosyaların hiçbiri dalda yoksa 409 (dal güncellenmiş olabilir).
 
 ## 4. Veritabanı karşılıkları (`backend/app/modeller.py`)
 | Tablo | Ne tutar |
 |---|---|
-| `kullanicilar` | hesap, şifre özeti (Argon2id), GitHub/Google bağlantısı, `profil` (JSON) |
+| `kullanicilar` | hesap, şifre özeti (Argon2id), GitHub/Google bağlantısı, GitHub App kurulumu (`github_kurulum_id`, göç 0002), `profil` (JSON) |
 | `calistirmalar` | `runId`, sahibi, `proje`, `secim` (JSON), `durum`, `ozet` (geçmiş listesindeki skorlar), `hata` |
 | `olaylar` | canlı akış olayları, `sira` ile (sayfa yenilenince tekrar oynatmak için) |
 | `raporlar` | getReport'un döndürdüğü nesnenin tamamı (JSON), `kalite_skoru` |

@@ -22,6 +22,8 @@ from app.calistirma import kayit
 from app.calistirma.secim import SecimHatasi, secimi_coz
 from app.calistirma.yukleme import YuklemeHatasi, kaydet
 from app.db import get_db
+from app.github import repo as github_repo
+from app.github.router import calistir as github_calistir
 from app.modeller import Calistirma
 from app.sahte_motor import motor
 from app.sahte_motor.olaylar import url_adi
@@ -54,6 +56,22 @@ async def baslat(
     run_id = str(uuid.uuid4())
     if s.kaynak == "url":
         proje = url_adi(s.url)
+    elif s.kaynak == "github":
+        # Seçilen dosyalar + bağlam GitHub'dan indirilip yüklemeyle aynı klasöre açılır (belge 22)
+        hedef = ayarlar.YUKLEME_KLASORU / run_id / "kaynak"
+        g = s.github
+        try:
+            sonuc = await github_calistir(
+                kullanici, lambda k: github_repo.repodan_hazirla(k, g.repo, g.dal, g.secilenler, s.tur, hedef)
+            )
+        except YuklemeHatasi as h:
+            shutil.rmtree(hedef.parent, ignore_errors=True)
+            raise HTTPException(h.kod, h.mesaj) from h
+        except BaseException:
+            shutil.rmtree(hedef.parent, ignore_errors=True)
+            raise
+        proje = sonuc["proje"]
+        g.commit, g.secilenler, g.baglam = sonuc["commit"], sonuc["secilenler"], sonuc["baglam"]
     elif s.ornek:
         proje = s.ornek
     else:

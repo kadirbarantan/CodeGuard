@@ -80,46 +80,77 @@ function SinirCubugu({ etiket, deger, sinir, yazi }) {
   )
 }
 
+// Hata kutusu (repo, dal ya da ağaç getirilemezse): mesaj + "Tekrar dene"
+function HataKutusu({ mesaj, onTekrar }) {
+  return (
+    <div role="alert" className="flex flex-wrap items-center gap-x-3 gap-y-2 py-4 text-sm text-bad-text">
+      <span className="flex items-center gap-2">
+        <TriangleAlert size={16} className="shrink-0" aria-hidden="true" /> {mesaj}
+      </span>
+      <button type="button" onClick={onTekrar} className="min-h-8 rounded-md px-2 text-xs font-medium text-ai-text hover:bg-ai-bg">
+        Tekrar dene
+      </button>
+    </div>
+  )
+}
+
 // Durum 4: repo, dal ve dosya seçimi
-function RepoSecimi({ github, tur, kullaniciAdi, onGithub }) {
+// onErisimKalkti: backend 410 dönerse (erişim GitHub'da kaldırılmış) durum 3'e dönülür
+function RepoSecimi({ github, tur, kullaniciAdi, onGithub, onErisimKalkti }) {
   const [repolar, setRepolar] = useState(null)
   const [dallar, setDallar] = useState([])
   const [agac, setAgac] = useState(null)
+  const [hata, setHata] = useState('')
+  // "Tekrar dene" bu sayacı artırır; istekler yeniden atılır
+  const [deneme, setDeneme] = useState(0)
   const g = github || {}
+
+  // İstek hatası: erişim kalktıysa durum 3, değilse mesaj
+  function hataGoster(e) {
+    if (e?.durum === 410) onErisimKalkti()
+    else setHata(e?.message || 'GitHub bilgileri getirilemedi.')
+  }
 
   // Erişim verilen repolar
   useEffect(() => {
     let iptal = false
-    getGithubRepolari().then((r) => !iptal && setRepolar(r))
+    setHata('')
+    getGithubRepolari()
+      .then((r) => !iptal && setRepolar(r))
+      .catch((e) => !iptal && hataGoster(e))
     return () => {
       iptal = true
     }
-  }, [])
+  }, [deneme]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Repo seçilince dallar; dal yoksa varsayılan dal (ilk sıradaki, genelde main)
   useEffect(() => {
     if (!g.repo) return
     let iptal = false
-    getGithubDallari(g.repo).then((d) => {
-      if (iptal) return
-      setDallar(d)
-      if (!g.dal && d[0]) onGithub({ dal: d[0].ad, commit: d[0].commit })
-    })
+    getGithubDallari(g.repo)
+      .then((d) => {
+        if (iptal) return
+        setDallar(d)
+        if (!g.dal && d[0]) onGithub({ dal: d[0].ad, commit: d[0].commit })
+      })
+      .catch((e) => !iptal && hataGoster(e))
     return () => {
       iptal = true
     }
-  }, [g.repo]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [g.repo, deneme]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Repo/dal seçilince ağaç (yalnızca yollar ve boyutlar; içerik indirilmez)
   useEffect(() => {
     if (!g.repo || !g.dal) return
     let iptal = false
     setAgac(null)
-    getGithubAgaci(g.repo, g.dal).then((a) => !iptal && setAgac(a.filter((d) => !haricMi(d.yol))))
+    getGithubAgaci(g.repo, g.dal)
+      .then((a) => !iptal && setAgac(a.filter((d) => !haricMi(d.yol))))
+      .catch((e) => !iptal && hataGoster(e))
     return () => {
       iptal = true
     }
-  }, [g.repo, g.dal])
+  }, [g.repo, g.dal, deneme]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Seçim ya da test türü değişince bağlamı yeniden hesapla (Bağlam Çözümleyici)
   const secilenler = g.secilenler || []
@@ -133,10 +164,17 @@ function RepoSecimi({ github, tur, kullaniciAdi, onGithub }) {
       return
     }
     let iptal = false
-    onGithub({ hesaplaniyor: true })
-    getGithubBaglami(g.repo, g.dal, secilenler, tur).then(({ baglam, tumRepo }) => {
-      if (!iptal) onGithub({ baglam, tumRepo, hesaplaniyor: false })
-    })
+    onGithub({ hesaplaniyor: true, baglamHatasi: '' })
+    getGithubBaglami(g.repo, g.dal, secilenler, tur)
+      .then(({ baglam, tumRepo }) => {
+        if (!iptal) onGithub({ baglam, tumRepo, hesaplaniyor: false })
+      })
+      .catch((e) => {
+        if (iptal) return
+        // Bağlam test başlarken backend'de yeniden hesaplanır; burada yalnızca bilgi verilir
+        onGithub({ baglam: [], tumRepo: false, hesaplaniyor: false, baglamHatasi: e?.message || 'Hesaplanamadı.' })
+        if (e?.durum === 410) onErisimKalkti()
+      })
     return () => {
       iptal = true
     }
@@ -162,7 +200,13 @@ function RepoSecimi({ github, tur, kullaniciAdi, onGithub }) {
     onGithub({ dal: ad, commit: d?.commit || null, secilenler: [], baglam: [], tumRepo: false })
   }
 
+  function tekrarDene() {
+    setHata('')
+    setDeneme((d) => d + 1)
+  }
+
   if (!repolar) {
+    if (hata) return <HataKutusu mesaj={hata} onTekrar={tekrarDene} />
     return (
       <p className="flex items-center gap-2 py-6 text-sm text-muted">
         <Loader2 size={16} className="animate-spin" aria-hidden="true" /> Repoların getiriliyor…
@@ -227,7 +271,11 @@ function RepoSecimi({ github, tur, kullaniciAdi, onGithub }) {
             )}
           </div>
           <div className="max-h-80 overflow-y-auto rounded-lg border border-border bg-surface p-1.5">
-            {agac ? (
+            {hata ? (
+              <div className="px-2">
+                <HataKutusu mesaj={hata} onTekrar={tekrarDene} />
+              </div>
+            ) : agac ? (
               <RepoAgaci
                 key={g.repo + '@' + g.dal}
                 dosyalar={agac}
@@ -259,10 +307,12 @@ function RepoSecimi({ github, tur, kullaniciAdi, onGithub }) {
                   <p>
                     <span className="font-medium text-text">Otomatik eklenen:</span>{' '}
                     <span className="text-text-2">
-                      {g.hesaplaniyor ? 'hesaplanıyor…' : `${baglam.length} dosya · ${boyutYaz(baglamBoyut)}`}
+                      {g.hesaplaniyor ? 'hesaplanıyor…' : g.baglamHatasi ? 'hesaplanamadı' : `${baglam.length} dosya · ${boyutYaz(baglamBoyut)}`}
                     </span>
                     <span className="block text-xs text-muted">
-                      {g.tumRepo
+                      {g.baglamHatasi
+                        ? `${g.baglamHatasi} Test başlarken yeniden hesaplanır.`
+                        : g.tumRepo
                         ? 'Arayüz testinde uygulamanın tamamı gerekir; tüm repo eklendi.'
                         : 'Çalışması için gereken manifestler ve import edilen dosyalar.'}
                     </span>
@@ -302,6 +352,12 @@ function RepoSecimi({ github, tur, kullaniciAdi, onGithub }) {
 
 // GitHub sekmesi: duruma göre bağlanma kartı ya da repo seçimi
 export default function GitHubGirdi({ user, github, tur, onGithub, onGirisYapildi, onKullaniciGuncelle, onGirisAc }) {
+  // Erişim GitHub'da kaldırılmış (backend 410): durum 3'e dön, seçim sıfırlanır
+  function erisimKalkti() {
+    onGithub({ repo: null, dal: null, commit: null, secilenler: [], baglam: [], tumRepo: false })
+    onKullaniciGuncelle({ github: { ...user.github, repoErisimi: false } })
+  }
+
   // 1. Giriş yok
   if (!user) {
     return (
@@ -344,5 +400,13 @@ export default function GitHubGirdi({ user, github, tur, onGithub, onGirisYapild
     )
   }
   // 4. Hazır
-  return <RepoSecimi github={github} tur={tur} kullaniciAdi={user.github.kullaniciAdi} onGithub={onGithub} />
+  return (
+    <RepoSecimi
+      github={github}
+      tur={tur}
+      kullaniciAdi={user.github.kullaniciAdi}
+      onGithub={onGithub}
+      onErisimKalkti={erisimKalkti}
+    />
+  )
 }
