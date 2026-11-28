@@ -10,7 +10,7 @@ geçici bir kapsayıcı açılır, iş bitince silinir. İmajın içindeki betik
    ve testler salt okunur; root olmayan kullanıcı; Linux yetkileri (capabilities) kapalı.
 
 Sonuç: Standardizasyon Katmanı'nın (app/analiz/standart.py) ürettiği kısa özet ve ham dosyaların yeri.
-Faz 4'te ajanın `run_tests` aracı bu modülü çağıracak.
+Birim ajanının Doğrulayıcısı (Faz 4, app/motor/birim) `Oturum` ile kurulumu bir kez yapar, testleri her turda çalıştırır.
 """
 from __future__ import annotations
 
@@ -133,78 +133,87 @@ def bagimlilik_dosyasi_var(kaynak: Path) -> bool:
     return (kaynak / "requirements.txt").is_file() or (kaynak / "pyproject.toml").is_file()
 
 
-def calistir(
-    kaynak: Path | str,
-    testler: Path | str,
-    cikti: Path | str | None = None,
-    *,
-    sinirlar: Sinirlar | None = None,
-    imaj: str = IMAJ,
-    kurulum_agi: str = "bridge",
-) -> dict:
-    """Projenin bağımlılıklarını kurar, testleri sandbox'ta çalıştırır ve özetini döndürür.
-
-    kaynak    kullanıcının kodu (ör. YUKLEME_KLASORU/<run_id>/kaynak)
-    testler   çalıştırılacak testlerin klasörü (Faz 4'te ajanın yazdığı testler)
-    cikti     ham sonuç dosyalarının yazılacağı klasör; verilmezse geçici bir klasör
-
-    Dönen "durum": tamam | kurulum_hatasi | zaman_asimi | bellek_asimi | calisma_hatasi.
-    "tamam", testlerin çalıştığı anlamına gelir; geçip kalmaları "ozet.testler" içindedir.
-    """
-    sinirlar = sinirlar or Sinirlar()
-    kaynak, testler = Path(kaynak).resolve(), Path(testler).resolve()
-    for klasor, ad in ((kaynak, "Kaynak"), (testler, "Test")):
-        if not klasor.is_dir():
-            raise SandboxHatasi(f"{ad} klasörü bulunamadı: {klasor}")
-
-    istemci = _istemci()
-    _imaj_kontrol(istemci, imaj)
-
+def _cikti_klasoru(cikti: Path | str | None) -> Path:
     # resolve(): Windows'taki kısa yol adlarını (KADIRB~1 gibi) Docker'ın tanıdığı uzun yola çevirir
-    cikti = Path(cikti or tempfile.mkdtemp(prefix="codeguard-sandbox-")).resolve()
-    cikti.mkdir(parents=True, exist_ok=True)
-    os.chmod(cikti, 0o777)  # kapsayıcıdaki 1000 numaralı kullanıcı yazabilsin (Linux'ta gerekli)
+    klasor = Path(cikti or tempfile.mkdtemp(prefix="codeguard-sandbox-")).resolve()
+    klasor.mkdir(parents=True, exist_ok=True)
+    os.chmod(klasor, 0o777)  # kapsayıcıdaki 1000 numaralı kullanıcı yazabilsin (Linux'ta gerekli)
+    return klasor
 
-    hacim = f"codeguard-bagimlilik-{uuid.uuid4().hex[:12]}"
-    sonuc = {"durum": None, "cikti_klasoru": str(cikti), "kurulum": None, "test": None, "ozet": None}
-    try:
-        # 1. Kurulum: ağ açık, kaynak salt okunur, paketler hacme yazılır
-        if bagimlilik_dosyasi_var(kaynak):
+
+class Oturum:
+    """Bir çalıştırma boyunca kullanılan sandbox (Faz 4): bağımlılıklar bir kez kurulur, testler her turda yeniden çalışır.
+
+        with Oturum(kaynak) as oturum:
+            oturum.kur()                       # kurulum aşaması (bir kez)
+            sonuc = oturum.test(test_klasoru)  # test aşaması (her tur)
+
+    Bağımlılıklar çalıştırmaya özel bir Docker hacmindedir; oturum kapanınca hacim silinir.
+    """
+
+    def __init__(self, kaynak: Path | str, *, sinirlar: Sinirlar | None = None, imaj: str = IMAJ, kurulum_agi: str = "bridge"):
+        self.kaynak = Path(kaynak).resolve()
+        if not self.kaynak.is_dir():
+            raise SandboxHatasi(f"Kaynak klasörü bulunamadı: {self.kaynak}")
+        self.sinirlar = sinirlar or Sinirlar()
+        self.imaj = imaj
+        self.kurulum_agi = kurulum_agi
+        self.istemci = _istemci()
+        _imaj_kontrol(self.istemci, imaj)
+        self.hacim = f"codeguard-bagimlilik-{uuid.uuid4().hex[:12]}"
+        self.kurulum: dict | None = None
+
+    def kur(self) -> dict:
+        """Kurulum aşaması: ağ açık, kaynak salt okunur, paketler hacme yazılır. İkinci çağrıda yeniden kurmaz."""
+        if self.kurulum is not None:
+            return self.kurulum
+        if bagimlilik_dosyasi_var(self.kaynak):
             kurulum = _kapsayici_calistir(
-                istemci, imaj, "kurulum",
+                self.istemci, self.imaj, "kurulum",
                 mounts=[
-                    _bagla(kaynak, "/kaynak"),
-                    _hacim(hacim, "/bagimliliklar"),
+                    _bagla(self.kaynak, "/kaynak"),
+                    _hacim(self.hacim, "/bagimliliklar"),
                     _hacim(PIP_ONBELLEK_HACMI, "/home/sandbox/.cache/pip"),
                 ],
-                ag=kurulum_agi,
-                sure_sn=sinirlar.kurulum_sure_sn,
-                sinirlar=sinirlar,
+                ag=self.kurulum_agi,
+                sure_sn=self.sinirlar.kurulum_sure_sn,
+                sinirlar=self.sinirlar,
             )
             kurulum["durum"] = "kuruldu" if kurulum["cikis_kodu"] == 0 else "hata"
         else:
             kurulum = {"durum": "gerek_yok"}
-        sonuc["kurulum"] = kurulum
-        if kurulum["durum"] == "hata":
+        self.kurulum = kurulum
+        return kurulum
+
+    def test(self, testler: Path | str, cikti: Path | str | None = None) -> dict:
+        """Test aşaması (bir kez): ağ kapalı, her şey salt okunur, yalnızca /cikti ve /tmp yazılabilir.
+
+        Dönen: {"durum", "cikti_klasoru", "test", "ozet"}. "durum": tamam | kurulum_hatasi | zaman_asimi |
+        bellek_asimi | calisma_hatasi. "tamam", testlerin çalıştığı anlamına gelir; geçip kalmaları "ozet.testler"dedir.
+        """
+        testler = Path(testler).resolve()
+        if not testler.is_dir():
+            raise SandboxHatasi(f"Test klasörü bulunamadı: {testler}")
+        cikti = _cikti_klasoru(cikti)
+        sonuc = {"durum": None, "cikti_klasoru": str(cikti), "test": None, "ozet": None}
+        if self.kur()["durum"] == "hata":
             # K5: kurulum hatası denemeden düşmez; süreç durur ve kurulum hatası raporlanır
             sonuc["durum"] = "kurulum_hatasi"
             return sonuc
-
-        # 2. Test: ağ kapalı, her şey salt okunur, yalnızca /cikti ve /tmp yazılabilir
         test = _kapsayici_calistir(
-            istemci, imaj, "test",
+            self.istemci, self.imaj, "test",
             mounts=[
-                _bagla(kaynak, "/kaynak"),
+                _bagla(self.kaynak, "/kaynak"),
                 _bagla(testler, "/testler"),
                 _bagla(cikti, "/cikti", salt_okunur=False),
-                _hacim(hacim, "/bagimliliklar", salt_okunur=True),
+                _hacim(self.hacim, "/bagimliliklar", salt_okunur=True),
             ],
             ag="none",
-            sure_sn=sinirlar.test_sure_sn,
-            sinirlar=sinirlar,
+            sure_sn=self.sinirlar.test_sure_sn,
+            sinirlar=self.sinirlar,
             ortam={
                 "PYTHONPATH": "/kaynak:/bagimliliklar",
-                "CODEGUARD_TEST_SURE_SN": str(sinirlar.test_basina_sn),
+                "CODEGUARD_TEST_SURE_SN": str(self.sinirlar.test_basina_sn),
                 "HOME": "/tmp",  # bazı kütüphaneler ev klasörüne yazmak ister; kök salt okunur
             },
         )
@@ -219,8 +228,42 @@ def calistir(
         else:
             sonuc["durum"] = "tamam"
         return sonuc
-    finally:
+
+    def kapat(self) -> None:
         try:
-            istemci.volumes.get(hacim).remove(force=True)
+            self.istemci.volumes.get(self.hacim).remove(force=True)
         except (NotFound, DockerException):
             pass
+
+    def __enter__(self) -> "Oturum":
+        return self
+
+    def __exit__(self, *_hata) -> None:
+        self.kapat()
+
+
+def calistir(
+    kaynak: Path | str,
+    testler: Path | str,
+    cikti: Path | str | None = None,
+    *,
+    sinirlar: Sinirlar | None = None,
+    imaj: str = IMAJ,
+    kurulum_agi: str = "bridge",
+) -> dict:
+    """Projenin bağımlılıklarını kurar, testleri sandbox'ta bir kez çalıştırır ve özetini döndürür.
+
+    kaynak    kullanıcının kodu (ör. YUKLEME_KLASORU/<run_id>/kaynak)
+    testler   çalıştırılacak testlerin klasörü
+    cikti     ham sonuç dosyalarının yazılacağı klasör; verilmezse geçici bir klasör
+
+    Dönen "durum": tamam | kurulum_hatasi | zaman_asimi | bellek_asimi | calisma_hatasi.
+    Ajan her turda yeniden kurulum yapmamak için `Oturum`'u kullanır.
+    """
+    if not Path(testler).resolve().is_dir():
+        raise SandboxHatasi(f"Test klasörü bulunamadı: {Path(testler).resolve()}")
+    with Oturum(kaynak, sinirlar=sinirlar, imaj=imaj, kurulum_agi=kurulum_agi) as oturum:
+        cikti = _cikti_klasoru(cikti)
+        sonuc = {"durum": None, "cikti_klasoru": str(cikti), "kurulum": oturum.kur(), "test": None, "ozet": None}
+        sonuc.update(oturum.test(testler, cikti))
+        return sonuc

@@ -17,3 +17,6 @@ docker>=7.1
 # Test motoru (Faz 3): Kod Haritası (tree-sitter, K4)
 tree-sitter>=0.25
 tree-sitter-python>=0.25
+# Test motoru (Faz 4): birim ajanı (LangGraph + Gemini, K8, K9)
+langgraph>=1.2
+google-genai>=3.6

@@ -1,0 +1,12 @@
+{
+  "proje": "blog-api",
+  "aciklama": "ornekler/README.md'deki bilinen hata tablosunun makine okunur hâli. Ajana gösterilmez; araclar/ajan_dene.py yakalanan hataları saymak için okur (K7).",
+  "hatalar": [
+    {"no": 1, "dosya": "app/posts.py", "satir": 27, "birim": "app/posts.py::create_post", "ozet": "Yalnızca boşluktan oluşan başlık kabul ediliyor (400 yerine 201)."},
+    {"no": 2, "dosya": "app/posts.py", "satir": 32, "birim": "app/posts.py::create_post", "ozet": "Kimlik len(db) + 1; silmeden sonra aynı kimlik tekrar veriliyor."},
+    {"no": 3, "dosya": "app/pagination.py", "satir": 16, "birim": "app/pagination.py::paginate", "ozet": "Son sayfadan büyük sayfa ValueError yerine boş liste döndürüyor."},
+    {"no": 4, "dosya": "app/core/security.py", "satir": 16, "birim": "app/core/security.py::verify_password", "ozet": "Kısa şifrede False yerine ValueError fırlatıyor."},
+    {"no": 5, "dosya": "app/utils/slug.py", "satir": 11, "birim": "app/utils/slug.py::slugify", "ozet": "Türkçe harfler Latin karşılıklarına dönmüyor, siliniyor."},
+    {"no": 6, "dosya": "app/core/config.py", "satir": 15, "birim": "app/core/config.py::get_page_size", "ozet": "PAGE_SIZE sayı değilse ValueError, 1'den küçükse o değer dönüyor."}
+  ]
+}

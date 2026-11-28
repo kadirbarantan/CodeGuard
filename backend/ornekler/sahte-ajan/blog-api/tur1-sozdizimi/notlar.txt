@@ -1,0 +1,1 @@
+test_slug.py'deki sözdizimi hatası düzeltildi.

@@ -8,7 +8,7 @@ FastAPI uygulaması. Şu an olanlar:
 - GitHub repo erişimi (GitHub App): repo · dal · dosya seçimi, Bağlam Çözümleyici, seçilen dosyaları indirip test etme. Kurulum: `../docs/github-app.md`.
 - **Sahte motor (geçici):** gerçek test ajanı yazılana kadar canlı akış adımlarını ve raporu sitenin mock verileriyle üretir. Gerçek motor (Faz 3–4) geldiğinde yalnızca `app/sahte_motor` değişir; uçlar aynı kalır.
 
-Uçların ve verilerin biçimi: `../docs/api-sozlesmesi.md`. Gerçek motor (Faz 3) başladı: sandbox (`sandbox/`, `app/motor/sandbox.py`) ve örnek proje (`ornekler/`). Sıradaki: Kod Haritası ve ajanlar (bkz. Claude projesi belge 18).
+Uçların ve verilerin biçimi: `../docs/api-sozlesmesi.md`. Gerçek motor: sandbox (`sandbox/`, `app/motor/sandbox.py`), örnek proje (`ornekler/`), Kod Haritası (`app/analiz/`) ve birim ajanı (`app/motor/birim/`, Faz 4). Birim ajanı şimdilik deneme betiğiyle çalışıyor; siteye bağlanması sıradaki adım (bkz. Claude projesi belge 18 ve 25).
 
 ## Gerekenler
 
@@ -78,7 +78,22 @@ python araclar/kod_haritasi_dene.py ornekler/blog-api --birim app/posts.py::crea
 python araclar/sandbox_dene.py ornekler/blog-api ornekler/blog-api-referans-testler --geri-bildirim
 ```
 
-Sonuncusu sandbox sonucunu haritayla birleştirir: "satır 42-43 çalışmadı" yerine "`list_posts`: `except ValueError` hiç tetiklenmedi; bu yol 400 döndürüyor" der. Ajan bir sonraki turda bunu görecek.
+Sonuncusu sandbox sonucunu haritayla birleştirir: "satır 42-43 çalışmadı" yerine "`list_posts`: `except ValueError` hiç tetiklenmedi; bu yol 400 döndürüyor" der. Ajan bir sonraki turda bunu görür.
+
+## Birim ajanı (test motoru, Faz 4)
+
+Planlayıcı → Test Yazıcı → Doğrulayıcı döngüsü (LangGraph, K9): Planlayıcı Kod Haritası'ndan plan çıkarır, Test Yazıcı pytest testleri yazar, Doğrulayıcı testleri sandbox'ta çalıştırıp kapsanmayan dalları ve kalan testleri geri bildirir. En fazla 4 tur; kodun belgelenen davranıştan saptığı yerler Olası Hata olarak işaretlenir (K6). Docker Desktop açık olmalı.
+
+```bash
+python araclar/ajan_dene.py ornekler/blog-api --sahte    # API anahtarı olmadan, önceden yazılmış yanıtlarla (akışı dener)
+python araclar/gemini_dene.py                            # Gemini bağlantısı (1 istek)
+python araclar/ajan_dene.py ornekler/blog-api            # Gemini ile (.env: GEMINI_API_KEY, GEMINI_MODEL)
+```
+
+- Gemini anahtarı: Google AI Studio → Get API key. `.env`'e `GEMINI_API_KEY=` satırı olarak yazılır; commit edilmez, kimseyle paylaşılmaz.
+- Ücretsiz katmanda günlük istek sınırı var: bir çalıştırma ~6–15 istek. Varsayılan model günlük kotası geniş olan `gemini-3.5-flash-lite`.
+- Ücretsiz katmanda gönderilen kod Google ürünlerini geliştirmek için kullanılabilir; yalnızca örnek ya da açık kaynak kodla dene.
+- Çıktılar `ajan-ciktilari/<tarih-saat>-<proje>/` altında: son testler, `sonuc.json`, model çağrılarının günlüğü, istemler ve sandbox'ın ham çıktıları (GitHub'a gönderilmez).
 
 ## Tabloyu değiştirince
 
@@ -100,8 +115,10 @@ araclar/
 ├── canli_izle.py      bir testin canlı akışını terminalde izler
 ├── ornek_veri_uret.mjs  sahte motorun örnek verisini frontend mock'larından üretir
 ├── sandbox_dene.py    bir projeyi ve testleri sandbox'ta çalıştırıp sonucu yazar (--geri-bildirim)
-└── kod_haritasi_dene.py  bir projenin Kod Haritası'nı yazar
-ornekler/              hataları önceden bilinen örnek projeler (blog-api) ve referans testleri
+├── kod_haritasi_dene.py  bir projenin Kod Haritası'nı yazar
+├── ajan_dene.py       birim ajanını bir projede çalıştırır (--sahte: anahtarsız)
+└── gemini_dene.py     Gemini anahtarını ve bağlantısını dener
+ornekler/              hataları önceden bilinen örnek projeler (blog-api), referans testleri, bilinen hata listesi, sahte ajan senaryosu
 sandbox/               sandbox imajları (python/: Dockerfile, araçlar, kapsayıcı içi betik)
 app/
 ├── main.py            FastAPI uygulaması, CORS, /saglik; açılışta yarım kalan testleri kapatır
@@ -125,7 +142,10 @@ app/
 │   ├── rapor.py       rapor (frontend api.js getReport ile aynı)
 │   └── ornek_veri.json  frontend mock'larından üretilir, elle düzenlenmez
 ├── motor/             gerçek test motoru (Faz 3–4)
-│   └── sandbox.py     testleri Docker kapsayıcısında K5 kurallarıyla çalıştırır
+│   ├── sandbox.py     testleri Docker kapsayıcısında K5 kurallarıyla çalıştırır (Oturum: kurulum bir kez, test her tur)
+│   ├── llm.py         dil modeli katmanı: Gemini, sahte model, dakikalık sınır, yeniden deneme, token tavanı ve günlük
+│   └── birim/         birim ajanı (LangGraph): graf.py düğümler, istemler.py, araclar.py, denetim.py hile denetimi,
+│                      dogrulayici.py sandbox + geri bildirim, sahte_senaryo.py
 ├── analiz/            Kod Haritası ve Standardizasyon Katmanı (Faz 3)
 │   ├── standart.py    JUnit / Cobertura çıktılarını kısa özete çevirir
 │   ├── kod_haritasi/  Kod Haritası (K4): __init__.py ortak kısım, python.py Python okuyucusu (tree-sitter)

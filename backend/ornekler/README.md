@@ -5,7 +5,7 @@ Hataları önceden bilinen küçük projeler. İki işe yarar:
 1. **Sitedeki "Örnek projeyle dene"** (`secim.ornek = "blog-api"`): gerçek motor bu projeyi test eder.
 2. **Değerlendirme (K7):** sistemin bilinen hataları bulup bulmadığı ve tek atış LLM ile karşılaştırması bu projelerde ölçülür.
 
-**Önemli:** Ajana yalnızca proje klasörü (`blog-api/`) verilir. Bu README ve `blog-api-referans-testler/` ajana gösterilmez; yoksa cevapları görmüş olur. Proje kodunda da hataları ele veren yorum yoktur.
+**Önemli:** Ajana yalnızca proje klasörü (`blog-api/`) verilir. Bu README, `blog-api-referans-testler/`, `blog-api-bilinen-hatalar.json` ve `sahte-ajan/` ajana gösterilmez; yoksa cevapları görmüş olur. Proje kodunda da hataları ele veren yorum yoktur.
 
 ## blog-api (Python, FastAPI)
 
@@ -34,6 +34,11 @@ python araclar/sandbox_dene.py ornekler/blog-api ornekler/blog-api-referans-test
 
 Beklenen sonuç: 31 test, 25 geçti, **6 kaldı** (yukarıdaki 6 hata). Kapsama: satır %96,7, dal %90,6.
 Kapsanmayan satırlar bilerek bırakıldı (ör. `is_debug`, uzun içerikli `ozet`); ajanın tamamlaması beklenen yerler.
+
+### Bilinen hata listesi ve sahte ajan
+
+- `blog-api-bilinen-hatalar.json`: yukarıdaki tablonun makine okunur hâli. `araclar/ajan_dene.py` çalıştırma sonunda ajanın Olası Hatalarını bununla karşılaştırır ("6 hatadan 4'ü yakalandı"; K7). Kod değişirse tabloyla birlikte güncellenir.
+- `sahte-ajan/blog-api/`: önceden yazılmış ajan yanıtları. Birim ajanının akışını API anahtarı olmadan dener: `python araclar/ajan_dene.py ornekler/blog-api --sahte`. Gerçek bir dil modeli değildir; ayrıntı klasördeki README'de.
 
 ### Henüz olmayanlar
 

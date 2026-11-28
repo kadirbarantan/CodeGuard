@@ -182,6 +182,33 @@ def birim_kaynagi(kok: Path | str, harita: dict, birim_id: str, satir_no: bool =
     return "\n".join(f"{bas + i:>{genislik}} | {satir}" for i, satir in enumerate(secilen))
 
 
+def modul_duzeyi_kaynagi(kok: Path | str, harita: dict, dosya_yolu: str, satir_no: bool = True) -> str:
+    """Bir dosyanın hiçbir birime ait olmayan dolu satırları: içe aktarmalar, sabitler, router tanımı … (satır numaralı).
+
+    Test Yazıcı için birimlerin kaynağı tek başına yetmez: uç önekleri, sabitler ve içe aktarmalar buradan görünür.
+    """
+    if not any(d["yol"] == dosya_yolu for d in harita["dosyalar"]):
+        raise HaritaHatasi(f"Haritada böyle bir dosya yok: {dosya_yolu}")
+    dolu: set[int] = set()
+    for birim in harita["birimler"]:
+        if birim["dosya"] == dosya_yolu:
+            dolu.update(range(birim["satirlar"][0], birim["satirlar"][1] + 1))
+    satirlar = (Path(kok) / dosya_yolu).read_text(encoding="utf-8", errors="replace").splitlines()
+    secilen = [(no, satir) for no, satir in enumerate(satirlar, 1) if no not in dolu and satir.strip()]
+    if not satir_no:
+        return "\n".join(satir for _, satir in secilen)
+    genislik = len(str(len(satirlar)))
+    return "\n".join(f"{no:>{genislik}} | {satir}" for no, satir in secilen)
+
+
+def modul_adi(dosya_yolu: str) -> str:
+    """"app/posts.py" → "app.posts", "app/__init__.py" → "app" (proje kökü Python yolundayken içe aktarma adı)."""
+    parcalar = list(PurePosixPath(dosya_yolu).with_suffix("").parts)
+    if parcalar and parcalar[-1] == "__init__":
+        parcalar.pop()
+    return ".".join(parcalar)
+
+
 def harita_metni(harita: dict, sadece_hedef: bool = True) -> str:
     """Planlayıcı ajanın göreceği kısa metin (K4 "Planla"): her birim için imza, belge, dallar, hata yolları, bağımlılıklar."""
     satirlar = []
