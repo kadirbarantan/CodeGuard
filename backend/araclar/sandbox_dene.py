@@ -4,10 +4,13 @@ backend klasöründe, .venv açıkken ve Docker Desktop çalışırken:
 
     python araclar/sandbox_dene.py ornekler/blog-api ornekler/blog-api-referans-testler
     python araclar/sandbox_dene.py ornekler/blog-api sandbox/python/guvenlik-testleri
+    python araclar/sandbox_dene.py ornekler/blog-api ornekler/blog-api-referans-testler --geri-bildirim
 
 İlk argüman test edilecek proje, ikincisi testlerin klasörü. Betik projenin bağımlılıklarını kurar,
 testleri ağı kapalı bir kapsayıcıda çalıştırır ve sonucu yazar: kaç test geçti / kaldı, kapsama,
 kapsanmayan satırlar. --json ile özetin tamamını JSON olarak verir.
+--geri-bildirim: sonucu Kod Haritası'yla birleştirip ajanın bir sonraki turda göreceği metni yazar
+(K4 "Doğrula") ve ham çıktıyla boyutunu karşılaştırır (token tasarrufu, K12).
 """
 import argparse
 import json
@@ -16,6 +19,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # backend/ klasörü
 
+from app.analiz.geri_bildirim import geri_bildirim_metni, kapsama_geri_bildirimi  # noqa: E402
+from app.analiz.kod_haritasi import harita_cikar  # noqa: E402
 from app.motor.sandbox import SandboxHatasi, Sinirlar, calistir  # noqa: E402
 
 DURUM_METNI = {
@@ -68,6 +73,19 @@ def yazdir(sonuc: dict) -> None:
     print(f"\nHam çıktılar: {sonuc['cikti_klasoru']}")
 
 
+def geri_bildirim_yazdir(kaynak: str, sonuc: dict) -> None:
+    gb = kapsama_geri_bildirimi(harita_cikar(kaynak), sonuc["ozet"])
+    metin = geri_bildirim_metni(gb)
+    cikti = Path(sonuc["cikti_klasoru"])
+    ham = sum(len(p.read_text(encoding="utf-8", errors="replace")) for p in (cikti / "junit.xml", cikti / "kapsama.xml") if p.is_file())
+    print("\n── Ajan için geri bildirim (Kod Haritası + kapsama) ──")
+    print(metin)
+    print(
+        f"\nBoyut: ham test çıktısı {ham} karakter (~{round(ham / 4)} token), "
+        f"geri bildirim {len(metin)} karakter (~{round(len(metin) / 4)} token)"
+    )
+
+
 def main() -> int:
     ayristirici = argparse.ArgumentParser(description="Sandbox'ı bir proje ve test klasörüyle dener.")
     ayristirici.add_argument("kaynak", help="test edilecek projenin klasörü")
@@ -75,6 +93,7 @@ def main() -> int:
     ayristirici.add_argument("--cikti", help="ham sonuç dosyalarının klasörü (verilmezse geçici klasör)")
     ayristirici.add_argument("--sure", type=int, default=60, help="test aşamasının en fazla süresi, sn (varsayılan 60)")
     ayristirici.add_argument("--json", action="store_true", help="özetin tamamını JSON olarak yaz")
+    ayristirici.add_argument("--geri-bildirim", action="store_true", help="ajanın göreceği geri bildirimi de yaz")
     # Yalnızca bulut testinde gerekti (kapsayıcılar köprü ağından dışarı çıkamıyordu)
     ayristirici.add_argument("--kurulum-agi", default="bridge", help=argparse.SUPPRESS)
     secenek = ayristirici.parse_args()
@@ -95,6 +114,8 @@ def main() -> int:
         print(json.dumps(sonuc, ensure_ascii=False, indent=2))
     else:
         yazdir(sonuc)
+    if secenek.geri_bildirim and sonuc.get("ozet"):
+        geri_bildirim_yazdir(secenek.kaynak, sonuc)
     return 0 if sonuc["durum"] == "tamam" else 1
 
 

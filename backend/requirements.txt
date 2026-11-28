@@ -14,3 +14,6 @@ email-validator>=2.2
 python-multipart>=0.0.18
 # Test motoru (Faz 3): sandbox kapsayıcılarını yönetir
 docker>=7.1
+# Test motoru (Faz 3): Kod Haritası (tree-sitter, K4)
+tree-sitter>=0.25
+tree-sitter-python>=0.25

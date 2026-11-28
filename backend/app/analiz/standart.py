@@ -92,12 +92,14 @@ def cobertura_oku(yol: Path) -> dict | None:
 
     dosyalar = []
     for sinif in kok.iter("class"):
-        kapsanmayan, eksik_dallar = [], []
+        kapsanan, kapsanmayan, eksik_dallar = [], [], []
         for satir in sinif.iter("line"):
             no = int(satir.get("number"))
             if int(satir.get("hits") or 0) == 0:
                 kapsanmayan.append(no)
-            elif satir.get("branch") == "true" and not (satir.get("condition-coverage") or "").startswith("100%"):
+                continue
+            kapsanan.append(no)
+            if satir.get("branch") == "true" and not (satir.get("condition-coverage") or "").startswith("100%"):
                 eksik_dallar.append({
                     "satir": no,
                     "kapsama": satir.get("condition-coverage", ""),
@@ -109,6 +111,7 @@ def cobertura_oku(yol: Path) -> dict | None:
             "dal_yuzde": yuzde(sinif.get("branch-rate")),
             "kapsanmayan_satirlar": sorted(kapsanmayan),
             "eksik_dallar": eksik_dallar,
+            "kapsanan_satirlar": sorted(kapsanan),
         })
     return {
         "satir_yuzde": yuzde(kok.get("line-rate")),
