@@ -1,0 +1,19 @@
+{
+  "units": [
+    {"unit": "app/posts.py::create_post", "priority": 1, "scenarios": ["geçerli başlık ve içerikle 201 ve yazının kendisi döner", "boş başlık 400", "yalnızca boşluktan oluşan başlık 400 (belgelenen davranış)", "5000 karakterden uzun içerik 413", "silmeden sonra yeni yazıya benzersiz kimlik verilir"]},
+    {"unit": "app/pagination.py::paginate", "priority": 1, "scenarios": ["ilk sayfa", "son sayfa eksik dolu", "1'den küçük sayfa ilk sayfaya döner", "per_page 0 ise ValueError", "son sayfadan büyük sayfa ValueError (belgelenen davranış)"]},
+    {"unit": "app/core/security.py::verify_password", "priority": 1, "scenarios": ["doğru şifre True", "yanlış şifre False", "kısa şifre hata fırlatmadan False (belgelenen davranış)"]},
+    {"unit": "app/core/security.py::hash_password", "priority": 2, "scenarios": ["aynı şifre aynı özet", "8 karakterden kısa şifre ValueError"]},
+    {"unit": "app/posts.py::list_posts", "priority": 2, "scenarios": ["yazılar listelenir", "geçersiz sayfa boyutunda 400"]},
+    {"unit": "app/posts.py::get_post", "priority": 2, "scenarios": ["var olan yazı okunur", "olmayan yazı 404"]},
+    {"unit": "app/posts.py::delete_post", "priority": 2, "scenarios": ["yazı silinir", "olmayan yazı 404"]},
+    {"unit": "app/users.py::create_user", "priority": 2, "scenarios": ["e-posta küçük harfe çevrilir, şifre özetlenir", "aynı e-posta ikinci kez ValueError"]},
+    {"unit": "app/users.py::find_user", "priority": 3, "scenarios": ["kimlikle bulunur", "olmayan kimlik None"]},
+    {"unit": "app/utils/slug.py::slugify", "priority": 2, "scenarios": ["İngilizce metin", "boşluk ve işaretler tek tireye döner", "Türkçe harfler Latin karşılıklarına döner (belgelenen davranış)"]},
+    {"unit": "app/core/config.py::get_page_size", "priority": 2, "scenarios": ["değişken yoksa varsayılan", "geçerli değer okunur", "sayı değilse varsayılan (belgelenen davranış)"]},
+    {"unit": "app/models/post.py::Post.ozet", "priority": 3, "scenarios": ["kısa içerik olduğu gibi döner", "uzun içerik kısaltılıp sonuna ... eklenir"]},
+    {"unit": "app/pagination.py::has_next", "priority": 3, "scenarios": ["sonraki sayfa var / yok", "toplam sayfa 0"]}
+  ],
+  "order_note": "Önce çok dallı ve hata yolu olan birimler (create_post, paginate, verify_password), sonra yardımcılar.",
+  "setup_note": "Yazılar ve kullanıcılar bellekteki listelerde tutuluyor; her testten önce app.db.temizle() çağrılmalı."
+}

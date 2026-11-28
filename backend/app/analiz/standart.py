@@ -8,8 +8,8 @@ Okunan biçimler bilinçli olarak ortak biçimlerdir:
 - Cobertura XML: coverage.py, istanbul, coverlet, phpunit üretebilir.
 Yani her dil için ayrı okuyucu gerekmez.
 
-Sonraki adım: kapsanmayan satırları Kod Haritası'ndaki birimlerle ve dallarla eşleştirmek (K4),
-ham ve özet boyutunu karşılaştırıp token tasarrufunu loglamak (K12).
+Kapsanmayan satırların Kod Haritası'ndaki birimlerle ve dallarla eşlenmesi: geri_bildirim.py (K4).
+Ham çıktı ile geri bildirimin boyutu birim ajanında her tur kaydedilir: app/motor/birim (K12).
 """
 from __future__ import annotations
 
@@ -68,9 +68,13 @@ def junit_oku(yol: Path) -> dict | None:
         sinif = vaka.get("classname", "")
         testler.append({
             "ad": f"{sinif}::{vaka.get('name', '')}" if sinif else vaka.get("name", ""),
+            "sinif": sinif,
+            "isim": vaka.get("name", ""),
             "durum": durum,
             "mesaj": _kisalt(mesaj),
             "sure_sn": round(float(vaka.get("time") or 0), 3),
+            # Test dosyası hiç yüklenemedi (sözdizimi ya da içe aktarma hatası); içindeki testler çalışmadı
+            "toplama": durum == "hata" and alt is not None and alt.get("message") == "collection failure",
         })
     sayilar = {d: sum(1 for t in testler if t["durum"] == d) for d in ("gecti", "kaldi", "hata", "atlandi")}
     return {

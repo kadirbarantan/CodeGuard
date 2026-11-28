@@ -1,0 +1,1 @@
+Kalan testler belgelenen davranışa göre doğru, kod sapıyor: Olası Hata olarak işaretlendi. Kapsanmayan dallar için testler eklendi.
